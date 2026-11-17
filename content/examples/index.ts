@@ -186,7 +186,7 @@ delete toDelete;
   },
   {
     title: "Cats Problem",
-    description: "Classic Stanford CS106B pointer tracing with structs, arrays, and memory leaks.",
+    description: "Pointer tracing with structs, arrays, and memory leaks.",
     code: `struct Lion {
     int roar;
     int* meow;
