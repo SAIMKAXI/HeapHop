@@ -1,0 +1,36 @@
+{
+  "id": "inorder-traversal",
+  "title": "In-order traversal",
+  "summary": "Left, node, right: recursion visits a tree in sorted order.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* left;\n    Node* right;\n    Node(int d) : data(d), left(nullptr), right(nullptr) {}\n};\n\nNode* insert(Node* node, int value) {\n    if (node == nullptr) {\n        return new Node(value);\n    }\n    if (value < node->data) {\n        node->left = insert(node->left, value);\n    } else {\n        node->right = insert(node->right, value);\n    }\n    return node;\n}\n\nvoid inOrder(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    inOrder(node->left);\n    cout << node->data << \" \";\n    inOrder(node->right);\n}\n\nvoid destroy(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    destroy(node->left);\n    destroy(node->right);\n    delete node;\n}\n\nint main() {\n    Node* root = nullptr;\n    int values[] = {40, 20, 60, 10, 30};\n    for (int i = 0; i < 5; i++) {\n        root = insert(root, values[i]);\n    }\n    inOrder(root);\n    cout << endl;\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "for (int i = 0; i < 5; i++) {",
+      "occurrence": 6,
+      "text": "The tree is built: 40 at the root, 20 and 60 below it, 10 and 30 under 20. Now `inOrder` will visit every node."
+    },
+    {
+      "line": 25,
+      "text": "The calls went left, left, left until `node` was nullptr. Look at the stack: one frame for 40, one for 20, one for 10, and this empty one, which returns at once."
+    },
+    {
+      "at": "cout << node->data << \" \";",
+      "occurrence": 1,
+      "text": "Back in the frame for 10. Its left side is done, so 10 prints first: it is the smallest value."
+    },
+    {
+      "at": "cout << node->data << \" \";",
+      "occurrence": 4,
+      "text": "40, the root, prints fourth. Its whole left subtree (10, 20, 30) had to finish first."
+    },
+    {
+      "at": "inOrder(root);",
+      "text": "Every node printed exactly once, and in sorted order: 10 20 30 40 60. For a binary search tree, in-order traversal always gives sorted output."
+    },
+    {
+      "at": "delete node;",
+      "occurrence": 1,
+      "text": "`destroy` is another traversal, post-order: both children are deleted before their parent. The first node deleted is the leaf 10."
+    }
+  ]
+}

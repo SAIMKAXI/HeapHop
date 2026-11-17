@@ -8,7 +8,8 @@ import { highlightsFor, TraceModel, type Selection } from "@/core/trace";
 import { explainStep } from "@/core/explain";
 import { resolveLesson, type Lesson } from "@/core/learn";
 import { planLists } from "@/core/structures";
-import { AppHeader } from "@/ui/app-header";
+import { AppHeader } from "@/ui/site/app-header";
+import type { SitePage } from "@/ui/site/links";
 import { MemoryCanvas } from "@/ui/canvas/memory-canvas";
 import { InspectContext, type InspectApi } from "@/ui/inspect-context";
 import { InspectorPanel } from "@/ui/inspector/inspector-panel";
@@ -23,10 +24,13 @@ interface VisualizerProps {
   trace: Trace;
   /** When given, the lesson card guides the student through its checkpoints. */
   lesson?: Lesson;
+  /** The site page this run belongs to, and the words on the button that returns there. */
+  current: SitePage;
+  backLabel: string;
   onBack: () => void;
 }
 
-export function Visualizer({ trace, lesson, onBack }: VisualizerProps) {
+export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: VisualizerProps) {
   // Derived once per trace: events, object names, and where each list node sits.
   const model = useMemo(() => new TraceModel(trace), [trace]);
   const plan = useMemo(() => planLists(trace), [trace]);
@@ -68,7 +72,7 @@ export function Visualizer({ trace, lesson, onBack }: VisualizerProps) {
   return (
     <InspectContext.Provider value={inspect}>
       <div className="flex min-h-dvh flex-col lg:h-dvh">
-        <AppHeader onBack={onBack} />
+        <AppHeader current={page} backLabel={backLabel} onBack={onBack} />
 
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <div className="max-h-[30vh] shrink-0 overflow-y-auto border-b-2 border-card-border lg:max-h-none lg:w-[400px] lg:border-b-0 lg:border-r-2">

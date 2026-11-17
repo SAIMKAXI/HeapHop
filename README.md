@@ -10,6 +10,16 @@ It runs entirely in the browser. Nothing is sent to a server.
 HeapHop is a Data Structures semester project at Air University (BS Cybersecurity,
 3rd semester). A VS Code extension that shows the same view next to your code is planned.
 
+## The site
+
+| Page | What it is for |
+| --- | --- |
+| `/` | What HeapHop does, with a live demo, and the way into Learn or the Editor |
+| `/learn` | Guided lessons on linked lists and trees, and ready-made programs to step through. A lesson has its own address, such as `/learn?lesson=build-a-bst`, so it can be shared |
+| `/editor` | Your own programs: write, run, and step through them. Starts with a blank starter program, then remembers your work in the browser |
+| `/faq`, `/about`, `/privacy` | Questions and answers, the team, and what is (and is not) stored |
+| `/supported` | The part of C++ HeapHop runs, built from `docs/SUBSET.md` |
+
 ## What it does
 
 - **Runs real lab programs.** Structs and classes, constructors and destructors, pointers
@@ -28,8 +38,10 @@ HeapHop is a Data Structures semester project at Air University (BS Cybersecurit
   explanation. Every earlier step stays visible. Lost nodes are marked as leaked.
 - **Steps both ways.** The whole run is recorded first, so going back is as reliable as
   going forward. A timeline, auto-play and "step over" are there too.
-- **Guided lessons** with prediction questions: "where will `cur` point after this line?"
-  The right answer is read from the program's own run.
+- **Guided lessons** on linked lists (walk, insert at the front, delete safely, reverse) and
+  trees (build a BST, search it, in-order traversal, an AVL rotation), with prediction
+  questions: "where will `cur` point after this line?" The right answer is read from the
+  program's own run.
 - **Zoom, pan and fullscreen** on the heap, and a layout that also works on a phone.
 
 The supported part of C++ is listed in [docs/SUBSET.md](docs/SUBSET.md) and on the site's
@@ -88,9 +100,9 @@ src/core/        the interpreter, the trace model, list and tree recognition,
 src/layout/      pure functions: one step in, node positions and arrow paths out
 src/runtime/     runs the interpreter in a Web Worker, with a time limit
 src/ui/          React components
-src/app/         the Next.js website (two pages: the tool and "What C++ is supported")
+src/app/         the Next.js website: landing, Learn, Editor, FAQ, About, Privacy, Supported
 src/standalone/  the same interface as one script file, for the VS Code webview
-content/         examples, lessons, glossary
+content/         examples, lessons (linked lists and trees), glossary
 tests/           unit tests, browser tests, and the C++ test programs with their g++ output
 docs/SUBSET.md   the supported part of C++ (also shown on the site)
 ```

@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { SAVED_THEME_SCRIPT } from "@/ui/theme-script";
+import { WebsiteProvider } from "@/ui/site/website";
 import "./globals.css";
 
 // Fonts are bundled with the site. Nothing is fetched from Google at
 // build time or in the visitor's browser.
 
 export const metadata: Metadata = {
-  title: "HeapHop",
+  title: { default: "HeapHop: see what your C++ does to memory", template: "%s · HeapHop" },
   description: "Step through C++ linked-list programs and watch the stack, the heap and every pointer change.",
 };
 
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <script dangerouslySetInnerHTML={{ __html: SAVED_THEME_SCRIPT }} />
       </head>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>{children}</body>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+        <WebsiteProvider>{children}</WebsiteProvider>
+      </body>
     </html>
   );
 }

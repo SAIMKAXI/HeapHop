@@ -28,19 +28,19 @@ export function setupBrowser() {
   });
 
   return {
-    /** A fresh page on the editor, with empty local storage unless `keepStorage`. */
-    async newPage({ width = 1440, height = 900, keepStorage = false } = {}) {
+    /** A fresh page (the editor unless `path` says otherwise), with empty local storage unless `keepStorage`. */
+    async newPage({ width = 1440, height = 900, keepStorage = false, path = "/editor", ready = "textarea[data-code-input]" } = {}) {
       const page = await ctx.browser.newPage();
       page.errors = [];
       page.on("pageerror", (e) => page.errors.push(e.message));
       page.on("console", (m) => { if (m.type() === "error") page.errors.push(m.text()); });
       await page.setViewport({ width, height });
-      await page.goto(ctx.server.origin, { waitUntil: "load" });
+      await page.goto(ctx.server.origin + path, { waitUntil: "load" });
       if (!keepStorage) {
         await page.evaluate(() => localStorage.clear());
         await page.reload({ waitUntil: "load" });
       }
-      await page.waitForSelector("textarea[data-code-input]");
+      await page.waitForSelector(ready);
       return page;
     },
     origin: () => ctx.server.origin,

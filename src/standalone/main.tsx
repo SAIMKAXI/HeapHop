@@ -7,7 +7,7 @@
 import { createRoot } from "react-dom/client";
 import { Runner } from "@/runtime/runner";
 import type { WorkerLike } from "@/runtime/protocol";
-import { AppShell } from "@/ui/app-shell";
+import { EditorShell } from "@/ui/editor/editor-shell";
 import { applySavedTheme } from "@/ui/theme";
 
 /** Replaced at build time with the bundled Worker script (scripts/build-standalone.mjs). */
@@ -19,5 +19,5 @@ const runner = new Runner(() => new Worker(workerUrl) as unknown as WorkerLike);
 applySavedTheme();
 const root = document.getElementById("root");
 if (root) {
-  createRoot(root).render(<AppShell run={(code, options) => runner.run(code, options)} />);
+  createRoot(root).render(<EditorShell run={(code, options) => runner.run(code, options)} />);
 }

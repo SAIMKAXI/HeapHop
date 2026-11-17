@@ -1,5 +1,5 @@
-// Use cases in the editor: examples, errors before a run, typing helpers, snippets,
-// theme, keyboard shortcut, and program input for cin.
+// Use cases in the editor: the starter program, errors before a run, typing helpers,
+// the student's programs, theme, keyboard shortcut, and program input for cin.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setEditorCode } from "../../scripts/browser.mjs";
@@ -8,12 +8,14 @@ import { fixture, runCode, textOf, setupBrowser } from "./harness.mjs";
 const { newPage } = setupBrowser();
 const code = (page) => page.$eval("textarea[data-code-input]", (t) => t.value);
 
-test("the editor lists lessons and grouped examples, and choosing one loads its code", async () => {
+test("the editor opens on a starter program the first time, and on the last program after that", async () => {
   const page = await newPage();
-  assert.equal(await page.$$eval("[data-lesson]", (l) => l.length), 4);
-  assert.ok(await page.$$eval("[data-example]", (l) => l.length) >= 16);
-  await page.click("[data-example='reverse']");
-  assert.match(await code(page), /reverse/);
+  assert.equal(await code(page), "#include <iostream>\nusing namespace std;\n\nint main() {\n    \n    return 0;\n}\n");
+  assert.deepEqual(await page.$$eval("[data-snippet]", (s) => s.map((x) => x.textContent)), ["My program"]);
+  assert.equal(await page.$("[data-lesson], [data-example]"), null, "lessons and examples live in Learn");
+  await setEditorCode(page, fixture("01_singly_struct_build.cpp"));
+  await page.reload({ waitUntil: "load" });
+  await page.waitForFunction((p) => document.querySelector("textarea[data-code-input]")?.value === p, {}, fixture("01_singly_struct_build.cpp"));
   assert.deepEqual(page.errors, []);
 });
 
@@ -41,7 +43,7 @@ test("an empty program is reported instead of running", async () => {
 
 test("Ctrl+Enter runs the program", async () => {
   const page = await newPage();
-  await page.click("[data-example='build']");
+  await setEditorCode(page, fixture("01_singly_struct_build.cpp"));
   await page.focus("textarea[data-code-input]");
   await page.keyboard.down("Control");
   await page.keyboard.press("Enter");
@@ -65,7 +67,7 @@ test("typing helpers: Tab indents, brackets close themselves, Enter after { inde
   assert.equal(await code(page), "int main() {\n    x    \n}");
 });
 
-test("snippets: a new snippet keeps its name and code after a reload, and can be deleted", async () => {
+test("programs: a new one keeps its name and code after a reload; deleting the last leaves a fresh starter", async () => {
   const page = await newPage();
   await page.click("[data-new-snippet]");
   await page.waitForSelector("[data-snippet] input");
@@ -75,9 +77,10 @@ test("snippets: a new snippet keeps its name and code after a reload, and can be
   await setEditorCode(page, program);
   await page.reload({ waitUntil: "load" });
   await page.waitForFunction((p) => document.querySelector("textarea[data-code-input]")?.value === p, {}, program);
-  assert.equal(await textOf(page, "[data-snippet]"), "My list");
-  await page.click("[data-snippet] [data-delete-snippet]");
-  assert.equal(await page.$("[data-snippet]"), null);
+  assert.deepEqual(await page.$$eval("[data-snippet]", (s) => s.map((x) => x.textContent)), ["My program", "My list"]);
+  for (let left = 2; left > 0; left--) await page.click("[data-snippet] [data-delete-snippet]");
+  assert.deepEqual(await page.$$eval("[data-snippet]", (s) => s.map((x) => x.textContent)), ["My program"]);
+  assert.match(await code(page), /^#include <iostream>/);
   assert.deepEqual(page.errors, []);
 });
 
@@ -92,7 +95,7 @@ test("the light theme is remembered", async () => {
 
 test("cin: the input box appears only for programs that read input, and the run uses it", async () => {
   const page = await newPage();
-  await page.click("[data-example='build']");
+  await setEditorCode(page, fixture("01_singly_struct_build.cpp"));
   assert.equal(await page.$("[data-program-input]"), null);
   await runCode(page, fixture("26_lab6_array_stack_menu.cpp"), fixture("26_lab6_array_stack_menu.input.txt"));
   await page.click("[title='Go to last step']");

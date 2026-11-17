@@ -22,6 +22,8 @@ interface MemoryCanvasProps {
   /** Objects related to the selection (outlined). */
   highlighted?: Set<string>;
   onSelect?: (selection: Selection | null) => void;
+  /** A picture only: no toolbar, no hover card, and the mouse and wheel pass through to the page. */
+  still?: boolean;
 }
 
 const NONE = new Set<string>();
@@ -62,7 +64,7 @@ const CULL_GRID = 240;
 const EMPTY_BOUNDS: Rect = { x: 0, y: 0, width: 0, height: 0 };
 const ARROW_CLASS = { next: "stroke-accent", prev: "stroke-warning", other: "stroke-muted-foreground" } as const;
 
-export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect }: MemoryCanvasProps) {
+export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect, still = false }: MemoryCanvasProps) {
   const selectedId = selection?.kind === "object" ? selection.id : null;
   const selectedCell = selection?.kind === "pointer" ? selection.cellId : null;
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -153,14 +155,16 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
       ref={wrapperRef}
       className={fullscreen === "window" ? "fixed inset-0 z-50 bg-background" : "absolute inset-0 bg-background"}
     >
-      <CanvasToolbar
-        viewport={viewport}
-        percentRef={percentRef}
-        canFocus={!!selectedBox}
-        onFocus={() => selectedBox && viewport.focus(selectedBox)}
-        fullscreen={fullscreen !== "off"}
-        onToggleFullscreen={toggleFullscreen}
-      />
+      {!still && (
+        <CanvasToolbar
+          viewport={viewport}
+          percentRef={percentRef}
+          canFocus={!!selectedBox}
+          onFocus={() => selectedBox && viewport.focus(selectedBox)}
+          fullscreen={fullscreen !== "off"}
+          onToggleFullscreen={toggleFullscreen}
+        />
+      )}
       <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1">
         <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Heap</h3>
         {summary.map((s, i) => (
@@ -169,7 +173,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
       </div>
       <div
         ref={containerRef}
-        className="hh-canvas relative h-full w-full touch-none overflow-hidden"
+        className={still ? "hh-canvas pointer-events-none relative h-full w-full overflow-hidden" : "hh-canvas relative h-full w-full touch-none overflow-hidden"}
         data-lod="full"
         data-node-count={layout.nodes.length}
         onClick={onSelect ? () => onSelect(null) : undefined}

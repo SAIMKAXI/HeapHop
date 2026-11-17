@@ -1,11 +1,11 @@
 "use client";
 
-// The editor screen: pick or write a program, give it input, run it.
+// The editor screen: write a program, give it input, run it.
 import { useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, AlignLeft, Check, ChevronDown, Copy, Play, Plus, RotateCcw, Trash2 } from "lucide-react";
-import type { LessonEntry } from "@content/lessons";
 import type { RunError } from "@/core/types";
-import { AppHeader } from "@/ui/app-header";
+import { AppHeader } from "@/ui/site/app-header";
+import { useOnWebsite } from "@/ui/site/website";
 import { cn } from "@/ui/utils";
 import { CodeInput } from "./code-input";
 import { SnippetList } from "./snippet-list";
@@ -14,16 +14,14 @@ import { formatCpp } from "./text-edits";
 
 interface CodeEditorProps {
   onRun: (code: string) => void;
-  lessons: LessonEntry[];
-  onStartLesson: (id: string) => void;
   /** Text the program will read with cin. */
   input: string;
   onInputChange: (input: string) => void;
   error: RunError | null;
   isRunning: boolean;
-  /** Where the "What C++ is supported" page is, or nothing when the shell has none. */
-  supportedHref?: string;
 }
+
+const SUPPORTED_HREF = "/supported";
 
 const READS_INPUT = /\b(cin|getline)\b/;
 const kbd = "rounded border border-card-border bg-background px-1.5 py-0.5 font-mono text-[10px]";
@@ -45,8 +43,9 @@ function ToolButton({ onClick, disabled, title, danger, children }: { onClick: (
   );
 }
 
-export function CodeEditor({ onRun, lessons, onStartLesson, input, onInputChange, error, isRunning, supportedHref }: CodeEditorProps) {
+export function CodeEditor({ onRun, input, onInputChange, error, isRunning }: CodeEditorProps) {
   const state = useEditorState();
+  const onWebsite = useOnWebsite();
   const code = codeOf(state);
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -69,21 +68,21 @@ export function CodeEditor({ onRun, lessons, onStartLesson, input, onInputChange
     setTimeout(() => setCopied(false), 1500);
   });
   const lineCount = code.split("\n").length;
-  const list = { state, lessons, onStartLesson, busy: isRunning, renaming, onRenaming: setRenaming };
+  const list = { state, renaming, onRenaming: setRenaming };
 
   return (
     <div className="flex h-dvh flex-col bg-background">
-      <AppHeader subtitle="Write or pick a C++ program, then run it to watch the stack and the heap" />
+      <AppHeader current="editor" />
 
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-[280px] shrink-0 flex-col border-r-2 border-card-border bg-card/50 md:flex">
           <div className="flex items-center justify-between border-b border-card-border px-5 py-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Programs</h2>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Your programs</h2>
             <button
               type="button"
               data-new-snippet
               onClick={() => setRenaming(createSnippet())}
-              title={`Create a new snippet (${state.snippets.length}/${MAX_SNIPPETS})`}
+              title={`Start a new program (${state.snippets.length}/${MAX_SNIPPETS})`}
               className="flex items-center gap-1.5 rounded-lg bg-accent/10 px-2.5 py-1.5 text-[11px] font-semibold text-accent transition-colors hover:bg-accent/20 focus-visible:outline-2 focus-visible:outline-accent"
             >
               <Plus size={13} aria-hidden /> New
@@ -94,14 +93,14 @@ export function CodeEditor({ onRun, lessons, onStartLesson, input, onInputChange
 
         <main className="flex min-h-0 flex-1 flex-col">
           <div className="relative border-b border-card-border md:hidden">
-            <button type="button" data-example-menu aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)} className="flex w-full items-center justify-between px-5 py-3 text-sm text-muted-foreground">
+            <button type="button" data-program-menu aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)} className="flex w-full items-center justify-between px-5 py-3 text-sm text-muted-foreground">
               <span>{titleOf(state)}</span>
               <ChevronDown size={16} aria-hidden />
             </button>
             {menuOpen && (
               <div className="absolute inset-x-0 top-full z-20 max-h-80 overflow-y-auto border-b border-card-border bg-card shadow-lg">
                 <button type="button" onClick={() => { createSnippet(); setMenuOpen(false); }} className="flex w-full items-center gap-1.5 border-b border-card-border/30 px-5 py-3 text-left text-sm text-accent">
-                  <Plus size={14} aria-hidden /> New snippet
+                  <Plus size={14} aria-hidden /> New program
                 </button>
                 <SnippetList {...list} compact onPicked={() => setMenuOpen(false)} />
               </div>
@@ -116,7 +115,7 @@ export function CodeEditor({ onRun, lessons, onStartLesson, input, onInputChange
               {copied ? <Check size={13} className="text-success" aria-hidden /> : <Copy size={13} aria-hidden />}
               {copied ? "Copied!" : "Copy"}
             </ToolButton>
-            <ToolButton onClick={resetTab} title="Go back to the original code">
+            <ToolButton onClick={resetTab} title="Go back to the starter code">
               <RotateCcw size={13} aria-hidden /> Reset
             </ToolButton>
             <ToolButton onClick={() => setCode("")} disabled={!code.trim()} title="Remove all the code" danger>
@@ -134,8 +133,8 @@ export function CodeEditor({ onRun, lessons, onStartLesson, input, onInputChange
               <AlertTriangle size={18} className="mt-0.5 shrink-0 text-danger" aria-hidden />
               <div className="min-w-0 flex-1 text-sm text-danger">
                 <pre className="whitespace-pre-wrap font-sans">{error.message}</pre>
-                {error.kind === "unsupported" && supportedHref && (
-                  <a href={supportedHref} className="mt-1 inline-block font-semibold underline underline-offset-2">See what C++ HeapHop supports</a>
+                {error.kind === "unsupported" && onWebsite && (
+                  <a href={SUPPORTED_HREF} className="mt-1 inline-block font-semibold underline underline-offset-2">See what C++ HeapHop supports</a>
                 )}
               </div>
             </div>
@@ -163,7 +162,7 @@ export function CodeEditor({ onRun, lessons, onStartLesson, input, onInputChange
           <div className="flex items-center justify-between gap-4 border-t-2 border-card-border bg-card px-5 py-3.5">
             <p className="hidden text-xs text-muted sm:block">
               Structs, classes, pointers, new and delete, arrays, functions, loops, cin.
-              {supportedHref && <> <a href={supportedHref} data-supported-link className="underline underline-offset-2 hover:text-accent">What C++ is supported</a></>}
+              {onWebsite && <> <a href={SUPPORTED_HREF} data-supported-link className="underline underline-offset-2 hover:text-accent">What C++ is supported</a></>}
               <span className="ml-3"><kbd className={kbd}>Ctrl</kbd> or <kbd className={kbd}>⌘</kbd> + <kbd className={kbd}>Enter</kbd> to run</span>
             </p>
             <button

@@ -1,4 +1,4 @@
-// Use case: a student plays every guided lesson and answers its predictions.
+// Use case: a student opens Learn, plays every guided lesson and answers its predictions.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { textOf, setupBrowser } from "./harness.mjs";
@@ -27,12 +27,27 @@ async function play(page, id, choose) {
   return results;
 }
 
-for (const id of ["walk-a-list", "insert-at-front", "delete-safely", "reverse-a-list"]) {
+const learn = { path: "/learn", ready: "[data-lesson]" };
+const WITH_QUESTIONS = ["walk-a-list", "insert-at-front", "delete-safely", "reverse-a-list", "build-a-bst", "search-a-bst", "avl-rotation"];
+
+test("Learn lists the linked-list and tree lessons by topic", async () => {
+  const page = await newPage(learn);
+  const topics = await page.$$eval("[data-topic]", (s) => s.map((t) => `${t.dataset.topic}:${t.querySelectorAll("[data-lesson]").length}`));
+  assert.deepEqual(topics, ["lists:4", "trees:4"]);
+});
+
+test("lesson inorder-traversal plays to the end without questions", async () => {
+  const page = await newPage(learn);
+  assert.deepEqual(await play(page, "inorder-traversal", () => 0), []);
+  assert.deepEqual(page.errors, []);
+});
+
+for (const id of WITH_QUESTIONS) {
   test(`lesson ${id}: a wrong answer shows the right one, and choosing it is marked right`, async () => {
-    const first = await newPage();
+    const first = await newPage(learn);
     const wrong = await play(first, id, () => 0);
     assert.ok(wrong.length > 0, "the lesson asks at least one question");
-    const second = await newPage();
+    const second = await newPage(learn);
     let i = 0;
     const right = await play(second, id, (options) => options.indexOf(wrong[i++].answer));
     assert.ok(right.every((r) => r.result === "right"), JSON.stringify(right));

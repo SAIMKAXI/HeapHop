@@ -26,6 +26,12 @@ const eslintConfig = defineConfig([
     files: ["src/ui/canvas/use-viewport.ts"],
     rules: { "no-restricted-properties": "off" },
   },
+  {
+    // Components in src/ui also run in the VS Code webview, which has no Next.js router,
+    // so they link with plain <a> elements. The site is static, so nothing is lost.
+    files: ["src/ui/**/*.tsx"],
+    rules: { "@next/next/no-html-link-for-pages": "off" },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "dist/**", "next-env.d.ts", "extension/dist/**"]),
 ]);
 

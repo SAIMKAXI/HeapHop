@@ -5,12 +5,13 @@ import { fixture, runCode, snapshot, setupBrowser, stepTo } from "./harness.mjs"
 
 const { newPage } = setupBrowser();
 
-test("on a phone-sized screen the editor offers the examples and the visualizer has room for the heap", async () => {
+test("on a phone-sized screen the editor offers its programs and the visualizer has room for the heap", async () => {
   const page = await newPage({ width: 390, height: 844 });
-  await page.click("[data-example-menu]");
-  await page.click("[data-example-menu-item='reverse']");
-  await page.click("[data-run]");
-  await page.waitForSelector(".hh-canvas");
+  await page.click("[data-program-menu]");
+  const visible = await page.$$eval("[data-snippet]", (s) => s.filter((x) => x.checkVisibility()).map((x) => x.textContent));
+  assert.deepEqual(visible, ["My program"]);
+  await page.click("[data-program-menu]");
+  await runCode(page, fixture("08_singly_struct_reverse.cpp"));
   const canvas = await page.$eval(".hh-canvas", (c) => ({ w: c.clientWidth, h: c.clientHeight }));
   assert.ok(canvas.w >= 300 && canvas.h >= 200, JSON.stringify(canvas));
   assert.deepEqual(page.errors, []);

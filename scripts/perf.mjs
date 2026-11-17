@@ -75,7 +75,7 @@ const browser = await puppeteer.launch({
   defaultViewport: { width: 1440, height: 900 },
 });
 const page = await browser.newPage();
-await page.goto(server.origin, { waitUntil: "load" });
+await page.goto(`${server.origin}/editor`, { waitUntil: "load" });
 await page.waitForSelector("textarea[data-code-input]");
 
 // What this machine and browser do with no work at all, to read the numbers against.

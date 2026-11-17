@@ -5,6 +5,7 @@ import { run } from "../../src/core/interpreter";
 import { buildPrediction, resolveLesson, type Lesson } from "../../src/core/learn";
 import { explainStep } from "../../src/core/explain";
 import { TraceModel } from "../../src/core/trace";
+import { detectLists } from "../../src/core/structures";
 import { EXAMPLES } from "../../content/examples";
 import { LESSONS } from "../../content/lessons";
 import { GLOSSARY } from "../../content/glossary";
@@ -60,6 +61,22 @@ test("7.2 every lesson loads, runs, and places all its checkpoints in running or
     assert.equal(resolved.checkpoints.length, lesson.checkpoints.length);
     assert.ok(resolved.checkpoints.length >= 4, `${entry.id} should have at least four checkpoints`);
     for (const cp of resolved.checkpoints) assert.ok(cp.step >= 0 && cp.step < r.trace.steps.length);
+  }
+});
+
+test("the tree lessons build real binary trees and ask the student to predict", async () => {
+  const trees = LESSONS.filter((l) => l.topic === "trees");
+  assert.deepEqual(trees.map((l) => l.id), ["build-a-bst", "search-a-bst", "inorder-traversal", "avl-rotation"]);
+  for (const entry of trees) {
+    const lesson = await entry.load();
+    const r = run(lesson.code);
+    if (!r.ok) assert.fail(`${entry.id}: ${r.error.message}`);
+    assert.equal(r.trace.status, "completed", `${entry.id}: ${r.trace.notice}`);
+    assert.equal(r.trace.steps.at(-1)!.heap.filter((h) => h.kind === "object").length, 0, `${entry.id} frees every node`);
+    const { checkpoints } = resolveLesson(lesson, new TraceModel(r.trace));
+    const shown = checkpoints.filter((c) => detectLists(r.trace.steps[c.step]).trees.some((t) => t.nodes.length >= 3));
+    assert.ok(shown.length >= 1, `${entry.id}: a checkpoint shows a tree of three or more nodes`);
+    if (entry.id !== "inorder-traversal") assert.ok(checkpoints.some((c) => c.prediction), `${entry.id} has a prediction`);
   }
 });
 

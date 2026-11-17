@@ -3,6 +3,7 @@
 import type { MemoryItem } from "@/core/types";
 import { targetLabel } from "@/core/explain";
 import { useInspect } from "@/ui/inspect-context";
+import { RichText } from "@/ui/rich-text";
 import { cn } from "@/ui/utils";
 
 interface MemoryBlockProps {
@@ -84,7 +85,7 @@ export function MemoryBlock({ item, depth = 0 }: MemoryBlockProps) {
       data-cell-id={item.id}
       data-changed={isChanged || undefined}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-4 py-2 text-sm transition-all duration-300",
+        "flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg px-4 py-2 text-sm transition-all duration-300",
         isChanged && "cell-changed",
         isOrphaned && "opacity-40"
       )}
@@ -98,7 +99,7 @@ export function MemoryBlock({ item, depth = 0 }: MemoryBlockProps) {
         )}
       </span>
       <span className="text-muted">=</span>
-      <span className="shrink-0 font-bold">
+      <span className="min-w-0 font-bold [overflow-wrap:anywhere]">
         {isPointer || item.dangling ? (
           <button
             type="button"
@@ -112,7 +113,7 @@ export function MemoryBlock({ item, depth = 0 }: MemoryBlockProps) {
               selected && "bg-accent/20 outline outline-1 outline-accent"
             )}
           >
-            {item.dangling ? "dangling" : <><span aria-hidden>→</span>{inspect ? targetLabel(inspect.model, item.pointsTo ?? null) : ""}</>}
+            {item.dangling ? "dangling" : <><span aria-hidden>→</span><span>{inspect ? <RichText text={targetLabel(inspect.model, item.pointsTo ?? null)} /> : ""}</span></>}
           </button>
         ) : item.value === "nullptr" ? (
           <span className="rounded-md bg-danger/15 px-2 py-0.5 text-xs font-bold text-danger">

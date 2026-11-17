@@ -100,10 +100,7 @@ test("the program's output so far is shown and grows step by step", async () => 
 });
 
 test("a crash keeps every earlier step and ends on an explained error", async () => {
-  const page = await newPage();
-  await page.click("[data-example='forgot-null']");
-  await page.click("[data-run]");
-  await page.waitForSelector(".hh-canvas");
+  const page = await newPage({ path: "/learn?example=forgot-null", ready: ".hh-canvas" });
   assert.match(await textOf(page, "[data-trace-status]"), /Program crashed/);
   await page.click("[title='Go to last step']");
   assert.match(await textOf(page, "[data-explanation]"), /stops here/);
@@ -214,16 +211,16 @@ test("going back to the editor keeps the code that was run", async () => {
   assert.equal(await page.$eval("textarea[data-code-input]", (t) => t.value), program);
 });
 
-test("every built-in example runs and opens the visualizer", async () => {
-  const page = await newPage();
+test("every example in Learn runs and opens the visualizer", async () => {
+  const page = await newPage({ path: "/learn", ready: "[data-example]" });
   const ids = await page.$$eval("[data-example]", (e) => e.map((x) => x.dataset.example));
+  assert.ok(ids.length >= 16);
   for (const id of ids) {
     await page.click(`[data-example='${id}']`);
-    await page.click("[data-run]");
     await page.waitForSelector(".hh-canvas, [data-run-error]");
     assert.equal(await page.$("[data-run-error]"), null, `${id} did not run`);
     await page.click("[data-back]");
-    await page.waitForSelector("textarea[data-code-input]");
+    await page.waitForSelector("[data-example]");
   }
   assert.deepEqual(page.errors, []);
 });

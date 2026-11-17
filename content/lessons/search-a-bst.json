@@ -1,0 +1,36 @@
+{
+  "id": "search-a-bst",
+  "title": "Search a binary search tree",
+  "summary": "Why a search looks at one path from the root instead of every node.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* left;\n    Node* right;\n    Node(int d) : data(d), left(nullptr), right(nullptr) {}\n};\n\nNode* insert(Node* node, int value) {\n    if (node == nullptr) {\n        return new Node(value);\n    }\n    if (value < node->data) {\n        node->left = insert(node->left, value);\n    } else {\n        node->right = insert(node->right, value);\n    }\n    return node;\n}\n\nbool search(Node* root, int value) {\n    Node* cur = root;\n    while (cur != nullptr) {\n        if (value == cur->data) {\n            return true;\n        }\n        if (value < cur->data) {\n            cur = cur->left;\n        } else {\n            cur = cur->right;\n        }\n    }\n    return false;\n}\n\nvoid destroy(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    destroy(node->left);\n    destroy(node->right);\n    delete node;\n}\n\nint main() {\n    Node* root = nullptr;\n    int values[] = {50, 30, 70, 20, 40, 60, 80};\n    for (int i = 0; i < 7; i++) {\n        root = insert(root, values[i]);\n    }\n    bool found = search(root, 60);\n    cout << \"60 found: \" << found << endl;\n    bool missing = search(root, 65);\n    cout << \"65 found: \" << missing << endl;\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "Node* cur = root;",
+      "text": "Looking for 60. The search starts at the root, 50, like every search in a binary search tree."
+    },
+    {
+      "at": "cur = cur->right;",
+      "predict": "cur",
+      "text": "60 is larger than 50, so 60 can only be in the right subtree. The whole left side (20, 30, 40) is skipped."
+    },
+    {
+      "at": "cur = cur->left;",
+      "predict": "cur",
+      "text": "60 is smaller than 70, so the search turns left."
+    },
+    {
+      "at": "return true;",
+      "text": "Found after looking at only three of the seven nodes. Each comparison throws away half of what is left."
+    },
+    {
+      "at": "cur = cur->right;",
+      "occurrence": 3,
+      "predict": "cur",
+      "text": "Now looking for 65: 50, then 70, then 60. 65 is larger than 60, so the search goes right once more."
+    },
+    {
+      "at": "return false;",
+      "text": "`cur` fell off the tree: 60 has no right child, so 65 is not in the tree. Again only one path was checked. In a balanced tree of a million values that path is about 20 nodes long."
+    }
+  ]
+}
