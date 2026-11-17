@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+/* Dark mode (default) */
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #111113;
+  --card-border: #27272a;
+  --code-bg: #18181b;
+  --muted: #8b8b94;
+  --muted-foreground: #a1a1aa;
+  --accent: #3b82f6;
+  --accent-dim: rgba(59, 130, 246, 0.12);
+  --success: #22c55e;
+  --success-dim: rgba(34, 197, 94, 0.2);
+  --danger: #ef4444;
+  --danger-dim: rgba(239, 68, 68, 0.12);
+  --warning: #f59e0b;
+  --warning-dim: rgba(245, 158, 11, 0.12);
+
+  --syn-keyword: #569cd6;
+  --syn-type: #4ec9b0;
+  --syn-string: #ce9178;
+  --syn-number: #b5cea8;
+  --syn-comment: #6a9955;
+  --syn-function: #dcdcaa;
+  --syn-builtin: #dcdcaa;
+  --syn-preprocessor: #c586c0;
+}
+
+/* Light mode */
+.light {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #f8f9fa;
+  --card-border: #e2e4e8;
+  --code-bg: #f1f3f5;
+  --muted: #5f666d;
+  --muted-foreground: #495057;
+  --accent: #2563eb;
+  --accent-dim: rgba(37, 99, 235, 0.08);
+  --success: #15803d;
+  --success-dim: rgba(22, 163, 74, 0.1);
+  --danger: #c81e1e;
+  --danger-dim: rgba(220, 38, 38, 0.08);
+  --warning: #b45309;
+  --warning-dim: rgba(217, 119, 6, 0.08);
+
+  --syn-keyword: #0000ff;
+  --syn-type: #1f6f86;
+  --syn-string: #a31515;
+  --syn-number: #07734e;
+  --syn-comment: #008000;
+  --syn-function: #795e26;
+  --syn-builtin: #795e26;
+  --syn-preprocessor: #af00db;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-code-bg: var(--code-bg);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-success: var(--success);
+  --color-success-dim: var(--success-dim);
+  --color-danger: var(--danger);
+  --color-danger-dim: var(--danger-dim);
+  --color-warning: var(--warning);
+  --color-warning-dim: var(--warning-dim);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+code, pre, .font-mono, textarea {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+@keyframes flash-green {
+  0% { background-color: color-mix(in srgb, var(--success) 35%, transparent); }
+  100% { background-color: color-mix(in srgb, var(--success) 10%, transparent); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-accent {
+  0%, 100% { background-color: var(--accent-dim); }
+  50% { background-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+}
+
+@keyframes glow-changed {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 40%, transparent); }
+  50% { box-shadow: 0 0 12px 2px color-mix(in srgb, var(--success) 25%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.cell-changed {
+  animation: flash-green 0.6s ease-out forwards;
+}
+
+[data-changed] {
+  animation: glow-changed 1s ease-out;
+}
+
+[data-active-line] {
+  animation: pulse-accent 2s ease-in-out infinite;
+}
+
+.arrow-path {
+  animation: fade-in 0.3s ease-out;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Syntax highlighting */
+.syn-kw { color: var(--syn-keyword); }
+.syn-type { color: var(--syn-type); }
+.syn-str { color: var(--syn-string); }
+.syn-num { color: var(--syn-number); }
+.syn-cmt { color: var(--syn-comment); font-style: italic; }
+.syn-fn { color: var(--syn-function); }
+.syn-bi { color: var(--syn-builtin); }
+.syn-prep { color: var(--syn-preprocessor); }
+
+.editor-highlight {
+  margin: 0;
+  border: 0;
+  word-wrap: normal;
+  overflow-wrap: normal;
+}
+
+.editor-highlight code {
+  display: block;
+}
+
+/* ---- HeapHop canvas ---------------------------------------------------
+   Movement and fades use only transform and opacity, so they never make
+   the browser recalculate layout. */
+.hh-content { transform-origin: 0 0; will-change: transform; }
+.hh-canvas { cursor: grab; }
+.hh-canvas[data-dragging] { cursor: grabbing; }
+.hh-canvas text { user-select: none; }
+.hh-node { transition: transform 280ms ease; cursor: pointer; outline: none; }
+.hh-node:focus-visible > rect:first-child { stroke: var(--accent); stroke-width: 2.5; }
+.hh-chip { transition: transform 280ms ease; }
+.hh-fade { animation: hh-fade-in 220ms ease-out; }
+.hh-flash { animation: hh-flash 900ms ease-out; }
+@keyframes hh-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hh-flash { from { opacity: 1; } to { opacity: 0.45; } }
+/* Low zoom: boxes and arrows only. */
+.hh-canvas[data-lod="low"] .hh-detail { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hh-node, .hh-chip { transition: none; }
+  .hh-fade, .hh-flash { animation: none; }
+}
+.hh-arrow, .hh-chip, .hh-pointer-row { cursor: pointer; }
+.hh-arrow:hover > path:first-child { stroke-width: 3.5; }
+.hh-pointer-row:hover text:last-of-type { text-decoration: underline; }
+
+/* Timeline: a native range input drawn as a thin bar with a filled part. */
+.hh-timeline { appearance: none; height: 0.5rem; background: transparent; cursor: pointer; }
+.hh-timeline::-webkit-slider-runnable-track { height: 0.375rem; border-radius: 9999px; background: linear-gradient(to right, var(--accent) var(--hh-progress), var(--card-border) var(--hh-progress)); }
+.hh-timeline::-moz-range-track { height: 0.375rem; border-radius: 9999px; background: linear-gradient(to right, var(--accent) var(--hh-progress), var(--card-border) var(--hh-progress)); }
+.hh-timeline::-webkit-slider-thumb { appearance: none; width: 0.875rem; height: 0.875rem; margin-top: -0.25rem; border-radius: 9999px; background: var(--accent); border: 2px solid var(--background); }
+.hh-timeline::-moz-range-thumb { width: 0.875rem; height: 0.875rem; border-radius: 9999px; background: var(--accent); border: 2px solid var(--background); }
+.hh-timeline:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 9999px; }

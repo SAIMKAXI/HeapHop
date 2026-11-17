@@ -1,0 +1,11 @@
+Original list:
+5 -> 10 -> 20 -> 30 -> NULL
+
+After inserting 15 at position 3:
+5 -> 10 -> 15 -> 20 -> 30 -> NULL
+
+After deleting 20:
+5 -> 10 -> 15 -> 30 -> NULL
+
+After reversing:
+30 -> 15 -> 10 -> 5 -> NULL

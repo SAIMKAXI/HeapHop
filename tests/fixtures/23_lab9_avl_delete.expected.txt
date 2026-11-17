@@ -1,0 +1,5 @@
+Before deletion:
+In-order: 10 20 25 30 40 50 
+
+After deleting 20:
+In-order: 10 25 30 40 50 

@@ -1,0 +1,14 @@
+10 added to the queue.
+20 added to the queue.
+30 added to the queue.
+40 added to the queue.
+50 added to the queue.
+
+--- Dequeuing 2 elements ---
+10 removed from the queue.
+20 removed from the queue.
+
+--- Enqueuing 1 new element ---
+60 added to the queue.
+
+Front element: 30

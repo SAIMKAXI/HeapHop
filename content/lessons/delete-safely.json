@@ -1,0 +1,32 @@
+{
+  "id": "delete-safely",
+  "title": "Delete a node safely",
+  "summary": "Keep a pointer to the node, unlink it, then delete it.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n};\n\nvoid push(Node*& head, int value) {\n    Node* n = new Node();\n    n->data = value;\n    n->next = head;\n    head = n;\n}\n\nvoid deleteFront(Node*& head) {\n    if (head == NULL) return;\n    Node* temp = head;\n    head = head->next;\n    delete temp;\n}\n\nint main() {\n    Node* head = NULL;\n    push(head, 30);\n    push(head, 20);\n    push(head, 10);\n    deleteFront(head);\n    deleteFront(head);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "push(head, 10);",
+      "text": "The list now holds 10, 20, 30. `deleteFront` will remove the first node."
+    },
+    {
+      "at": "Node* temp = head;",
+      "occurrence": 1,
+      "text": "`temp` remembers the first node. Without it, the next line would leave nothing pointing at that node."
+    },
+    {
+      "at": "head = head->next;",
+      "occurrence": 1,
+      "predict": "head",
+      "text": "`head` moves to the second node. The first node is still reachable through `temp`, so it is not leaked."
+    },
+    {
+      "at": "delete temp;",
+      "occurrence": 1,
+      "text": "The node is deleted and its box disappears. `temp` still holds the old address for a moment: it is a dangling pointer, harmless here only because the function returns without using it."
+    },
+    {
+      "at": "return 0;",
+      "text": "Deleting returns memory; losing the last pointer does not. Open the example called Mistake: losing the head to see the difference."
+    }
+  ]
+}

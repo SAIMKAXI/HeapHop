@@ -1,0 +1,5 @@
+[4] 10 -> 20 -> 30 -> 40
+30 is at position 3
+55 is at position -1
+55 is not in the list
+[3] 20 -> 30 -> 40

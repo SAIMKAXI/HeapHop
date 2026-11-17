@@ -1,0 +1,16 @@
+
+LEFT ROTATION
+Before rotation: 10 20 30 
+After rotation: 20 10 30 
+
+RIGHT ROTATION
+Before rotation: 30 20 10 
+After rotation: 20 10 30 
+
+LEFT-RIGHT ROTATION
+Before rotation: 30 10 20 
+After rotation: 20 10 30 
+
+RIGHT-LEFT ROTATION
+Before rotation: 10 30 20 
+After rotation: 20 10 30 

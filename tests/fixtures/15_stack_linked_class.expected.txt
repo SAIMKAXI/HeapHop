@@ -1,0 +1,9 @@
+5 pushed
+10 pushed
+15 pushed
+Top is 15
+Popped 15
+Popped 10
+Popped 5
+Popped Stack underflow
+-1

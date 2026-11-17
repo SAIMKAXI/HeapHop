@@ -1,0 +1,4 @@
+7 found
+8 not found
+Nodes: 3
+Sum: 21

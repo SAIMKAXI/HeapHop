@@ -1,0 +1,40 @@
+{
+  "id": "walk-a-list",
+  "title": "Walk a list",
+  "summary": "Build three nodes and follow next from head to NULL.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n};\n\nint main() {\n    Node* head = new Node();\n    head->data = 10;\n    head->next = new Node();\n    head->next->data = 20;\n    head->next->next = new Node();\n    head->next->next->data = 30;\n    head->next->next->next = NULL;\n\n    Node* cur = head;\n    while (cur != NULL) {\n        cout << cur->data << \" \";\n        cur = cur->next;\n    }\n    cout << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "Node* head = new Node();",
+      "text": "`new Node()` makes a node on the heap. `head` lives on the stack and holds the node's address. The chip `head` on the node shows where it points."
+    },
+    {
+      "at": "head->next = new Node();",
+      "text": "A second node is created and the first node's `next` is set to it. The arrow between the boxes is that `next` pointer."
+    },
+    {
+      "at": "head->next->next->next = NULL;",
+      "text": "The last node's `next` is set to NULL. That NULL is how a walk knows where the list ends."
+    },
+    {
+      "at": "Node* cur = head;",
+      "text": "`cur` is a second pointer to the first node. Two chips sit on one box: the node was not copied, only its address."
+    },
+    {
+      "at": "cur = cur->next;",
+      "occurrence": 1,
+      "predict": "cur",
+      "text": "`cur = cur->next;` reads the `next` field of the node `cur` is on, and stores that address in `cur`."
+    },
+    {
+      "at": "cur = cur->next;",
+      "occurrence": 3,
+      "predict": "cur",
+      "text": "The last node's `next` is NULL, so `cur` becomes NULL and the loop condition `cur != NULL` turns false."
+    },
+    {
+      "at": "cout << endl;",
+      "text": "The walk is over. `head` never moved, so the list is still reachable. The three nodes were never deleted: the final step reports them as leaked."
+    }
+  ]
+}

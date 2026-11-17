@@ -1,0 +1,33 @@
+{
+  "id": "insert-at-front",
+  "title": "Insert at the front",
+  "summary": "Why the new node is linked first and head is moved second.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n};\n\nvoid push(Node*& head, int value) {\n    Node* n = new Node();\n    n->data = value;\n    n->next = head;\n    head = n;\n}\n\nint main() {\n    Node* head = NULL;\n    push(head, 20);\n    push(head, 10);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "Node* head = NULL;",
+      "text": "The list starts empty: `head` is NULL."
+    },
+    {
+      "at": "Node* n = new Node();",
+      "occurrence": 2,
+      "text": "A new node exists but is not part of the list yet. It is drawn below its future place, with a dashed border, and its `next` shows `?` because it has no value."
+    },
+    {
+      "at": "n->next = head;",
+      "occurrence": 2,
+      "predict": "head",
+      "text": "The new node now points at the old first node, so it moves up into the row. `head` has not changed yet: it still points at the old first node."
+    },
+    {
+      "at": "head = n;",
+      "occurrence": 2,
+      "predict": "head",
+      "text": "Now `head` points at the new node. Because `head` is a reference parameter (`Node*& head`), this changes the `head` in `main`."
+    },
+    {
+      "at": "return 0;",
+      "text": "If the two assignments were swapped, `head = n;` would run first and the old list would be lost before `n->next` could point at it."
+    }
+  ]
+}

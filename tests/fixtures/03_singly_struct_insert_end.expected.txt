@@ -1,0 +1,2 @@
+List is empty
+5 -> 15 -> 25 -> 35 -> NULL

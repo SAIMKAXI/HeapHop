@@ -1,0 +1,72 @@
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: Enter value to push: --> Successfully pushed 10 onto the stack.
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: Enter value to push: --> Successfully pushed 20 onto the stack.
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: --> Top element (peek): 20
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: --> Popped element: 20
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: --> Popped element: 10
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: --> Stack Underflow! Nothing to pop.
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: Invalid choice! Try again.
+
+------------------------------
+    TASK 1: STACK MENU        
+------------------------------
+1. Push
+2. Pop
+3. Peek
+0. Exit
+Enter your choice: Exiting...

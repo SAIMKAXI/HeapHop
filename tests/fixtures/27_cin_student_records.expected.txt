@@ -1,0 +1,2 @@
+How many students? Roll number: Full name: GPA: Roll number: Full name: GPA: Print the list? (y/n) 101 | Ali Raza | 3.5
+102 | Sara Khan | 3.75

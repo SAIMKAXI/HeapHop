@@ -1,0 +1,6 @@
+After inserting 10: In-order: 10 
+After inserting 20: In-order: 10 20 
+After inserting 30: In-order: 10 20 30 
+After inserting 40: In-order: 10 20 30 40 
+After inserting 50: In-order: 10 20 30 40 50 
+After inserting 25: In-order: 10 20 25 30 40 50 
