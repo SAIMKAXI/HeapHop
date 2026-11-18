@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { detectLists, planLists } from "../../src/core/structures";
-import { centerOn, fitView, layoutStep, screenToWorld, visibleWorldRect, zoomAt, intersects, MAX_ZOOM, MIN_ZOOM, READABLE_ZOOM, GAP_X, NODE_W, type Layout, type NodeBox } from "../../src/layout";
+import { centerOn, fitView, layoutStep, screenToWorld, visibleWorldRect, zoomAt, intersects, MAX_ZOOM, MIN_ZOOM, READABLE_ZOOM, TREE_NODE_D, GAP_X, NODE_W, type Layout, type NodeBox } from "../../src/layout";
 import type { Trace } from "../../src/core/types";
 import { NODE, trace } from "../core/helpers";
 
@@ -143,9 +143,14 @@ int main() { T* root = nullptr; root = insert(root, 50); root = insert(root, 30)
   assert.deepEqual(byX, [20, 30, 40, 50, 60, 70]);
   const y = (k: number) => l.nodes.find((n) => key(n.id) === k)!.y;
   assert.ok(y(50) < y(30) && y(30) === y(70) && y(30) < y(20) && y(20) === y(40) && y(40) === y(60));
+  for (const n of l.nodes) assert.ok(n.width === TREE_NODE_D && n.height === TREE_NODE_D, "tree nodes are circles of one size");
+  const centre = (n: NodeBox) => ({ x: n.x + n.width / 2, y: n.y + n.height / 2 });
   for (const a of l.arrows) {
-    assert.ok(onEdge(a.start, node(l, a.from)) && onEdge(a.end, node(l, a.to)));
-    assert.ok(a.end.y > a.start.y, "child arrows point down");
+    const from = node(l, a.from), to = node(l, a.to);
+    assert.equal(a.kind, "branch");
+    assert.ok(Math.abs(Math.hypot(a.start.x - centre(from).x, a.start.y - centre(from).y) - TREE_NODE_D / 2) < 0.5, "a branch leaves the parent's circle");
+    assert.deepEqual(a.end, { x: centre(to).x, y: to.y }, "and arrives at the top of the child");
+    assert.ok(a.end.y > a.start.y, "branches go down");
   }
   assert.equal(l.terminals.length, 0, "trees do not get NULL boxes on every leaf");
 });

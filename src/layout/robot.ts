@@ -39,8 +39,12 @@ interface MoveInput {
   atEnd: boolean;
 }
 
-/** Where the robot's feet go when it stands on a node: the top edge, clear of the pointer chips on the left. */
-export const perch = (box: Rect): Point => ({ x: box.x + box.width - 28, y: box.y });
+/**
+ * Where the robot's feet go when it is at a node, clear of the pointer chips: on the top
+ * edge of a box (chips sit on the left), or hovering beside a tree circle (chips sit above it).
+ */
+export const perch = (box: NodeBox): Point =>
+  box.family === -2 ? { x: box.x + box.width + 10, y: box.y + 20 } : { x: box.x + box.width - 28, y: box.y };
 
 /** Home: just outside the top right corner of the whole run's picture. */
 export const robotHome = (bounds: Rect): Point => ({ x: bounds.x + bounds.width + 24, y: bounds.y + 70 });

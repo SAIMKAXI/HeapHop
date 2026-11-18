@@ -1,65 +1,66 @@
 @import "tailwindcss";
 
-/* Memory Lab design system. Dark (default): charcoal with a green undertone and
-   champagne actions. Light: parchment surfaces and deep forest controls. Values were
-   adjusted where the sampled ones fell short of WCAG AA (tests/ui/contrast.test.ts). */
+/* Ink and orange, from the HeapHop logo and robot. Dark (default): deep ink surfaces with
+   an orange accent. Light: warm off-white with ink text and a deeper orange. Next arrows
+   are orange and prev arrows blue, opposite on the colour wheel so they never look alike.
+   Every text colour passes WCAG AA (tests/ui/contrast.test.ts). */
 :root {
-  --background: #18282b;
-  --header: #273030;
-  --foreground: #f2e4d0;
-  --card: #1d2429;
-  --card-border: #46504d;
-  --code-bg: #161e22;
-  --muted: #949b95;
-  --muted-foreground: #c2bbae;
-  --accent: #e7d0ae;
-  --accent-dim: rgba(231, 208, 174, 0.12);
-  --on-accent: #29342e;
-  --prev: #c98a55;
-  --success: #83a88d;
-  --success-dim: rgba(131, 168, 141, 0.2);
-  --danger: #e8806f;
-  --danger-dim: rgba(232, 128, 111, 0.12);
-  --warning: #e2a65c;
-  --warning-dim: rgba(226, 166, 92, 0.12);
+  --background: #12151c;
+  --header: #171b24;
+  --foreground: #eceef2;
+  --card: #191d26;
+  --card-border: #2b313d;
+  --code-bg: #0f1218;
+  --muted: #9aa1ae;
+  --muted-foreground: #b4bac5;
+  --accent: #f28c3a;
+  --accent-dim: rgba(242, 140, 58, 0.12);
+  --on-accent: #1a1206;
+  --prev: #7fa7e0;
+  --success: #6bcb8b;
+  --success-dim: rgba(107, 203, 139, 0.18);
+  --danger: #f47067;
+  --danger-dim: rgba(244, 112, 103, 0.12);
+  --warning: #e3b341;
+  --warning-dim: rgba(227, 179, 65, 0.12);
 
-  --syn-keyword: #7fb2e0;
-  --syn-type: #6fc7b4;
-  --syn-string: #dda386;
-  --syn-number: #b9d4a6;
-  --syn-comment: #86a87c;
-  --syn-function: #e3d9a0;
-  --syn-builtin: #e3d9a0;
-  --syn-preprocessor: #d39bd3;
+  --syn-keyword: #82aeea;
+  --syn-type: #6fcdbd;
+  --syn-string: #e5a57d;
+  --syn-number: #b5d99c;
+  --syn-comment: #8b95a5;
+  --syn-function: #e8d58a;
+  --syn-builtin: #e8d58a;
+  --syn-preprocessor: #d69ce6;
 }
 
 .light {
-  --background: #f2e4d0;
-  --header: #f2e4d0;
-  --foreground: #29342e;
-  --card: #f8f1e5;
-  --card-border: #d7c7ae;
-  --code-bg: #fcf8ef;
-  --muted: #6a6356;
-  --muted-foreground: #625f56;
-  --accent: #29342e;
-  --accent-dim: rgba(41, 52, 46, 0.08);
-  --on-accent: #f8f1e5;
-  --prev: #a8693a;
-  --success: #46694f;
-  --success-dim: rgba(70, 105, 79, 0.12);
-  --danger: #a63a2b;
-  --danger-dim: rgba(166, 58, 43, 0.08);
-  --warning: #87500f;
-  --warning-dim: rgba(135, 80, 15, 0.08);
+  --background: #faf8f5;
+  --header: #ffffff;
+  --foreground: #1c2230;
+  --card: #ffffff;
+  --card-border: #e7e2da;
+  --code-bg: #fbfaf7;
+  --muted: #5f6673;
+  --muted-foreground: #4f5663;
+  --accent: #b54c0b;
+  --accent-dim: rgba(181, 76, 11, 0.08);
+  --on-accent: #ffffff;
+  --prev: #3d6aa8;
+  --success: #1e7a43;
+  --success-dim: rgba(30, 122, 67, 0.1);
+  --danger: #b42318;
+  --danger-dim: rgba(180, 35, 24, 0.08);
+  --warning: #8a5a00;
+  --warning-dim: rgba(138, 90, 0, 0.08);
 
-  --syn-keyword: #1f4fa8;
-  --syn-type: #1b6476;
-  --syn-string: #9a2a1a;
-  --syn-number: #28663f;
-  --syn-comment: #4d6b3a;
-  --syn-function: #6e5420;
-  --syn-builtin: #6e5420;
+  --syn-keyword: #2b54a3;
+  --syn-type: #1f6e6a;
+  --syn-string: #a3341f;
+  --syn-number: #1e6b3a;
+  --syn-comment: #5d6b5f;
+  --syn-function: #7a5410;
+  --syn-builtin: #7a5410;
   --syn-preprocessor: #8a2e9e;
 }
 
@@ -181,6 +182,12 @@ code, pre, .font-mono, textarea {
 .hh-canvas[data-dragging] { cursor: grabbing; }
 .hh-canvas text { user-select: none; }
 .hh-node { transition: transform 280ms ease; cursor: pointer; outline: none; }
+/* Dark theme: a soft neon edge on every node (red on a leaked one), brighter for a moment
+   on the step that creates it. */
+html:not(.light) .hh-shape { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 40%, transparent)); }
+html:not(.light) [data-orphaned] .hh-shape { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--danger) 45%, transparent)); }
+html:not(.light) .hh-born .hh-shape { animation: hh-born 1.4s ease-out; }
+@keyframes hh-born { from { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--accent) 95%, transparent)); } }
 /* An arrow or node the robot is carrying is drawn by the robot until it lets go. */
 [data-robot-hidden] { visibility: hidden; }
 .hh-node:focus-visible > rect:first-child { stroke: var(--accent); stroke-width: 2.5; }

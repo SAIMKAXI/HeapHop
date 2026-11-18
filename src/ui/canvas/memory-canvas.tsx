@@ -67,7 +67,7 @@ const CULL_MARGIN = 300;
 const CULL_GRID = 240;
 
 const EMPTY_BOUNDS: Rect = { x: 0, y: 0, width: 0, height: 0 };
-const ARROW_CLASS = { next: "stroke-accent", prev: "stroke-prev", other: "stroke-muted-foreground" } as const;
+const ARROW_CLASS = { next: "stroke-accent", prev: "stroke-prev", branch: "stroke-accent/60", other: "stroke-muted-foreground" } as const;
 
 export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect, still = false, robotMotion = false }: MemoryCanvasProps) {
   const selectedId = selection?.kind === "object" ? selection.id : null;
@@ -79,6 +79,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
   const boundsRef = useRef<Rect>(EMPTY_BOUNDS);
 
   const { structures, layout, items, boxes } = computeStep(model, plan, stepIndex);
+  const born = new Set(model.events[stepIndex]?.flatMap((e) => (e.type === "alloc" ? [e.objectId] : [])));
   const frame = traceBounds(model, plan);
 
   // The robot: placed at home when it appears, then acting out each single step by hand.
@@ -252,13 +253,14 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
                   highlighted={selectedId !== box.id && highlighted.has(box.id)}
                   selectedCell={selectedCell && heapRootOf(selectedCell) === box.id ? selectedCell : null}
                   nameOf={nameOf} onSelect={selectObject} onSelectCell={selectCell}
+                  born={born.has(box.id)}
                 />
               );
             })}
             {layout.arrows.filter((a) => shown(a.from) || shown(a.to)).map((a) => (
               <g key={`${a.id}>${a.to}:${a.path}`} className="hh-fade hh-arrow" data-arrow-id={a.id} data-arrow-kind={a.kind} data-selected={selectedCell === a.id || undefined}
                 onClick={(e) => { e.stopPropagation(); selectCell(a.id); }}>
-                <path d={a.path} fill="none" strokeWidth={selectedCell === a.id ? 3.5 : 2} strokeLinecap="round" className={ARROW_CLASS[a.kind]} markerEnd={`url(#hh-arrow-${a.kind})`} />
+                <path d={a.path} fill="none" strokeWidth={selectedCell === a.id ? 3.5 : a.kind === "branch" ? 2.75 : 2} strokeLinecap="round" className={ARROW_CLASS[a.kind]} markerEnd={a.kind === "branch" ? undefined : `url(#hh-arrow-${a.kind})`} />
                 {/* A wide invisible stroke makes the arrow easy to click. */}
                 <path d={a.path} fill="none" stroke="transparent" strokeWidth={14} />
               </g>

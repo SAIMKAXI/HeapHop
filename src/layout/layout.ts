@@ -23,9 +23,10 @@ const ROW_GAP = 40;
 const TERM_W = 44;
 const TERM_H = 20;
 const MAX_ROWS = 10;
-/** Trees: horizontal gap between neighbours in left-to-right order, vertical gap between levels. */
-const TREE_GAP_X = 20;
-const TREE_LEVEL_GAP = 64;
+/** Trees: each node is a circle showing its value; gap between neighbours in left-to-right order, and between levels. */
+export const TREE_NODE_D = 60;
+const TREE_GAP_X = 26;
+const TREE_LEVEL_GAP = 58;
 const GRID_COLUMNS = 4;
 const PITCH = NODE_W + GAP_X;
 
@@ -51,6 +52,17 @@ function boxFor(item: MemoryItem): Omit<NodeBox, "x" | "y" | "level" | "family">
 }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
+
+/** A tree branch: from the edge of the parent's circle, in the child's direction, curving down to the top of the child. */
+function branch(src: NodeBox, dst: NodeBox): Pick<Arrow, "path" | "start" | "end"> {
+  const r = src.width / 2;
+  const from = { x: src.x + r, y: src.y + r };
+  const end = { x: dst.x + dst.width / 2, y: dst.y };
+  const len = Math.hypot(end.x - from.x, end.y - from.y) || 1;
+  const start = { x: r1(from.x + ((end.x - from.x) / len) * r), y: r1(from.y + ((end.y - from.y) / len) * r) };
+  const drop = (end.y - start.y) * 0.55;
+  return { start, end, path: `M${start.x} ${start.y} C${start.x} ${r1(start.y + drop)} ${end.x} ${r1(end.y - drop)} ${end.x} ${end.y}` };
+}
 
 /** Path from a pointer's field line on `src` to the box `dst`. */
 function route(src: NodeBox, rowY: number, dst: NodeBox, kind: ArrowKind): Pick<Arrow, "path" | "start" | "end"> {
@@ -147,16 +159,17 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
   const inTree = new Set<string>();
   const treeLinks = new Set<string>(); // "nodeId.field" of child pointers
   let treeX = 0, treeBandH = 0;
+  const treePitch = TREE_NODE_D + TREE_GAP_X;
   for (const tree of structures.trees) {
-    const nodeH = Math.max(...tree.nodes.map((id) => sized.get(id)!.height));
     let column = 0, depthMax = 0;
     const place = (id: string, depth: number) => {
       const kids = tree.children.get(id)!;
       if (kids.left) place(kids.left, depth + 1);
       const s = sized.get(id)!;
       const box: NodeBox = {
-        id, x: treeX + column * (NODE_W + TREE_GAP_X), y: top + CHIP_ZONE + depth * (nodeH + TREE_LEVEL_GAP),
-        width: s.width, height: s.height, rows: s.rows, hiddenRows: s.hiddenRows, level: items.get(id)!.orphaned ? 1 : 0, family: -2,
+        id, x: treeX + column * treePitch, y: top + CHIP_ZONE + depth * (TREE_NODE_D + TREE_LEVEL_GAP),
+        width: TREE_NODE_D, height: TREE_NODE_D, rows: s.rows.map((row) => ({ ...row, y: TREE_NODE_D / 2 })), hiddenRows: 0,
+        level: items.get(id)!.orphaned ? 1 : 0, family: -2,
       };
       nodes.push(box);
       boxes.set(id, box);
@@ -168,8 +181,8 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
       if (kids.right) place(kids.right, depth + 1);
     };
     place(tree.root, 0);
-    treeX += column * (NODE_W + TREE_GAP_X) + GAP_X; // the next tree of the forest goes to the right
-    treeBandH = Math.max(treeBandH, CHIP_ZONE + (depthMax + 1) * (nodeH + TREE_LEVEL_GAP));
+    treeX += column * treePitch + GAP_X; // the next tree of the forest goes to the right
+    treeBandH = Math.max(treeBandH, CHIP_ZONE + (depthMax + 1) * (TREE_NODE_D + TREE_LEVEL_GAP));
   }
   top += treeBandH > 0 ? treeBandH + ROW_GAP : 0;
   const looseRest = loose.filter((h) => !inTree.has(h.id));
@@ -197,10 +210,11 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
       const cell = cells.get(row.cellId)!;
       if (cell.kind !== "pointer") continue;
       const kind: ArrowKind = shape && row.label === shape.next ? "next" : shape && row.label === shape.prev ? "prev"
-        : treeLinks.has(`${box.id}.${row.label}`) ? "next" : "other";
+        : treeLinks.has(`${box.id}.${row.label}`) ? "branch" : "other";
       const target = boxes.get(heapRootOf(cell.pointsTo) ?? "");
       if (target) {
-        arrows.push({ id: cell.id, from: box.id, to: target.id, kind, ...route(box, row.y, target, kind) });
+        const path = kind === "branch" && target.family === -2 ? branch(box, target) : route(box, row.y, target, kind);
+        arrows.push({ id: cell.id, from: box.id, to: target.id, kind, ...path });
         continue;
       }
       if (kind === "other" || cell.pointsTo || box.family < 0) continue; // only list links get an explicit end marker
@@ -251,7 +265,7 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
       shown = [...list.slice(0, MAX_CHIPS - 1), { id: `more:${nodeId}`, label, nodeId, frameId: "", active: false, x: 0, y: 0, width: chipWidth(label), height: CHIP_H }];
     }
     shown.forEach((chip, i) => {
-      chip.x = box.x + 4;
+      chip.x = box.family === -2 ? box.x + (box.width - chip.width) / 2 : box.x + 4;
       chip.y = box.y - (i + 1) * (CHIP_H + CHIP_GAP) - 4;
       chips.push(chip);
     });

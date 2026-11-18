@@ -1,7 +1,8 @@
 "use client";
 
-// One heap object drawn from layout coordinates. Memoized: a step that
-// changes two nodes re-renders two nodes.
+// One heap object drawn from layout coordinates: a box with a line per field, or, for a
+// tree node, a circle with its value (the branches show where its pointers go).
+// Memoized: a step that changes two nodes re-renders two nodes.
 import { memo } from "react";
 import type { MemoryItem } from "@/core/types";
 import { HEADER_H, ROW_H, type NodeBox } from "@/layout";
@@ -21,6 +22,8 @@ interface NodeViewProps {
   onSelect?: (id: string) => void;
   /** A pointer field was clicked. */
   onSelectCell?: (cellId: string) => void;
+  /** Created by this step: glows for a moment. */
+  born: boolean;
 }
 
 function findCell(item: MemoryItem, id: string): MemoryItem | undefined {
@@ -43,11 +46,22 @@ function valueText(cell: MemoryItem, nameOf: (id: string) => string): { text: st
   return { text: cell.value ?? "", tone: "fill-success" };
 }
 
-function NodeViewImpl({ item, box, title, selected, highlighted, selectedCell, nameOf, onSelect, onSelectCell }: NodeViewProps) {
+function NodeViewImpl({ item, box, title, selected, highlighted, selectedCell, nameOf, onSelect, onSelectCell, born }: NodeViewProps) {
   const waiting = box.level === 1 && !item.orphaned;
+  const outline = item.orphaned ? "fill-danger-dim stroke-danger/60"
+    : selected ? "fill-card stroke-accent"
+    : highlighted ? "fill-card stroke-warning"
+    : "fill-card stroke-card-border";
+  const shape = {
+    className: `hh-shape ${outline}`,
+    strokeWidth: selected || highlighted ? 2.5 : 1.5,
+    strokeDasharray: item.orphaned || waiting ? "6 4" : undefined,
+  };
+  const circle = box.family === -2;
+  const value = circle ? box.rows.map((row) => findCell(item, row.cellId)).find((cell) => cell && cell.kind !== "pointer") : undefined;
   return (
     <g
-      className="hh-node"
+      className={born ? "hh-node hh-born" : "hh-node"}
       style={{ transform: `translate(${box.x}px, ${box.y}px)` }}
       data-node-id={item.id}
       data-selected={selected || undefined}
@@ -59,19 +73,25 @@ function NodeViewImpl({ item, box, title, selected, highlighted, selectedCell, n
       aria-label={`${title}${item.orphaned ? ", unreachable" : ""}`}
       onKeyDown={onSelect ? (e) => { if (e.key === "Enter") onSelect(item.id); } : undefined}
     >
-      <rect
-        width={box.width}
-        height={box.height}
-        rx={10}
-        className={
-          item.orphaned ? "fill-danger-dim stroke-danger/60"
-          : selected ? "fill-card stroke-accent"
-          : highlighted ? "fill-card stroke-warning"
-          : "fill-card stroke-card-border"
-        }
-        strokeWidth={selected || highlighted ? 2.5 : 1.5}
-        strokeDasharray={item.orphaned || waiting ? "6 4" : undefined}
-      />
+      {circle ? (
+        <>
+          <circle cx={box.width / 2} cy={box.height / 2} r={box.width / 2} {...shape} />
+          {value?.changed && <circle key={value.value} cx={box.width / 2} cy={box.height / 2} r={box.width / 2 - 4} className="hh-flash fill-success-dim" />}
+          <text x={box.width / 2} y={box.height / 2 + 6} textAnchor="middle" className={`text-[17px] font-bold ${item.orphaned ? "fill-danger" : "fill-foreground"}`}>
+            {value ? valueText(value, nameOf).text : "?"}
+          </text>
+        </>
+      ) : <NodeBoxBody item={item} box={box} title={title} selectedCell={selectedCell} nameOf={nameOf} onSelectCell={onSelectCell} shape={shape} />}
+    </g>
+  );
+}
+
+function NodeBoxBody({ item, box, title, selectedCell, nameOf, onSelectCell, shape }: Pick<NodeViewProps, "item" | "box" | "title" | "selectedCell" | "nameOf" | "onSelectCell"> & {
+  shape: { className: string; strokeWidth: number; strokeDasharray: string | undefined };
+}) {
+  return (
+    <>
+      <rect width={box.width} height={box.height} rx={10} {...shape} />
       <text x={10} y={18} className={`hh-detail text-[12px] font-bold ${item.orphaned ? "fill-danger" : "fill-foreground"}`}>
         {title}
       </text>
@@ -108,14 +128,14 @@ function NodeViewImpl({ item, box, title, selected, highlighted, selectedCell, n
           … {box.hiddenRows} more
         </text>
       )}
-    </g>
+    </>
   );
 }
 
 export const NodeView = memo(NodeViewImpl, (a, b) =>
   a.item === b.item && a.title === b.title && a.selected === b.selected && a.highlighted === b.highlighted &&
-  a.selectedCell === b.selectedCell && a.nameOf === b.nameOf &&
+  a.selectedCell === b.selectedCell && a.nameOf === b.nameOf && a.born === b.born &&
   a.onSelect === b.onSelect && a.onSelectCell === b.onSelectCell &&
   a.box.x === b.box.x && a.box.y === b.box.y && a.box.level === b.box.level &&
-  a.box.height === b.box.height && a.box.hiddenRows === b.box.hiddenRows
+  a.box.height === b.box.height && a.box.width === b.box.width && a.box.hiddenRows === b.box.hiddenRows
 );

@@ -26,7 +26,8 @@ export interface NodeBox extends Rect {
   family: number;
 }
 
-export type ArrowKind = "next" | "prev" | "other";
+/** "branch": a tree node's left or right child link, drawn as a branch without an arrowhead. */
+export type ArrowKind = "next" | "prev" | "branch" | "other";
 
 export interface Arrow {
   /** Id of the pointer cell the arrow starts from. Stable across steps. */
