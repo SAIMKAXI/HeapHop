@@ -7,6 +7,8 @@ to read its story: where it was created, who points at it now, and which line ch
 
 It runs entirely in the browser. Nothing is sent to a server.
 
+**Use HeapHop here: [heaphop.vercel.app](https://heaphop.vercel.app)**. It is free and needs no account.
+
 HeapHop is a Data Structures semester project at Air University (BS Cybersecurity,
 3rd semester). A VS Code extension that shows the same view next to your code is planned.
 
@@ -47,7 +49,10 @@ HeapHop is a Data Structures semester project at Air University (BS Cybersecurit
 The supported part of C++ is listed in [docs/SUBSET.md](docs/SUBSET.md) and on the site's
 "What C++ is supported" page. Anything outside it stops with a message that names the line.
 
-## Run it on your computer
+## Run it on your computer (HeapHop team only)
+
+These instructions are for the team's own development. Everyone else, please use
+[heaphop.vercel.app](https://heaphop.vercel.app); see [License](#license).
 
 You need [Node.js](https://nodejs.org) 22 or newer.
 
@@ -86,11 +91,10 @@ The browser tests use Chrome unless told otherwise.
 
 Set `FIREFOX_PATH` or `CHROME_PATH` if the browser is installed somewhere unusual.
 
-## Putting it online
+## Deployment
 
-The site is plain static files, so any free static host works. On Vercel: sign in with
-GitHub, choose "Add New Project", import this repository and keep the detected Next.js
-settings. Every push to `main` then updates the site.
+The site at [heaphop.vercel.app](https://heaphop.vercel.app) is built and published by
+Vercel from the `main` branch. Every push to `main` updates it.
 
 ## How it is built
 
@@ -115,3 +119,24 @@ Built with Next.js 16, React 19, TypeScript 6 and Tailwind CSS 4.
 ## Inspiration
 
 Design ideas were taken from [See++](https://seepluspl.us) and Python Tutor.
+
+## License
+
+Copyright © 2026 the HeapHop team: M. Saim, Yemna Khan, Muhammad Musa, Eeman Athar Malik
+and Syeda Nazalia Zehra. All rights reserved.
+
+HeapHop is **not open source**. The code is public so that it can be read, but no license
+is granted to use it. Without written permission from the team, you may not:
+
+- download, copy or reuse this code, in whole or in part, in your own projects;
+- modify it, or publish, host or distribute it, or anything made from it;
+- sell it, submit it as your own work, or claim it as your own.
+
+**To use HeapHop, use the website: [heaphop.vercel.app](https://heaphop.vercel.app).** It is
+free for everyone.
+
+Because this repository is public on GitHub, GitHub's Terms of Service let other GitHub users
+view it and fork it on GitHub. A fork gives no other rights: everything above still applies
+to it.
+
+To ask for permission, contact the team through this repository.
