@@ -114,5 +114,4 @@ Built with Next.js 16, React 19, TypeScript 6 and Tailwind CSS 4.
 
 ## Inspiration
 
-Design ideas were taken from [See++](https://seepluspl.us) and Python Tutor. No code
-from them is used.
+Design ideas were taken from [See++](https://seepluspl.us) and Python Tutor.
