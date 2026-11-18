@@ -4,6 +4,7 @@
 // program forward and pauses at the next one. A prediction checkpoint pauses before its
 // line runs and asks where a pointer will point; the answer is then shown by stepping.
 import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { ResolvedCheckpoint, ResolvedLesson } from "@/core/learn";
 import { RichText } from "@/ui/rich-text";
 
@@ -68,31 +69,50 @@ export function LessonCard({ resolved, current, travelling, onGo, onReveal, onCl
   const { lesson, checkpoints, problems } = resolved;
   const checkpoint = checkpoints[current];
   const last = current >= checkpoints.length - 1;
+  const [folded, setFolded] = useState(false);
+  // Docked under the heap rather than floating over it, so it never hides a node.
   return (
-    <aside data-no-pan data-lesson-card aria-label={`Lesson: ${lesson.title}`} className="absolute bottom-3 left-3 z-10 w-[380px] max-w-[calc(100%-1.5rem)] rounded-xl border border-accent/40 bg-card shadow-xl">
-      <header className="flex items-center justify-between gap-2 border-b border-card-border px-4 py-2">
+    <aside data-lesson-card data-folded={folded || undefined} aria-label={`Lesson: ${lesson.title}`} className="shrink-0 border-t-2 border-accent/40 bg-card">
+      <header className="flex items-center justify-between gap-2 px-4 py-2">
         <h3 className="truncate text-xs font-bold uppercase tracking-wider text-accent">Lesson · {lesson.title}</h3>
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground" data-lesson-progress>{Math.min(current + 1, checkpoints.length)} / {checkpoints.length}</span>
+        <span className="flex shrink-0 items-center gap-2">
+          <span className="text-xs tabular-nums text-muted-foreground" data-lesson-progress>{Math.min(current + 1, checkpoints.length)} / {checkpoints.length}</span>
+          <button
+            type="button"
+            data-lesson-fold
+            aria-expanded={!folded}
+            aria-label={folded ? "Show the lesson" : "Hide the lesson"}
+            title={folded ? "Show the lesson" : "Hide the lesson"}
+            onClick={() => setFolded((f) => !f)}
+            className="rounded-md p-1 text-muted-foreground hover:bg-card-border/40 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent"
+          >
+            {folded ? <ChevronUp size={15} aria-hidden /> : <ChevronDown size={15} aria-hidden />}
+          </button>
+        </span>
       </header>
-      <div className="px-4 py-3">
-        {problems.length > 0 && <p className="mb-2 text-xs text-warning">This lesson has a problem: {problems[0]}</p>}
-        {!checkpoint ? (
-          <p className="text-sm text-muted-foreground">This lesson has no steps.</p>
-        ) : travelling ? (
-          <p className="text-sm italic text-muted-foreground" data-lesson-travelling>Running to the next stop…</p>
-        ) : checkpoint.prediction ? (
-          <PredictionBlock key={checkpoint.index} checkpoint={checkpoint} onReveal={onReveal} />
-        ) : (
-          <p className="text-sm leading-relaxed" data-lesson-text><RichText text={checkpoint.text} /></p>
-        )}
-      </div>
-      <footer className="flex items-center justify-between border-t border-card-border px-4 py-2">
-        <button type="button" className={secondary} onClick={onClose}>End lesson</button>
-        <div className="flex gap-2">
-          <button type="button" className={secondary} disabled={current <= 0 || travelling} onClick={() => onGo(current - 1)}>Back</button>
-          <button type="button" data-lesson-next className={primary} disabled={last || travelling} onClick={() => onGo(current + 1)}>{last ? "Finished" : "Next"}</button>
-        </div>
-      </footer>
+      {!folded && (
+        <>
+          <div className="max-h-[32vh] overflow-y-auto border-t border-card-border px-4 py-3">
+            {problems.length > 0 && <p className="mb-2 text-xs text-warning">This lesson has a problem: {problems[0]}</p>}
+            {!checkpoint ? (
+              <p className="text-sm text-muted-foreground">This lesson has no steps.</p>
+            ) : travelling ? (
+              <p className="text-sm italic text-muted-foreground" data-lesson-travelling>Running to the next stop…</p>
+            ) : checkpoint.prediction ? (
+              <PredictionBlock key={checkpoint.index} checkpoint={checkpoint} onReveal={onReveal} />
+            ) : (
+              <p className="text-sm leading-relaxed" data-lesson-text><RichText text={checkpoint.text} /></p>
+            )}
+          </div>
+          <footer className="flex items-center justify-between border-t border-card-border px-4 py-2">
+            <button type="button" className={secondary} onClick={onClose}>End lesson</button>
+            <div className="flex gap-2">
+              <button type="button" className={secondary} disabled={current <= 0 || travelling} onClick={() => onGo(current - 1)}>Back</button>
+              <button type="button" data-lesson-next className={primary} disabled={last || travelling} onClick={() => onGo(current + 1)}>{last ? "Finished" : "Next"}</button>
+            </div>
+          </footer>
+        </>
+      )}
     </aside>
   );
 }

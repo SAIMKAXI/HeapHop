@@ -17,11 +17,12 @@ export default function PrivacyPage() {
       </p>
 
       <h2 className={h2}>What is stored on your device</h2>
-      <p className={p}>HeapHop keeps three things in your browser&apos;s local storage, on your device only:</p>
+      <p className={p}>HeapHop keeps four things in your browser&apos;s local storage, on your device only:</p>
       <ul className="mt-3 list-disc space-y-1.5 pl-6 leading-relaxed text-muted-foreground">
         <li>the programs in the Editor, with their names, so your work is still there next time;</li>
         <li>whether you chose the light or the dark theme;</li>
-        <li>whether you switched the robot helper on or off.</li>
+        <li>whether you switched the robot helper on or off;</li>
+        <li>how wide you made the code and stack panels in the visualizer.</li>
       </ul>
       <p className={p}>
         You can remove them at any time by clearing this site&apos;s data in your browser settings. Deleting a program in

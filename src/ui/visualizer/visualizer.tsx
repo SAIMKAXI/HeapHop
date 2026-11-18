@@ -2,7 +2,8 @@
 
 // The visualizer screen: code on the left, the stack and the heap in the middle, the
 // inspector on the right when something is selected, and the timeline at the bottom.
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+// The code and stack panels can be resized; a lesson card sits under the heap, never on it.
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Trace } from "@/core/types";
 import { highlightsFor, TraceModel, type Selection } from "@/core/trace";
 import { explainStep } from "@/core/explain";
@@ -16,9 +17,14 @@ import { InspectorPanel } from "@/ui/inspector/inspector-panel";
 import { LessonCard } from "@/ui/lesson/lesson-card";
 import { RichText, TONE_TEXT } from "@/ui/rich-text";
 import { CodePanel } from "./code-panel";
+import { DEFAULT_SIZES, loadSizes, MIN_HEAP, MIN_SIZES, saveSizes, type PanelSizes } from "./panel-sizes";
+import { Splitter } from "./splitter";
 import { Controls } from "./controls";
 import { StackPanel } from "./stack-panel";
 import { usePlayback, useStepKeys } from "./use-playback";
+
+/** Width of a panel divider (Tailwind w-1.5). */
+const SPLITTER_W = 6;
 
 interface VisualizerProps {
   trace: Trace;
@@ -42,6 +48,15 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
   const [lessonOpen, setLessonOpen] = useState(true);
   const [checkpoint, setCheckpoint] = useState(0);
   const stackRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const middleRef = useRef<HTMLDivElement>(null);
+  const [sizes, setSizes] = useState(loadSizes);
+  const resize = (patch: Partial<PanelSizes>) => {
+    const next = { ...sizes, ...patch };
+    setSizes(next);
+    saveSizes(next);
+  };
+  const inspectorWidth = () => middleRef.current?.querySelector<HTMLElement>("[data-inspector]")?.offsetWidth ?? 0;
 
   const current = trace.steps[step];
   const highlights = useMemo(() => highlightsFor(model, selection), [model, selection]);
@@ -74,8 +89,8 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
       <div className="flex min-h-dvh flex-col lg:h-dvh">
         <AppHeader current={page} backLabel={backLabel} onBack={onBack} />
 
-        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <div className="max-h-[30vh] shrink-0 overflow-y-auto border-b-2 border-card-border lg:max-h-none lg:w-[400px] lg:border-b-0 lg:border-r-2">
+        <div ref={rowRef} className="flex min-h-0 flex-1 flex-col lg:flex-row" style={{ "--code-w": `${sizes.code}px`, "--stack-w": `${sizes.stack}px` } as CSSProperties}>
+          <div data-panel="code" className="max-h-[30vh] shrink-0 overflow-y-auto border-b-2 border-card-border lg:max-h-none lg:w-[var(--code-w)] lg:border-b-0">
             <CodePanel
               source={trace.source}
               activeFunction={current.activeFunction}
@@ -86,13 +101,33 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
               onSelectLine={(line) => setSelection((s) => (s?.kind === "line" && s.line === line ? null : { kind: "line", line }))}
             />
           </div>
+          <Splitter
+            label="Resize the code panel"
+            className="hidden lg:block"
+            value={sizes.code}
+            min={MIN_SIZES.code}
+            defaultValue={DEFAULT_SIZES.code}
+            max={() => (rowRef.current?.clientWidth ?? Infinity) - sizes.stack - MIN_HEAP - inspectorWidth() - 2 * SPLITTER_W}
+            onChange={(code) => resize({ code })}
+          />
 
-          <div className="flex min-h-0 flex-1 flex-col bg-background md:flex-row">
-            <div ref={stackRef} className="max-h-[28vh] shrink-0 overflow-auto border-b-2 border-card-border p-4 md:max-h-none md:w-[300px] md:border-b-0 md:border-r-2 md:p-5">
+          <div ref={middleRef} className="flex min-h-0 flex-1 flex-col bg-background md:flex-row">
+            <div ref={stackRef} data-panel="stack" className="max-h-[28vh] shrink-0 overflow-auto border-b-2 border-card-border p-4 md:max-h-none md:w-[var(--stack-w)] md:border-b-0 md:p-5">
               <StackPanel frames={current.stack} />
             </div>
-            <div className="relative min-h-[320px] min-w-0 flex-1">
-              <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} robotMotion={!playback.playing && !playback.travelling} />
+            <Splitter
+              label="Resize the stack panel"
+              className="hidden md:block"
+              value={sizes.stack}
+              min={MIN_SIZES.stack}
+              defaultValue={DEFAULT_SIZES.stack}
+              max={() => (middleRef.current?.clientWidth ?? Infinity) - MIN_HEAP - inspectorWidth() - SPLITTER_W}
+              onChange={(stack) => resize({ stack })}
+            />
+            <div data-panel="heap" className="flex min-h-[320px] min-w-0 flex-1 flex-col">
+              <div className="relative min-h-[260px] flex-1">
+                <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} robotMotion={!playback.playing && !playback.travelling} />
+              </div>
               {resolved && lessonOpen && (
                 <LessonCard
                   resolved={resolved}

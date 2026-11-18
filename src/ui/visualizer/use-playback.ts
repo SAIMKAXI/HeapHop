@@ -91,7 +91,7 @@ export function usePlayback(trace: Trace, initialStep = 0): Playback {
 /** Elements that use Space and Enter themselves. Arrows still step when one is focused. */
 const PRESSABLE = "button, a, summary, [role='button']";
 /** Elements that use every key themselves. */
-const TYPING = "input, textarea, select, [contenteditable='true']";
+const TYPING = "input, textarea, select, [contenteditable='true'], [role='separator']";
 
 /** Keyboard shortcuts of the visualizer: ← → Space, S (step over), R (restart), Esc. */
 export function useStepKeys(playback: Playback, onEscape: () => void) {
