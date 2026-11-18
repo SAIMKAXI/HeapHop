@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
+import { Avatar } from "@/ui/site/avatar";
 import { PageFrame } from "@/ui/site/page-frame";
 
 export const metadata: Metadata = { title: "About", description: "Why HeapHop was made, and the team behind it." };
 
-const TEAM = ["M. Saim", "Yemna Khan", "Muhammad Musa", "Eeman Athar Malik", "Syeda Nazalia Zehra"];
-const initials = (name: string) => name.replace(/\./g, "").split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("");
+const TEAM = [
+  { name: "M. Saim", kind: "boy", background: "#bfe3ee", shirt: "#1f5f8b" },
+  { name: "Yemna Khan", kind: "girl", background: "#f6d6de", shirt: "#b2456b" },
+  { name: "Muhammad Musa", kind: "boy", background: "#c9ead8", shirt: "#2e7d5b" },
+  { name: "Eeman Athar Malik", kind: "girl", background: "#e3d9f5", shirt: "#6a4fb3" },
+  { name: "Syeda Nazalia Zehra", kind: "girl", background: "#f8e2c4", shirt: "#c0702a" },
+] as const;
 
 const h2 = "mt-12 text-xl font-bold";
 const p = "mt-3 leading-relaxed text-muted-foreground";
@@ -31,11 +37,9 @@ export default function AboutPage() {
       <h2 className={h2}>The team</h2>
       <p className={p}>Cyber Security undergraduate students at Air University, Islamabad.</p>
       <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-        {TEAM.map((name) => (
+        {TEAM.map(({ name, kind, background, shirt }) => (
           <li key={name} data-team-member className="flex items-center gap-4 rounded-xl border-2 border-card-border bg-card p-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent/15 text-sm font-bold text-accent" aria-hidden>
-              {initials(name)}
-            </span>
+            <Avatar kind={kind} background={background} shirt={shirt} />
             <span>
               <span className="block font-semibold">{name}</span>
               <span className="block text-sm text-muted-foreground">BS Cyber Security, Air University</span>

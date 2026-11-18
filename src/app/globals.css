@@ -1,67 +1,67 @@
 @import "tailwindcss";
 
-/* Ink and orange, from the HeapHop logo and robot. Dark (default): deep ink surfaces with
-   an orange accent. Light: warm off-white with ink text and a deeper orange. Next arrows
-   are orange and prev arrows blue, opposite on the colour wheel so they never look alike.
-   Every text colour passes WCAG AA (tests/ui/contrast.test.ts). */
+/* Blueprint: calm and technical, like a schematic. Dark (default): deep navy with teal
+   actions. Light: cool off-white with navy text and a deeper teal. Next arrows are teal
+   and prev arrows amber, so the two never look alike. Every text colour passes WCAG AA
+   (tests/ui/contrast.test.ts). */
 :root {
-  --background: #12151c;
-  --header: #171b24;
-  --foreground: #eceef2;
-  --card: #191d26;
-  --card-border: #2b313d;
-  --code-bg: #0f1218;
-  --muted: #9aa1ae;
-  --muted-foreground: #b4bac5;
-  --accent: #f28c3a;
-  --accent-dim: rgba(242, 140, 58, 0.12);
-  --on-accent: #1a1206;
-  --prev: #7fa7e0;
-  --success: #6bcb8b;
-  --success-dim: rgba(107, 203, 139, 0.18);
-  --danger: #f47067;
-  --danger-dim: rgba(244, 112, 103, 0.12);
-  --warning: #e3b341;
-  --warning-dim: rgba(227, 179, 65, 0.12);
+  --background: #0b1622;
+  --header: #0f1d2c;
+  --foreground: #e6eef6;
+  --card: #102030;
+  --card-border: #21374b;
+  --code-bg: #09121c;
+  --muted: #93a4b6;
+  --muted-foreground: #b3c1d0;
+  --accent: #3dd6c6;
+  --accent-dim: rgba(61, 214, 198, 0.12);
+  --on-accent: #05211e;
+  --prev: #f2b84b;
+  --success: #5fd38d;
+  --success-dim: rgba(95, 211, 141, 0.18);
+  --danger: #f2797a;
+  --danger-dim: rgba(242, 121, 122, 0.12);
+  --warning: #f2b84b;
+  --warning-dim: rgba(242, 184, 75, 0.12);
 
   --syn-keyword: #82aeea;
-  --syn-type: #6fcdbd;
-  --syn-string: #e5a57d;
-  --syn-number: #b5d99c;
-  --syn-comment: #8b95a5;
-  --syn-function: #e8d58a;
-  --syn-builtin: #e8d58a;
-  --syn-preprocessor: #d69ce6;
+  --syn-type: #c79bf0;
+  --syn-string: #e9a97c;
+  --syn-number: #a9dc9b;
+  --syn-comment: #8498ac;
+  --syn-function: #e6d58c;
+  --syn-builtin: #e6d58c;
+  --syn-preprocessor: #f09bc2;
 }
 
 .light {
-  --background: #faf8f5;
+  --background: #f4f7fa;
   --header: #ffffff;
-  --foreground: #1c2230;
+  --foreground: #0f1e33;
   --card: #ffffff;
-  --card-border: #e7e2da;
-  --code-bg: #fbfaf7;
-  --muted: #5f6673;
-  --muted-foreground: #4f5663;
-  --accent: #b54c0b;
-  --accent-dim: rgba(181, 76, 11, 0.08);
+  --card-border: #dce3ea;
+  --code-bg: #f9fbfc;
+  --muted: #556274;
+  --muted-foreground: #435163;
+  --accent: #0b7480;
+  --accent-dim: rgba(11, 116, 128, 0.08);
   --on-accent: #ffffff;
-  --prev: #3d6aa8;
-  --success: #1e7a43;
-  --success-dim: rgba(30, 122, 67, 0.1);
+  --prev: #a8640e;
+  --success: #1c7a45;
+  --success-dim: rgba(28, 122, 69, 0.1);
   --danger: #b42318;
   --danger-dim: rgba(180, 35, 24, 0.08);
-  --warning: #8a5a00;
-  --warning-dim: rgba(138, 90, 0, 0.08);
+  --warning: #8f5308;
+  --warning-dim: rgba(143, 83, 8, 0.08);
 
   --syn-keyword: #2b54a3;
-  --syn-type: #1f6e6a;
+  --syn-type: #7a3e9d;
   --syn-string: #a3341f;
   --syn-number: #1e6b3a;
-  --syn-comment: #5d6b5f;
-  --syn-function: #7a5410;
-  --syn-builtin: #7a5410;
-  --syn-preprocessor: #8a2e9e;
+  --syn-comment: #5a6b78;
+  --syn-function: #795212;
+  --syn-builtin: #795212;
+  --syn-preprocessor: #a1366b;
 }
 
 @theme inline {
