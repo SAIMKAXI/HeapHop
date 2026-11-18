@@ -44,6 +44,10 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
     a: "The run stops after 2000 steps, 500 rounds of one loop or 64 nested calls, and every step before that stays visible, so you can see where the loop went wrong.",
   },
   {
+    q: "What is the little robot doing?",
+    a: "When you step one line at a time, the robot acts out what that line did: it drags a pointer's arrow to its new node, brings a node created with new into place, carries a deleted node away, and follows pointers like cur from node to node. In trees it flies on rocket boots. During auto-play, or when you jump on the timeline, it waits in its corner. The robot button in the canvas toolbar switches it off, and it starts off on devices set to reduce motion.",
+  },
+  {
     q: "What do the colours and dashed boxes mean?",
     a: "A node with a red dashed border can no longer be reached from any pointer: it has leaked. A pointer marked dangling still holds the address of an object that was deleted. Blue arrows are next pointers, orange arrows are prev pointers, and the small labels above a node show which variables point at it.",
   },

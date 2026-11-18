@@ -5,3 +5,4 @@ export {
   centerOn, fitView, intersects, panBy, screenToWorld, visibleWorldRect, zoomAt,
   IDENTITY, MAX_ZOOM, MIN_ZOOM, READABLE_ZOOM, type Size, type View,
 } from "./viewport";
+export { perch, planRobotMove, robotHome, type RobotBeat, type RobotMove } from "./robot";

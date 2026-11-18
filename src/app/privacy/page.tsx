@@ -9,7 +9,7 @@ const link = "font-semibold text-accent underline-offset-4 hover:underline";
 
 export default function PrivacyPage() {
   return (
-    <PageFrame current="privacy" title="Privacy policy" intro="Last updated 17 November 2026. The short version: your code stays in your browser, and HeapHop does not track you.">
+    <PageFrame current="privacy" title="Privacy policy" intro="Last updated 18 November 2026. The short version: your code stays in your browser, and HeapHop does not track you.">
       <h2 className={h2}>Your code</h2>
       <p className={p}>
         Programs you write or open are run inside your own browser, in a background thread of the page. They are never
@@ -17,13 +17,14 @@ export default function PrivacyPage() {
       </p>
 
       <h2 className={h2}>What is stored on your device</h2>
-      <p className={p}>HeapHop keeps two things in your browser&apos;s local storage, on your device only:</p>
+      <p className={p}>HeapHop keeps three things in your browser&apos;s local storage, on your device only:</p>
       <ul className="mt-3 list-disc space-y-1.5 pl-6 leading-relaxed text-muted-foreground">
         <li>the programs in the Editor, with their names, so your work is still there next time;</li>
-        <li>whether you chose the light or the dark theme.</li>
+        <li>whether you chose the light or the dark theme;</li>
+        <li>whether you switched the robot helper on or off.</li>
       </ul>
       <p className={p}>
-        You can remove both at any time by clearing this site&apos;s data in your browser settings. Deleting a program in
+        You can remove them at any time by clearing this site&apos;s data in your browser settings. Deleting a program in
         the Editor removes it straight away.
       </p>
 

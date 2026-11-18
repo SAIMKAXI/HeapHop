@@ -44,6 +44,9 @@ HeapHop is a Data Structures semester project at Air University (BS Cybersecurit
   trees (build a BST, search it, in-order traversal, an AVL rotation), with prediction
   questions: "where will `cur` point after this line?" The right answer is read from the
   program's own run.
+- **A robot helper.** Stepping one line at a time, a small robot acts out what the line did:
+  it drags a pointer's arrow to its new node, brings new nodes in, carries deleted ones
+  away, and follows `cur` from node to node. In trees it flies on rocket boots.
 - **Zoom, pan and fullscreen** on the heap, and a layout that also works on a phone.
 
 The supported part of C++ is listed in [docs/SUBSET.md](docs/SUBSET.md) and on the site's

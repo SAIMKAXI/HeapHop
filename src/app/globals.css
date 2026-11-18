@@ -171,6 +171,8 @@ code, pre, .font-mono, textarea {
 .hh-canvas[data-dragging] { cursor: grabbing; }
 .hh-canvas text { user-select: none; }
 .hh-node { transition: transform 280ms ease; cursor: pointer; outline: none; }
+/* An arrow or node the robot is carrying is drawn by the robot until it lets go. */
+[data-robot-hidden] { visibility: hidden; }
 .hh-node:focus-visible > rect:first-child { stroke: var(--accent); stroke-width: 2.5; }
 .hh-chip { transition: transform 280ms ease; }
 .hh-fade { animation: hh-fade-in 220ms ease-out; }

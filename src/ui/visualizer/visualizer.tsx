@@ -92,7 +92,7 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
               <StackPanel frames={current.stack} />
             </div>
             <div className="relative min-h-[320px] min-w-0 flex-1">
-              <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} />
+              <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} robotMotion={!playback.playing && !playback.travelling} />
               {resolved && lessonOpen && (
                 <LessonCard
                   resolved={resolved}

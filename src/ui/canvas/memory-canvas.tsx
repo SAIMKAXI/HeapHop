@@ -3,12 +3,15 @@
 // The heap drawn as SVG from layout coordinates (tasks 5.3 to 5.8).
 // Nothing here measures the DOM to place a node or an arrow: positions come from
 // src/layout, which is why the picture stays correct at any zoom.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ListPlan } from "@/core/structures";
 import { heapRootOf, type Selection, type TraceModel } from "@/core/trace";
 import { cellLabel, targetLabel } from "@/core/explain";
 import { RichText } from "@/ui/rich-text";
-import { intersects, visibleWorldRect, type Rect, type Size, type View } from "@/layout";
+import { intersects, planRobotMove, robotHome, visibleWorldRect, type Rect, type Size, type View } from "@/layout";
+import { RobotPlayer } from "@/ui/robot/robot-player";
+import { useRobotShown, toggleRobot } from "@/ui/robot/robot-setting";
+import { RobotSprite } from "@/ui/robot/robot-sprite";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { computeStep, traceBounds, unionRect } from "./layout-cache";
 import { NodeView } from "./node-view";
@@ -22,8 +25,10 @@ interface MemoryCanvasProps {
   /** Objects related to the selection (outlined). */
   highlighted?: Set<string>;
   onSelect?: (selection: Selection | null) => void;
-  /** A picture only: no toolbar, no hover card, and the mouse and wheel pass through to the page. */
+  /** A picture only: no toolbar, no robot, no hover card, and the mouse and wheel pass through to the page. */
   still?: boolean;
+  /** The student is stepping by hand, so the robot acts out single steps. Off while playing or jumping. */
+  robotMotion?: boolean;
 }
 
 const NONE = new Set<string>();
@@ -64,7 +69,7 @@ const CULL_GRID = 240;
 const EMPTY_BOUNDS: Rect = { x: 0, y: 0, width: 0, height: 0 };
 const ARROW_CLASS = { next: "stroke-accent", prev: "stroke-warning", other: "stroke-muted-foreground" } as const;
 
-export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect, still = false }: MemoryCanvasProps) {
+export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect, still = false, robotMotion = false }: MemoryCanvasProps) {
   const selectedId = selection?.kind === "object" ? selection.id : null;
   const selectedCell = selection?.kind === "pointer" ? selection.cellId : null;
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -76,7 +81,40 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
   const { structures, layout, items, boxes } = computeStep(model, plan, stepIndex);
   const frame = traceBounds(model, plan);
 
-
+  // The robot: placed at home when it appears, then acting out each single step by hand.
+  const robotShown = useRobotShown() && !still;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const robotRef = useRef<SVGGElement>(null);
+  const liveRef = useRef<SVGPathElement>(null);
+  const ghostRef = useRef<SVGRectElement>(null);
+  const playerRef = useRef<RobotPlayer | null>(null);
+  const shownStep = useRef(stepIndex);
+  useLayoutEffect(() => {
+    const svg = svgRef.current, robot = robotRef.current, live = liveRef.current, ghost = ghostRef.current;
+    if (!robotShown || !svg || !robot || !live || !ghost) return;
+    const part = <T extends SVGElement>(name: string) => robot.querySelector(`[data-part="${name}"]`) as T;
+    const player = new RobotPlayer({ svg, robot, live, ghost, flame: part("flame"), arm: part("arm"), hand: part("hand") });
+    player.place(robotHome(frame), null);
+    playerRef.current = player;
+    return () => { player.cancel(); playerRef.current = null; };
+  }, [robotShown, frame]);
+  useLayoutEffect(() => {
+    const from = shownStep.current;
+    shownStep.current = stepIndex;
+    const player = playerRef.current;
+    if (!player || from === stepIndex) return;
+    const home = robotHome(frame);
+    if (!robotMotion || Math.abs(stepIndex - from) !== 1) return player.place(home, null);
+    void player.play(planRobotMove({
+      events: model.events[Math.max(from, stepIndex)],
+      direction: stepIndex > from ? 1 : -1,
+      before: computeStep(model, plan, from).layout,
+      after: layout,
+      standingOn: player.standingOn,
+      home,
+      atEnd: stepIndex === 0 || stepIndex === model.length - 1,
+    }));
+  }, [stepIndex, robotMotion, model, plan, layout, frame]);
 
   // Culling window: only tracked for large pictures, and only updated when it moves a grid cell.
   const large = layout.nodes.length > CULL_ABOVE;
@@ -163,6 +201,8 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
           onFocus={() => selectedBox && viewport.focus(selectedBox)}
           fullscreen={fullscreen !== "off"}
           onToggleFullscreen={toggleFullscreen}
+          robot={robotShown}
+          onToggleRobot={toggleRobot}
         />
       )}
       <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1">
@@ -186,7 +226,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
         {/* The zoom and pan transform sits on this HTML layer, which the browser can move
             and scale without repainting the drawing. */}
         <div ref={contentRef} className="hh-content absolute left-0 top-0">
-        <svg width={1} height={1} overflow="visible" role="img" aria-label="Heap memory diagram">
+        <svg ref={svgRef} width={1} height={1} overflow="visible" role="img" aria-label="Heap memory diagram">
           <defs>
             {(["next", "prev", "other"] as const).map((kind) => (
               <marker key={kind} id={`hh-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -196,7 +236,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
           </defs>
           <g>
             {layout.terminals.filter((t) => shown(t.nodeId)).map((t) => (
-              <g key={t.id} data-terminal={t.label} className="hh-fade">
+              <g key={t.id} data-terminal={t.label} data-terminal-id={t.id} className="hh-fade">
                 <line x1={t.stem.from.x} y1={t.stem.from.y} x2={t.stem.to.x} y2={t.stem.to.y} className={t.label === "?" ? "stroke-muted" : "stroke-danger/70"} strokeWidth={1.5} strokeDasharray={t.label === "?" ? "3 3" : undefined} />
                 <rect x={t.x} y={t.y} width={t.width} height={t.height} rx={5} className={t.label === "?" ? "fill-card stroke-muted" : "fill-danger-dim stroke-danger/60"} strokeWidth={1} />
                 <text x={t.x + t.width / 2} y={t.y + 14} textAnchor="middle" className={`hh-detail text-[10px] font-bold ${t.label === "?" ? "fill-muted" : "fill-danger"}`}>{t.label}</text>
@@ -224,13 +264,20 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
               </g>
             ))}
             {layout.chips.filter((c) => shown(c.nodeId)).map((c) => (
-              <g key={c.id} data-chip={c.label} data-chip-id={c.id} className="hh-chip" style={{ transform: `translate(${c.x}px, ${c.y}px)` }}
+              <g key={c.id} data-chip={c.label} data-chip-id={c.id} data-chip-node={c.nodeId} className="hh-chip" style={{ transform: `translate(${c.x}px, ${c.y}px)` }}
                 onClick={c.id.startsWith("more:") ? undefined : (e) => { e.stopPropagation(); selectCell(c.id); }}>
                 <rect width={c.width} height={c.height} rx={c.height / 2} className={selectedCell === c.id ? "fill-accent stroke-foreground" : c.active ? "fill-accent" : "fill-card stroke-card-border"} strokeWidth={selectedCell === c.id ? 2 : 1} />
                 <text x={c.width / 2} y={14} textAnchor="middle" className={`hh-detail text-[11px] font-bold ${c.active ? "fill-background" : "fill-muted-foreground"}`}>{c.label}</text>
               </g>
             ))}
           </g>
+          {robotShown && (
+            <g data-robot className="pointer-events-none" aria-hidden>
+              <rect ref={ghostRef} rx={8} className="fill-card stroke-accent" strokeWidth={1.5} strokeDasharray="5 4" style={{ display: "none" }} />
+              <path ref={liveRef} fill="none" strokeWidth={2} strokeLinecap="round" className="stroke-accent" markerEnd="url(#hh-arrow-next)" style={{ display: "none" }} />
+              <g ref={robotRef}><RobotSprite /></g>
+            </g>
+          )}
         </svg>
         </div>
       </div>
