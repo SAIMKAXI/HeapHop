@@ -171,7 +171,7 @@ export function CodeEditor({ onRun, input, onInputChange, error, isRunning }: Co
               onClick={() => onRun(code)}
               disabled={!canRun}
               className={cn(
-                "ml-auto flex items-center gap-2.5 rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-accent/20 transition-all hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:shadow-none",
+                "ml-auto flex items-center gap-2.5 rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-on-accent shadow-lg shadow-accent/20 transition-all hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:shadow-none",
                 isRunning ? "opacity-80" : "disabled:opacity-40"
               )}
             >

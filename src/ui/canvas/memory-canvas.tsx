@@ -67,7 +67,7 @@ const CULL_MARGIN = 300;
 const CULL_GRID = 240;
 
 const EMPTY_BOUNDS: Rect = { x: 0, y: 0, width: 0, height: 0 };
-const ARROW_CLASS = { next: "stroke-accent", prev: "stroke-warning", other: "stroke-muted-foreground" } as const;
+const ARROW_CLASS = { next: "stroke-accent", prev: "stroke-prev", other: "stroke-muted-foreground" } as const;
 
 export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect, still = false, robotMotion = false }: MemoryCanvasProps) {
   const selectedId = selection?.kind === "object" ? selection.id : null;
@@ -230,7 +230,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
           <defs>
             {(["next", "prev", "other"] as const).map((kind) => (
               <marker key={kind} id={`hh-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                <path d="M0 0L10 5L0 10z" className={kind === "next" ? "fill-accent" : kind === "prev" ? "fill-warning" : "fill-muted-foreground"} />
+                <path d="M0 0L10 5L0 10z" className={kind === "next" ? "fill-accent" : kind === "prev" ? "fill-prev" : "fill-muted-foreground"} />
               </marker>
             ))}
           </defs>
@@ -267,7 +267,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
               <g key={c.id} data-chip={c.label} data-chip-id={c.id} data-chip-node={c.nodeId} className="hh-chip" style={{ transform: `translate(${c.x}px, ${c.y}px)` }}
                 onClick={c.id.startsWith("more:") ? undefined : (e) => { e.stopPropagation(); selectCell(c.id); }}>
                 <rect width={c.width} height={c.height} rx={c.height / 2} className={selectedCell === c.id ? "fill-accent stroke-foreground" : c.active ? "fill-accent" : "fill-card stroke-card-border"} strokeWidth={selectedCell === c.id ? 2 : 1} />
-                <text x={c.width / 2} y={14} textAnchor="middle" className={`hh-detail text-[11px] font-bold ${c.active ? "fill-background" : "fill-muted-foreground"}`}>{c.label}</text>
+                <text x={c.width / 2} y={14} textAnchor="middle" className={`hh-detail text-[11px] font-bold ${c.active ? "fill-on-accent" : "fill-muted-foreground"}`}>{c.label}</text>
               </g>
             ))}
           </g>

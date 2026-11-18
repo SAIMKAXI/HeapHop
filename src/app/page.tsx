@@ -35,10 +35,10 @@ export default function LandingPage() {
             every pointer as they change.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <a href="/learn" data-cta="learn" className="flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-bold text-white shadow-lg shadow-accent/20 transition-colors hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+            <a href="/learn" data-cta="learn" className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-on-accent shadow-lg shadow-accent/20 transition-colors hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
               Start learning <ArrowRight size={16} aria-hidden />
             </a>
-            <a href="/editor" data-cta="editor" className="flex items-center gap-2 rounded-xl border-2 border-card-border px-5 py-3 text-sm font-bold transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+            <a href="/editor" data-cta="editor" className="flex items-center gap-2 rounded-full border border-card-border bg-card px-6 py-3 text-sm font-bold transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
               Open the editor
             </a>
           </div>

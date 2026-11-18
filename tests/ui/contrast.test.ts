@@ -25,7 +25,7 @@ export function contrast(a: string, b: string): number {
 
 const TEXT = ["foreground", "muted-foreground", "muted", "accent", "success", "danger", "warning",
   "syn-keyword", "syn-type", "syn-string", "syn-number", "syn-comment", "syn-function", "syn-preprocessor"];
-const SURFACES = ["background", "card", "code-bg"];
+const SURFACES = ["background", "header", "card", "code-bg"];
 
 for (const [theme, selector] of [["dark", ":root"], ["light", ".light"]] as const) {
   test(`${theme} theme: every text colour has at least 4.5:1 contrast on every surface`, () => {
@@ -34,5 +34,18 @@ for (const [theme, selector] of [["dark", ":root"], ["light", ".light"]] as cons
       .filter((c) => c.ratio < 4.5)
       .map((c) => `${c.text} on ${c.surface}: ${c.ratio.toFixed(2)}`);
     assert.deepEqual(failing, []);
+  });
+}
+
+for (const [theme, selector] of [["dark", ":root"], ["light", ".light"]] as const) {
+  test(`${theme} theme: text on primary buttons is readable, and both arrow colours stand out from every surface`, () => {
+    const t = tokens(selector);
+    assert.ok(contrast(t["on-accent"], t.accent) >= 4.5, `on-accent on accent: ${contrast(t["on-accent"], t.accent).toFixed(2)}`);
+    // Arrows are graphics: WCAG asks 3:1 against what they are drawn on.
+    for (const arrow of ["accent", "prev"]) {
+      for (const surface of ["background", "card"]) {
+        assert.ok(contrast(t[arrow], t[surface]) >= 3, `${arrow} arrow on ${surface}: ${contrast(t[arrow], t[surface]).toFixed(2)}`);
+      }
+    }
   });
 }

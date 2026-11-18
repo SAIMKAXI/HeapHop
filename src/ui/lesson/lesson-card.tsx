@@ -19,7 +19,7 @@ interface LessonCardProps {
   onClose: () => void;
 }
 
-const primary = "rounded-md bg-accent px-3 py-1.5 text-xs font-bold text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-foreground disabled:opacity-40";
+const primary = "rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-foreground disabled:opacity-40";
 const secondary = "rounded-md border border-card-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40";
 
 function PredictionBlock({ checkpoint, onReveal }: { checkpoint: ResolvedCheckpoint; onReveal: (step: number) => void }) {

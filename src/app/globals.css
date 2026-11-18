@@ -1,63 +1,73 @@
 @import "tailwindcss";
 
-/* Dark mode (default) */
+/* Memory Lab design system. Dark (default): charcoal with a green undertone and
+   champagne actions. Light: parchment surfaces and deep forest controls. Values were
+   adjusted where the sampled ones fell short of WCAG AA (tests/ui/contrast.test.ts). */
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #111113;
-  --card-border: #27272a;
-  --code-bg: #18181b;
-  --muted: #8b8b94;
-  --muted-foreground: #a1a1aa;
-  --accent: #3b82f6;
-  --accent-dim: rgba(59, 130, 246, 0.12);
-  --success: #22c55e;
-  --success-dim: rgba(34, 197, 94, 0.2);
-  --danger: #ef4444;
-  --danger-dim: rgba(239, 68, 68, 0.12);
-  --warning: #f59e0b;
-  --warning-dim: rgba(245, 158, 11, 0.12);
+  --background: #18282b;
+  --header: #273030;
+  --foreground: #f2e4d0;
+  --card: #1d2429;
+  --card-border: #46504d;
+  --code-bg: #161e22;
+  --muted: #949b95;
+  --muted-foreground: #c2bbae;
+  --accent: #e7d0ae;
+  --accent-dim: rgba(231, 208, 174, 0.12);
+  --on-accent: #29342e;
+  --prev: #c98a55;
+  --success: #83a88d;
+  --success-dim: rgba(131, 168, 141, 0.2);
+  --danger: #e8806f;
+  --danger-dim: rgba(232, 128, 111, 0.12);
+  --warning: #e2a65c;
+  --warning-dim: rgba(226, 166, 92, 0.12);
 
-  --syn-keyword: #569cd6;
-  --syn-type: #4ec9b0;
-  --syn-string: #ce9178;
-  --syn-number: #b5cea8;
-  --syn-comment: #6a9955;
-  --syn-function: #dcdcaa;
-  --syn-builtin: #dcdcaa;
-  --syn-preprocessor: #c586c0;
+  --syn-keyword: #7fb2e0;
+  --syn-type: #6fc7b4;
+  --syn-string: #dda386;
+  --syn-number: #b9d4a6;
+  --syn-comment: #86a87c;
+  --syn-function: #e3d9a0;
+  --syn-builtin: #e3d9a0;
+  --syn-preprocessor: #d39bd3;
 }
 
-/* Light mode */
 .light {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --card: #f8f9fa;
-  --card-border: #e2e4e8;
-  --code-bg: #f1f3f5;
-  --muted: #5f666d;
-  --muted-foreground: #495057;
-  --accent: #2563eb;
-  --accent-dim: rgba(37, 99, 235, 0.08);
-  --success: #15803d;
-  --success-dim: rgba(22, 163, 74, 0.1);
-  --danger: #c81e1e;
-  --danger-dim: rgba(220, 38, 38, 0.08);
-  --warning: #b45309;
-  --warning-dim: rgba(217, 119, 6, 0.08);
+  --background: #f2e4d0;
+  --header: #f2e4d0;
+  --foreground: #29342e;
+  --card: #f8f1e5;
+  --card-border: #d7c7ae;
+  --code-bg: #fcf8ef;
+  --muted: #6a6356;
+  --muted-foreground: #625f56;
+  --accent: #29342e;
+  --accent-dim: rgba(41, 52, 46, 0.08);
+  --on-accent: #f8f1e5;
+  --prev: #a8693a;
+  --success: #46694f;
+  --success-dim: rgba(70, 105, 79, 0.12);
+  --danger: #a63a2b;
+  --danger-dim: rgba(166, 58, 43, 0.08);
+  --warning: #87500f;
+  --warning-dim: rgba(135, 80, 15, 0.08);
 
-  --syn-keyword: #0000ff;
-  --syn-type: #1f6f86;
-  --syn-string: #a31515;
-  --syn-number: #07734e;
-  --syn-comment: #008000;
-  --syn-function: #795e26;
-  --syn-builtin: #795e26;
-  --syn-preprocessor: #af00db;
+  --syn-keyword: #1f4fa8;
+  --syn-type: #1b6476;
+  --syn-string: #9a2a1a;
+  --syn-number: #28663f;
+  --syn-comment: #4d6b3a;
+  --syn-function: #6e5420;
+  --syn-builtin: #6e5420;
+  --syn-preprocessor: #8a2e9e;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-header: var(--header);
+  --color-on-accent: var(--on-accent);
+  --color-prev: var(--prev);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-border: var(--card-border);

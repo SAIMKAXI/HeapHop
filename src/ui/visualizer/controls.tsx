@@ -71,7 +71,7 @@ export function Controls({ playback: p, marks }: ControlsProps) {
             title={p.playing ? "Pause" : "Auto-play"}
             onClick={p.togglePlay}
             disabled={atEnd && !p.playing}
-            className={cn("rounded-xl p-3", p.playing ? "bg-warning/15 text-warning hover:bg-warning/25" : "bg-accent/15 text-accent hover:bg-accent/25")}
+            className={cn("rounded-full p-3", p.playing ? "bg-warning/15 text-warning hover:bg-warning/25" : "bg-accent text-on-accent hover:bg-accent/85")}
           >
             {p.playing ? <Pause size={18} /> : <Play size={18} />}
           </IconButton>

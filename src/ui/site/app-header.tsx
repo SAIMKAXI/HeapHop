@@ -20,14 +20,14 @@ export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProp
   const onWebsite = useOnWebsite();
   const name = <span className="text-lg font-bold">HeapHop</span>;
   return (
-    <header className="flex items-center justify-between gap-3 border-b-2 border-card-border bg-card px-4 py-2.5 sm:px-6">
+    <header className="flex items-center justify-between gap-3 border-b border-card-border bg-header px-4 py-2.5 sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
         {onBack && (
           <button
             type="button"
             data-back
             onClick={onBack}
-            className="flex items-center gap-1.5 rounded-lg border border-card-border bg-background px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-accent hover:bg-accent/10 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
+            className="flex items-center gap-1.5 rounded-full border border-card-border bg-card px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-accent hover:bg-accent/10 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
           >
             <ChevronLeft size={14} aria-hidden />
             {backLabel}
@@ -44,8 +44,8 @@ export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProp
                 href={l.href}
                 aria-current={current === l.page ? "page" : undefined}
                 className={cn(
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-accent",
-                  current === l.page ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-card-border/30 hover:text-foreground"
+                  "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-accent",
+                  current === l.page ? "bg-accent text-on-accent" : "text-muted-foreground hover:bg-card-border/40 hover:text-foreground"
                 )}
               >
                 {l.label}

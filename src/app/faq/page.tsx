@@ -49,7 +49,7 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "What do the colours and dashed boxes mean?",
-    a: "A node with a red dashed border can no longer be reached from any pointer: it has leaked. A pointer marked dangling still holds the address of an object that was deleted. Blue arrows are next pointers, orange arrows are prev pointers, and the small labels above a node show which variables point at it.",
+    a: "A node with a red dashed border can no longer be reached from any pointer: it has leaked. A pointer marked dangling still holds the address of an object that was deleted. Arrows in the main accent colour are next pointers, copper arrows are prev pointers, and the small labels above a node show which variables point at it.",
   },
   {
     q: "Where are my programs saved?",
