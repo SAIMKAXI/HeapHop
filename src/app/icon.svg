@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 5 92 92">
+<!-- The tab icon. Same shape as src/ui/site/logo-shape.ts (a test keeps them equal); the colours follow the browser's light or dark mode. -->
+<style>
+.hi{stop-color:#3b8f83}.mid{stop-color:#0f4b48}.deep{stop-color:#0a3b3b}.teal{fill:#2e8a7e}.amber{fill:#d9913f}.glint{fill:#f3d3a2}.line{stroke:#f7f0e1}
+@media (prefers-color-scheme:dark){.hi{stop-color:#5cbcae}.mid{stop-color:#1d6e68}.deep{stop-color:#175f5b}.teal{fill:#3aaa9b}.amber{fill:#f2b14f}.glint{fill:#fbe0b0}.line{stroke:#f3ead6}}
+</style>
+<defs>
+<linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="hi"/><stop offset=".55" class="mid"/><stop offset="1" class="deep"/></linearGradient>
+<linearGradient id="c"><stop offset="0" class="deep"/><stop offset=".5" class="mid"/><stop offset="1" class="deep"/></linearGradient>
+<linearGradient id="r" x1="0" y1=".6" x2="1" y2=".2"><stop offset="0" class="deep"/><stop offset=".5" class="mid"/><stop offset="1" class="hi"/></linearGradient>
+<mask id="m"><rect width="100" height="100" fill="#fff"/><path d="M8 56Q24 38.5 58 31.6Q27 42.5 8 60.5Z"/><path d="M57 26.5Q80 30.5 89.6 47Q79 56.5 57 71Q75 55.5 81.5 47Q74 36.5 57 30.5Z"/></mask>
+</defs>
+<g mask="url(#m)"><path d="M10 25Q10 20 14.5 17.8L28.5 11.2Q33 9 33 14L33 71Q33 76 28.5 78.2L14.5 84.8Q10 87 10 82Z" fill="url(#b)"/><path d="M32.6 40.2Q46 33 64 31L64 69Q47 62 32.6 63.8Z" fill="url(#c)"/><path d="M63 25Q63 20 67.5 18L87.5 9.6Q92 7.7 92 12.6L92 81Q92 86 87.4 87.5L63.6 95.6Q59 97 59 92L59 72L63 40Z" fill="url(#r)"/></g>
+<g class="line"><path d="M25 61L40.6 49L63 36L79 50.7L59 61L40.6 49" fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="40.6" cy="49" r="5" class="teal" stroke-width="1.1"/>
+<circle cx="79" cy="50.7" r="5" class="teal" stroke-width="1.1"/>
+<circle cx="63" cy="36" r="4.6" class="amber" stroke-width="1.1"/>
+<circle cx="59" cy="61" r="4" class="amber" stroke-width="1.1"/></g>
+<circle cx="62.3" cy="35.2" r="2" class="glint"/>
+</svg>

@@ -2,6 +2,7 @@
 // With a title, the content is set as a single readable column under that heading.
 import type { ReactNode } from "react";
 import { AppHeader } from "./app-header";
+import { Logo } from "./logo";
 import { FOOTER_LINKS, type SitePage } from "./links";
 
 interface PageFrameProps {
@@ -27,8 +28,9 @@ export function PageFrame({ current, title, intro, children }: PageFrameProps) {
       </main>
       <footer className="border-t-2 border-card-border bg-card px-5 py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-bold text-foreground">HeapHop</span> · made by Cyber Security students at Air University
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Logo size={22} />
+            <span><span className="font-bold text-foreground">HeapHop</span> · made by Cyber Security students at Air University</span>
           </p>
           <nav aria-label="More pages" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
             {FOOTER_LINKS.map((l) => (

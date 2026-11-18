@@ -1,10 +1,11 @@
 "use client";
 
-// The bar at the top of every screen: the name, an optional way back, the site's pages
+// The bar at the top of every screen: the logo and name, an optional way back, the site's pages
 // (on the website only) and the theme switch.
 import { ChevronLeft } from "lucide-react";
 import { ThemeToggle } from "@/ui/theme-toggle";
 import { cn } from "@/ui/utils";
+import { Logo } from "./logo";
 import { NAV_LINKS, type SitePage } from "./links";
 import { useOnWebsite } from "./website";
 
@@ -18,7 +19,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProps) {
   const onWebsite = useOnWebsite();
-  const name = <span className="text-lg font-bold">HeapHop</span>;
+  const name = <span className="flex items-center gap-2 text-lg font-bold"><Logo />HeapHop</span>;
   return (
     <header className="flex items-center justify-between gap-3 border-b border-card-border bg-header px-4 py-2.5 sm:px-6">
       <div className="flex min-w-0 items-center gap-3">

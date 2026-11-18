@@ -17,6 +17,13 @@
   --accent-dim: rgba(61, 214, 198, 0.12);
   --on-accent: #05211e;
   --prev: #f2b84b;
+  --logo-hi: #5cbcae;
+  --logo-mid: #1d6e68;
+  --logo-deep: #175f5b;
+  --logo-teal: #3aaa9b;
+  --logo-amber: #f2b14f;
+  --logo-glint: #fbe0b0;
+  --logo-line: #f3ead6;
   --success: #5fd38d;
   --success-dim: rgba(95, 211, 141, 0.18);
   --danger: #f2797a;
@@ -47,6 +54,13 @@
   --accent-dim: rgba(11, 116, 128, 0.08);
   --on-accent: #ffffff;
   --prev: #a8640e;
+  --logo-hi: #3b8f83;
+  --logo-mid: #0f4b48;
+  --logo-deep: #0a3b3b;
+  --logo-teal: #2e8a7e;
+  --logo-amber: #d9913f;
+  --logo-glint: #f3d3a2;
+  --logo-line: #f7f0e1;
   --success: #1c7a45;
   --success-dim: rgba(28, 122, 69, 0.1);
   --danger: #b42318;
