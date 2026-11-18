@@ -49,53 +49,6 @@ HeapHop is a Data Structures semester project at Air University (BS Cybersecurit
 The supported part of C++ is listed in [docs/SUBSET.md](docs/SUBSET.md) and on the site's
 "What C++ is supported" page. Anything outside it stops with a message that names the line.
 
-## Run it on your computer (HeapHop team only)
-
-These instructions are for the team's own development. Everyone else, please use
-[heaphop.vercel.app](https://heaphop.vercel.app); see [License](#license).
-
-You need [Node.js](https://nodejs.org) 22 or newer.
-
-```bash
-npm ci
-npm run dev
-```
-
-Then open http://localhost:3000.
-
-## Commands
-
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | The website with live reload |
-| `npm run build` | The website as static files in `out/` |
-| `npm run check` | Everything below, in order. Must pass before a change is merged |
-| `npm run typecheck` | TypeScript |
-| `npm run lint` | ESLint |
-| `npm run boundaries` | Checks that the folders only import what they are allowed to |
-| `npm test` | 255 unit tests: interpreter, trace model, layout, explanations, lessons, editor |
-| `npm run e2e` | 36 browser tests of every use case (run `npm run build` first; needs Chrome) |
-| `npm run webview:check` | Loads the interface under the strict security rules of a VS Code webview |
-| `npm run fixtures` | Compares the interpreter with the saved `g++` output of every test program |
-| `npm run bench` | Interpreter speed against its time budgets |
-| `npm run perf` | Stepping and zoom speed in Chrome; add `-- --headed` to use a visible window |
-
-### Testing in other browsers
-
-The browser tests use Chrome unless told otherwise.
-
-| Browser | macOS / Linux | Windows (PowerShell) |
-| --- | --- | --- |
-| Firefox | `BROWSER=firefox npm run e2e` | `$env:BROWSER="firefox"; npm run e2e` |
-| Edge | `CHROME_PATH=/path/to/msedge npm run e2e` | `$env:CHROME_PATH="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"; npm run e2e` |
-
-Set `FIREFOX_PATH` or `CHROME_PATH` if the browser is installed somewhere unusual.
-
-## Deployment
-
-The site at [heaphop.vercel.app](https://heaphop.vercel.app) is built and published by
-Vercel from the `main` branch. Every push to `main` updates it.
-
 ## How it is built
 
 ```
