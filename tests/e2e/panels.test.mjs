@@ -79,3 +79,16 @@ test("a panel cannot be dragged so wide that the heap disappears", async () => {
   await page.mouse.up();
   assert.ok((await rect(page, "[data-panel='heap']")).w >= 318);
 });
+
+test("on a short window the lesson card stays inside the heap panel and never covers the step explanation", async () => {
+  const page = await newPage({ width: 1536, height: 560, path: "/learn?lesson=insert-at-front", ready: "[data-lesson-card]" });
+  await page.click("[data-lesson-next]"); // stop 2 has the longest text
+  await page.waitForFunction(() => !document.querySelector("[data-lesson-travelling]"));
+  await new Promise((r) => setTimeout(r, 600));
+  const card = await rect(page, "[data-lesson-card]");
+  const heap = await rect(page, "[data-panel='heap']");
+  const bar = await rect(page, "[data-step]");
+  assert.ok(card.y + card.h <= heap.y + heap.h + 1, "the card ends inside the heap panel");
+  assert.ok(card.y + card.h <= bar.y, "and above the explanation bar");
+  assert.ok((await rect(page, ".hh-canvas")).h >= 100, "the drawing keeps some room");
+});

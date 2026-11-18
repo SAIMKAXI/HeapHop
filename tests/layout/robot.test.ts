@@ -141,9 +141,15 @@ int main() {
 }
 `);
   const i = s.stepWhere((e) => e.type === "pointer_changed" && e.name === "right" && !e.declared);
-  const m = s.move(i, 1, "h1");
+  const m = s.move(i, 1, null);
   assert.equal(m.thrust, true);
   assert.ok(m.beats.some((b) => b.kind === "drag"));
+  assert.equal(m.standOn, null, "in a tree the robot flies home after its task");
+  assert.deepEqual(m.beats.at(-1), { kind: "fly", to: HOME });
+
   const walk = s.stepWhere((e) => e.type === "pointer_changed" && e.name === "cur" && !e.declared);
-  assert.equal(s.move(walk, 1, "h1").standOn, "h3");
+  const visit = s.move(walk, 1, null);
+  assert.deepEqual(visit.beats, [{ kind: "fly", to: perch(box(s.layouts[walk], "h3")) }, { kind: "fly", to: HOME }],
+    "following cur: it flies to the node, then back home");
+  assert.equal(visit.standOn, null);
 });

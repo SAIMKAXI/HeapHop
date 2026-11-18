@@ -124,8 +124,10 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
               max={() => (middleRef.current?.clientWidth ?? Infinity) - MIN_HEAP - inspectorWidth() - SPLITTER_W}
               onChange={(stack) => resize({ stack })}
             />
-            <div data-panel="heap" className="flex min-h-[320px] min-w-0 flex-1 flex-col">
-              <div className="relative min-h-[260px] flex-1">
+            {/* On a desktop the panel shares the window's height: the drawing shrinks before the
+                lesson card is pushed out over the explanation bar. */}
+            <div data-panel="heap" className="flex min-h-[320px] min-w-0 flex-1 flex-col md:min-h-0 md:overflow-hidden">
+              <div className="relative min-h-[260px] flex-1 md:min-h-[120px]">
                 <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} robotMotion={!playback.playing && !playback.travelling} />
               </div>
               {resolved && lessonOpen && (

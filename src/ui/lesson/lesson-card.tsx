@@ -72,7 +72,7 @@ export function LessonCard({ resolved, current, travelling, onGo, onReveal, onCl
   const [folded, setFolded] = useState(false);
   // Docked under the heap rather than floating over it, so it never hides a node.
   return (
-    <aside data-lesson-card data-folded={folded || undefined} aria-label={`Lesson: ${lesson.title}`} className="shrink-0 border-t-2 border-accent/40 bg-card">
+    <aside data-lesson-card data-folded={folded || undefined} aria-label={`Lesson: ${lesson.title}`} className="flex max-h-[60%] min-h-0 shrink-0 flex-col border-t-2 border-accent/40 bg-card">
       <header className="flex items-center justify-between gap-2 px-4 py-2">
         <h3 className="truncate text-xs font-bold uppercase tracking-wider text-accent">Lesson · {lesson.title}</h3>
         <span className="flex shrink-0 items-center gap-2">
@@ -92,7 +92,7 @@ export function LessonCard({ resolved, current, travelling, onGo, onReveal, onCl
       </header>
       {!folded && (
         <>
-          <div className="max-h-[32vh] overflow-y-auto border-t border-card-border px-4 py-3">
+          <div className="min-h-0 flex-1 overflow-y-auto border-t border-card-border px-4 py-3">
             {problems.length > 0 && <p className="mb-2 text-xs text-warning">This lesson has a problem: {problems[0]}</p>}
             {!checkpoint ? (
               <p className="text-sm text-muted-foreground">This lesson has no steps.</p>

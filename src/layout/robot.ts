@@ -19,7 +19,7 @@ export interface RobotMove {
   beats: RobotBeat[];
   /** Rocket boots (trees) instead of hovering (lists). */
   thrust: boolean;
-  /** The node the robot stands on afterwards, or null when it went home. */
+  /** The node the robot stands on afterwards, or null when it went home (always, in a tree). */
   standOn: string | null;
   /** Arrows (by pointer cell) and nodes the canvas hides until the beats are done. */
   hide: string[];
@@ -136,10 +136,13 @@ export function planRobotMove({ events, direction, before, after, standingOn, ho
   if (atEnd) standOn = null;
 
   const perched = byId(after, standOn);
-  return {
-    beats: [...drops, ...drags, ...carries, { kind: "fly", to: perched ? perch(perched) : home }],
-    thrust: after.nodes.some((n) => n.family === -2) || before.nodes.some((n) => n.family === -2),
-    standOn: perched ? standOn : null,
-    hide,
-  };
+  const work = [...drops, ...drags, ...carries];
+  const thrust = after.nodes.some((n) => n.family === -2) || before.nodes.some((n) => n.family === -2);
+  if (thrust) {
+    // Trees: the robot flies out on its rocket boots, does the job (or visits the node the
+    // program's pointer moved to) and flies back home every time.
+    const visit: RobotBeat[] = work.length === 0 && perched ? [{ kind: "fly", to: perch(perched) }] : [];
+    return { beats: [...work, ...visit, { kind: "fly", to: home }], thrust, standOn: null, hide };
+  }
+  return { beats: [...work, { kind: "fly", to: perched ? perch(perched) : home }], thrust, standOn: perched ? standOn : null, hide };
 }

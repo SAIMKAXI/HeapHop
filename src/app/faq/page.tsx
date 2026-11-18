@@ -45,7 +45,7 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "What is the little robot doing?",
-    a: "When you step one line at a time, the robot acts out what that line did: it drags a pointer's arrow to its new node, brings a node created with new into place, carries a deleted node away, and follows pointers like cur from node to node. In trees it flies on rocket boots. During auto-play, or when you jump on the timeline, it waits in its corner. The robot button in the canvas toolbar switches it off, and it starts off on devices set to reduce motion.",
+    a: "When you step one line at a time, the robot acts out what that line did: it drags a pointer's arrow to its new node, brings a node created with new into place, carries a deleted node away, and follows pointers like cur from node to node. In trees it flies on rocket boots and returns to its corner after each move. During auto-play, or when you jump on the timeline, it waits in its corner. The robot button in the canvas toolbar switches it off, and it starts off on devices set to reduce motion.",
   },
   {
     q: "What do the colours and dashed boxes mean?",
