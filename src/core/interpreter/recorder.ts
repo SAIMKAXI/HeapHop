@@ -114,6 +114,7 @@ export class Recorder {
     this.invalidateAfterDeaths();
     this.depth.clear();
     this.mem.frames.forEach((f, i) => this.depth.set(f.serial, i));
+    const read = [...new Set(this.mem.takeReads().filter((a) => this.mem.alive(a)).map((a) => this.addrToId(a)))];
 
     // Stack
     const reachable = new Set<string>();
@@ -195,6 +196,8 @@ export class Recorder {
     if (printed) step.output = printed;
     if (meta.input !== undefined) step.input = meta.input;
     if (meta.error) step.error = meta.error;
+    if (read.length > 0) step.read = read;
+    this.mem.takeReads(); // building the snapshot read memory too; that is not the program's doing
     this.prevStack = step.stack;
     this.prevHeap = step.heap;
     this.steps.push(step);

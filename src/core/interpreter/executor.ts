@@ -409,7 +409,7 @@ export class Executor {
     }
 
     const initExpr = d.init ?? (d.ctorArgs?.length === 1 ? d.ctorArgs[0] : null); // `int x(5);`
-    const v = initExpr ? this.coerce(t, this.value(initExpr), d.line) : this.fresh(t);
+    const v = initExpr ? this.coerce(t, this.valueFor(t, initExpr), d.line) : this.fresh(t);
     this.mem.declare(d.name, t, false, copyValue(v));
   }
 
@@ -565,7 +565,7 @@ export class Executor {
     const bound = fn.params.map((p, i) =>
       p.type.ref
         ? { ref: this.ref(args[i]), value: UNINIT as Value }
-        : { ref: null, value: copyValue(this.coerce(p.type, this.value(args[i]), callLine)) }
+        : { ref: null, value: copyValue(this.coerce(p.type, this.valueFor(p.type, args[i]), callLine)) }
     );
     const frame = this.mem.pushFrame(qualifiedName(fn), fn.className, thisAddr, callLine);
     fn.params.forEach((p, i) => this.mem.declare(p.name, p.type, false, bound[i].value, bound[i].ref));
@@ -643,7 +643,7 @@ export class Executor {
       case "index": {
         const base = this.value(e.arr);
         const i = this.int(this.value(e.idx), e.idx);
-        if (isK(base, "arr")) return `${this.ref(e.arr)}.${i}`;
+        if (isK(base, "arr") || isK(base, "str")) return `${this.ref(e.arr)}.${i}`;
         const a = this.checkPointer(base, e.arr);
         if (isK(this.mem.read(a), "arr")) return `${a}.${i}`;
         if (i === 0) return a;
@@ -655,6 +655,15 @@ export class Executor {
   }
 
   // ---- values --------------------------------------------------------------
+
+  /** An array used where a pointer is expected becomes a pointer to that array, as in C++ (`int* p = arr;`, `sort(arr, n)`). */
+  private decay(t: TypeRef, v: Value, e: Expr): Value {
+    return t.ptr > 0 && isK(v, "arr") ? ptr(this.ref(e)) : v;
+  }
+
+  private valueFor(t: TypeRef, e: Expr): Value {
+    return this.decay(t, this.value(e), e);
+  }
 
   /** Reject a value that was never initialised when the program tries to USE it. */
   private use(v: Value, e: Expr): Value {
@@ -791,13 +800,18 @@ export class Executor {
   }
 
   private assign(e: Extract<Expr, { k: "assign" }>): Value {
+    if (e.target.k === "index" && isK(this.value(e.target.arr), "str")) {
+      throw unsupported("Changing one character of a string (s[i] = ...)", e.line, "Build a new string instead, for example with +.");
+    }
     let v = this.value(e.value);
     const addr = this.ref(e.target);
+    const placed = this.mem.typeAt(addr);
+    if (e.op === "=" && placed && !placed.isArray) v = this.decay(placed.type, v, e.value);
     if (e.op !== "=") {
       const op = (e.op as AssignOp)[0];
       v = this.arith(op, this.use(this.mem.read(addr), e.target), this.use(v, e.value), e.target, e.value, e.line);
     }
-    const t = this.mem.typeAt(addr);
+    const t = placed;
     if (t && !t.isArray) v = this.coerce(t.type, v, e.line);
     else if (t?.isArray) throw compileError("a whole array cannot be assigned. Copy its elements one at a time.", e.line);
     this.mem.write(addr, copyValue(v));

@@ -1,5 +1,5 @@
 /**
- * HeapHop trace contract. Version 2 added the "input" step kind for cin.
+ * HeapHop trace contract. Version 2 added the "input" step kind for cin; version 4 added Step.read.
  *
  * This file is the ONLY shape that crosses between layers. The interpreter
  * produces a Trace; the runtime, the trace index, the layout engine, the
@@ -10,7 +10,7 @@
  */
 
 /** Bumped whenever the shape below changes in a way old consumers would misread. */
-export const TRACE_VERSION = 3;
+export const TRACE_VERSION = 4;
 
 // ---------------------------------------------------------------------------
 // Memory snapshot
@@ -117,6 +117,8 @@ export interface Step {
   explanation: string;
   /** For kind "input": the text this step consumed from the program input. */
   input?: string;
+  /** Array elements this step read, by cell id (e.g. the two cells a comparison looked at). */
+  read?: string[];
   /** Text printed by this step, exactly as the program would print it (newlines included). */
   output?: string;
   /** Bottom of the stack first: stack[0] is main. */

@@ -26,7 +26,7 @@ manual's own AVL listing.
 | Construct | Example | Status |
 | --- | --- | --- |
 | `int`, `bool`, `char`, `double`, `float` | | yes |
-| `string` | `string name;` | yes (assign, compare, print, `+`, `.length()`, `.size()`, `.empty()`) |
+| `string` | `string name;` | yes (assign, compare, print, `+`, `.length()`, `.size()`, `.empty()`, reading one character with `s[i]`; changing one character is not supported yet) |
 | Pointers | `Node* p`, `Node *p`, `int* q` | yes |
 | Pointer to pointer | `void push(Node** headRef, int v)`, `*headRef = n;` | yes |
 | `#define SIZE 100` | used as an array size or a number | yes (numeric constants only) |
@@ -39,6 +39,7 @@ manual's own AVL listing.
 | Destructors | `~LinkedList() { ... }` | yes |
 | Objects on the stack | `LinkedList list;` | yes |
 | Fixed-size arrays, `new T[n]`, `delete[]` | `int a[5];` | yes |
+| Arrays passed to functions, pointers set to an array | `void sort(int a[], int n)`, `int* p = arr;` | yes (the function works on the caller's array) |
 | `const` | `const int MAX = 5;` | yes (accepted, not enforced) |
 | Templates | `template <class T> class Node` | no (none of the lab files use them) |
 | `public:` / `private:` access rules | | accepted, not enforced (HeapHop assumes the code already compiles) |

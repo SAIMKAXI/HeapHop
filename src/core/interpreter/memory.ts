@@ -10,7 +10,7 @@
 import type { ClassDef, TypeRef } from "./ast";
 import type { RunLimits } from "../types";
 import { fault, StopSignal } from "./errors";
-import type { Value } from "./values";
+import { chr, type Value } from "./values";
 
 export interface HeapCell {
   id: string;
@@ -62,6 +62,8 @@ export class Memory {
   frames: Frame[] = [];
   /** Roots ("h3", "s4") that died since the recorder last looked. */
   deaths: string[] = [];
+  /** Addresses of array elements read since the recorder last asked (`takeReads`). */
+  private reads: string[] = [];
   private nextHeap = 1;
   private nextSerial = 0;
 
@@ -168,6 +170,14 @@ export class Memory {
       }
       return cur.e[i];
     }
+    if (typeof cur === "object" && cur.k === "str") {
+      const i = Number(seg);
+      // s[s.length()] is the terminating '\0' in C++, so it is allowed.
+      if (!Number.isInteger(i) || i < 0 || i > cur.s.length) {
+        throw fault("out_of_bounds", `Index ${seg} is outside the string, which has ${cur.s.length} character${cur.s.length === 1 ? "" : "s"} (valid: 0 to ${cur.s.length - 1}).`);
+      }
+      return chr(cur.s[i] ?? "\0");
+    }
     if (typeof cur === "object" && cur.k === "uninit") {
       throw fault("uninitialised_read", `This reads "${seg}" from an object that has no value yet.`);
     }
@@ -177,8 +187,15 @@ export class Memory {
   read(addr: string): Value {
     const r = this.root(addr);
     let cur = r.box.value;
-    for (let i = r.start; i < r.parts.length; i++) cur = this.child(cur, r.parts[i]);
+    let parent: Value = cur;
+    for (let i = r.start; i < r.parts.length; i++) { parent = cur; cur = this.child(cur, r.parts[i]); }
+    if (r.parts.length > r.start && typeof parent === "object" && parent.k === "arr") this.reads.push(addr);
     return cur;
+  }
+
+  /** Array elements read since the last call, oldest first. */
+  takeReads(): string[] {
+    return this.reads.splice(0);
   }
 
   write(addr: string, v: Value) {
@@ -190,6 +207,7 @@ export class Memory {
       for (let i = r.start; i < r.parts.length - 1; i++) cur = this.child(cur, r.parts[i]);
       const last = r.parts[r.parts.length - 1];
       this.child(cur, last); // validates the member / index
+      if (typeof cur === "object" && cur.k === "str") throw fault("other", "Changing one character of a string is not supported yet. Build a new string instead, for example with +.");
       if (typeof cur === "object" && cur.k === "obj") cur.f[last] = v;
       else if (typeof cur === "object" && cur.k === "arr") cur.e[Number(last)] = v;
     }
