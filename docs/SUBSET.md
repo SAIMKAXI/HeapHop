@@ -40,6 +40,7 @@ manual's own AVL listing.
 | Objects on the stack | `LinkedList list;` | yes |
 | Fixed-size arrays, `new T[n]`, `delete[]` | `int a[5];` | yes |
 | Arrays passed to functions, pointers set to an array | `void sort(int a[], int n)`, `int* p = arr;` | yes (the function works on the caller's array) |
+| Two-dimensional arrays | `int adj[5][5] = {{0, 1}, {1, 0}};`, `void bfs(int g[][5], int s)`, a member `int adj[5][5];` | yes (up to 1000 cells; no arrays of objects; one `{...}` per row) |
 | `const` | `const int MAX = 5;` | yes (accepted, not enforced) |
 | Templates | `template <class T> class Node` | no (none of the lab files use them) |
 | `public:` / `private:` access rules | | accepted, not enforced (HeapHop assumes the code already compiles) |

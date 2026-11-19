@@ -242,7 +242,8 @@ export class Memory {
       start = 2;
     }
     for (let i = start; i < parts.length; i++) {
-      if (isArray) { isArray = false; continue; } // an index selects one element of the same type
+      // An index selects one element of the same type (twice for a 2-D array).
+      if (isArray || /^\d+$/.test(parts[i])) { isArray = false; continue; }
       const field = this.classes.get(type.base)?.fields.find((f) => f.name === parts[i]);
       if (!field) return null;
       type = field.type;

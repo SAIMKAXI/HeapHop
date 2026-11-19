@@ -376,6 +376,22 @@ export class Executor {
     const t = d.type;
     const cls = t.ptr === 0 ? this.classes.get(t.base) : undefined;
 
+    if (d.arraySize2 !== null) {
+      if (cls) throw unsupported("A two-dimensional array of objects", d.line);
+      const rows = d.arraySize ? this.int(this.value(d.arraySize), d.arraySize) : d.initRows!.length;
+      const cols = this.int(this.value(d.arraySize2), d.arraySize2);
+      if (rows < 0 || cols < 0 || rows * cols > 1000) throw compileError(`the array "${d.name}" has an unsupported size (${rows} by ${cols}).`, d.line);
+      if (d.initRows && d.initRows.length > rows) throw compileError(`too many rows for the array "${d.name}".`, d.line);
+      const filled = d.initRows !== null || d.initList !== null;
+      const grid: Value[] = Array.from({ length: rows }, (_, r) => {
+        const init = d.initRows?.[r];
+        if (init && init.length > cols) throw compileError(`row ${r} of "${d.name}" has too many values.`, d.line);
+        return { k: "arr", e: Array.from({ length: cols }, (_, c) => (init && c < init.length ? this.coerce(t, this.value(init[c]), d.line) : filled ? this.zero(t) : this.fresh(t))) };
+      });
+      this.mem.declare(d.name, t, true, { k: "arr", e: grid });
+      return;
+    }
+
     if (d.arraySize !== null || d.initList !== null) {
       const n = d.arraySize ? this.int(this.value(d.arraySize), d.arraySize) : d.initList!.length;
       if (n < 0 || n > 1000) throw compileError(`the array "${d.name}" has an unsupported size (${n}).`, d.line);
@@ -443,7 +459,8 @@ export class Executor {
         : field.init ? this.coerce(field.type, this.value(field.init), field.line)
         : zeroed ? this.zero(field.type)
         : this.fresh(field.type);
-      f[field.name] = field.arraySize !== null ? { k: "arr", e: Array.from({ length: field.arraySize }, one) } : one();
+      const row = (): Value => (field.arraySize2 !== null ? { k: "arr", e: Array.from({ length: field.arraySize2 }, one) } : one());
+      f[field.name] = field.arraySize !== null ? { k: "arr", e: Array.from({ length: field.arraySize }, row) } : one();
     }
     return { k: "obj", type: cls.name, f };
   }

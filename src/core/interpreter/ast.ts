@@ -43,12 +43,16 @@ export interface Declarator {
   type: TypeRef;
   /** `int a[5]`: the size expression. */
   arraySize: Expr | null;
+  /** `int g[3][4]`: the second size (columns). */
+  arraySize2: Expr | null;
   /** `= expr` */
   init: Expr | null;
   /** `Node n(5);` */
   ctorArgs: Expr[] | null;
   /** `int a[3] = {1, 2, 3};` */
   initList: Expr[] | null;
+  /** `int g[2][2] = {{1, 2}, {3, 4}};` */
+  initRows: Expr[][] | null;
   line: number;
 }
 
@@ -110,6 +114,8 @@ export interface Field {
   type: TypeRef;
   name: string;
   arraySize: number | null;
+  /** `int adj[5][5];`: the second size. */
+  arraySize2: number | null;
   /** Default member initialiser: `int size = 0;` */
   init: Expr | null;
   line: number;

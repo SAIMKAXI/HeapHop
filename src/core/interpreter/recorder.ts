@@ -72,6 +72,13 @@ function markChanges(next: MemoryItem, prev: MemoryItem | undefined): MemoryItem
   return sameLeaf(next, prev) ? next : { ...next, changed: true };
 }
 
+/** "[3]" for an array of 3, "[3][4]" for a 2-D array. */
+function dims(v: Value): string {
+  if (typeof v !== "object" || v.k !== "arr") return "";
+  const first = v.e[0];
+  return `[${v.e.length}]${typeof first === "object" && first.k === "arr" ? `[${first.e.length}]` : ""}`;
+}
+
 function sameArray<T>(a: T[], b: T[]): boolean {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
@@ -259,7 +266,7 @@ export class Recorder {
     for (const scope of frame.scopes) {
       for (const slot of scope) {
         const id = `f${index}_${slot.key}`;
-        const suffix = slot.isArray && typeof slot.value === "object" && slot.value.k === "arr" ? `[${slot.value.e.length}]` : "";
+        const suffix = slot.isArray ? dims(slot.value) : "";
         const label = `${typeText(slot.type)} ${slot.name}${suffix}`;
         let value = slot.value;
         if (slot.ref) {
@@ -311,7 +318,7 @@ export class Recorder {
       case "obj": {
         const cls = this.classes.get(v.type);
         const children = (cls?.fields ?? []).map((f) => {
-          const fl = `${typeText(f.type)} ${f.name}${f.arraySize !== null ? `[${f.arraySize}]` : ""}`;
+          const fl = `${typeText(f.type)} ${f.name}${f.arraySize !== null ? `[${f.arraySize}]` : ""}${f.arraySize2 !== null ? `[${f.arraySize2}]` : ""}`;
           return this.build(v.f[f.name] ?? { k: "uninit" }, f.type, f.arraySize !== null, `${id}_${f.name}`, f.name, fl, refs);
         });
         return { ...base, typeName: isArray ? typeName : v.type, kind: "object", children };

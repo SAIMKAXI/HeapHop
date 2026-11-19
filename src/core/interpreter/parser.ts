@@ -296,17 +296,18 @@ class Parser {
 
   private parseFieldRest(type: TypeRef, id: Token): Field {
     if (type.ref) throw unsupported("A reference member", id.line);
-    let arraySize: number | null = null;
-    if (this.match("[")) {
+    const size = (): number => {
       const n = this.advance();
-      if (n.type === "int") arraySize = parseInt(n.value, 10);
-      else if (n.type === "ident" && this.consts.has(n.value)) arraySize = this.consts.get(n.value)!;
-      else throw unsupported("An array member whose size is not a number or a constant declared above it", n.line);
       this.expect("]");
-      if (this.is("[")) throw unsupported("A two-dimensional array", n.line);
-    }
+      if (n.type === "int") return parseInt(n.value, 10);
+      if (n.type === "ident" && this.consts.has(n.value)) return this.consts.get(n.value)!;
+      throw unsupported("An array member whose size is not a number or a constant declared above it", n.line);
+    };
+    const arraySize = this.match("[") ? size() : null;
+    const arraySize2 = arraySize !== null && this.match("[") ? size() : null;
+    if (this.is("[")) throw unsupported("An array with more than two dimensions", id.line);
     const init = this.match("=") ? this.parseAssignment() : null;
-    return { type, name: id.value, arraySize, init, line: id.line };
+    return { type, name: id.value, arraySize, arraySize2, init, line: id.line };
   }
 
   /** `void LinkedList::insert(int v) {...}` after the return type has been read. */
@@ -347,7 +348,12 @@ class Parser {
       const base = this.parseBaseType();
       const type = this.parseDeclType(base);
       const pname = this.isIdent() ? this.advance().value : `arg${params.length + 1}`;
-      if (this.match("[")) { this.expect("]"); type.ptr++; } // `int arr[]` is a pointer
+      if (this.match("[")) { // `int arr[]` and `int g[][5]` are pointers
+        if (!this.is("]")) this.parseExpr();
+        this.expect("]");
+        while (this.match("[")) { this.parseExpr(); this.expect("]"); }
+        type.ptr++;
+      }
       if (this.is("=")) throw unsupported("A default argument value", this.peek().line);
       params.push({ type, name: pname });
       if (!this.match(",")) break;
@@ -552,17 +558,32 @@ class Parser {
       const type = this.parseDeclType(base);
       const id = this.expectIdent("a variable name");
       if (type.ref) throw unsupported("A reference variable", id.line, "Reference parameters (Node*& head) are supported; use a pointer here.");
-      const d: Declarator = { name: id.value, type, arraySize: null, init: null, ctorArgs: null, initList: null, line: id.line };
+      const d: Declarator = { name: id.value, type, arraySize: null, arraySize2: null, init: null, ctorArgs: null, initList: null, initRows: null, line: id.line };
       if (this.match("[")) {
         d.arraySize = this.is("]") ? null : this.parseExpr();
         this.expect("]");
-        if (this.is("[")) throw unsupported("A two-dimensional array", id.line);
+        if (this.match("[")) {
+          d.arraySize2 = this.parseExpr();
+          this.expect("]");
+          if (this.is("[")) throw unsupported("An array with more than two dimensions", id.line);
+        }
         if (this.match("=")) {
           this.expect("{");
-          d.initList = this.is("}") ? [] : this.parseArgList("}");
+          if (d.arraySize2 && this.is("{")) {
+            d.initRows = [];
+            do {
+              if (this.is("}")) break; // trailing comma
+              this.expect("{");
+              d.initRows.push(this.is("}") ? [] : this.parseArgList("}"));
+              this.expect("}");
+            } while (this.match(","));
+          } else {
+            d.initList = this.is("}") ? [] : this.parseArgList("}");
+            if (d.arraySize2 && d.initList.length > 0) throw unsupported("Filling a two-dimensional array from a flat list", id.line, "Write one {...} per row.");
+          }
           this.expect("}");
         }
-        if (d.arraySize === null && d.initList === null) throw parseError(`the array "${d.name}" needs a size.`, id.line);
+        if (d.arraySize === null && d.initList === null && d.initRows === null) throw parseError(`the array "${d.name}" needs a size.`, id.line);
       } else if (this.match("=")) {
         if (this.is("{")) throw unsupported("Brace initialisation of an object", id.line);
         d.init = this.parseAssignment();
