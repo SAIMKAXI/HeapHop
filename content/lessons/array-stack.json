@@ -1,0 +1,35 @@
+{
+  "id": "array-stack",
+  "title": "A stack in an array",
+  "summary": "One int, top, says where the top of the stack is. Push moves it up, pop moves it down.",
+  "code": "#include <iostream>\nusing namespace std;\n\nclass Stack {\nprivate:\n    int arr[4];\n    int top;\npublic:\n    Stack() {\n        top = -1;\n    }\n    bool isEmpty() {\n        return top < 0;\n    }\n    bool isFull() {\n        return top == 3;\n    }\n    void push(int value) {\n        if (isFull()) {\n            cout << \"Stack overflow: \" << value << \" does not fit\" << endl;\n            return;\n        }\n        arr[++top] = value;\n    }\n    int pop() {\n        if (isEmpty()) {\n            cout << \"Stack is empty\" << endl;\n            return -1;\n        }\n        return arr[top--];\n    }\n};\n\nint main() {\n    Stack s;\n    s.push(10);\n    s.push(20);\n    s.push(30);\n    s.push(40);\n    s.push(50);\n    cout << \"Popped \" << s.pop() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "Stack s;",
+      "text": "The stack is an array of 4 cells and an int `top`. `top` is -1, just left of cell 0: the stack is empty."
+    },
+    {
+      "at": "arr[++top] = value;",
+      "occurrence": 1,
+      "text": "`++top` moves `top` to cell 0 first, then 10 is stored there."
+    },
+    {
+      "at": "arr[++top] = value;",
+      "occurrence": 4,
+      "text": "Four pushes later the array is full and `top` is 3, the last cell."
+    },
+    {
+      "at": "cout << \"Stack overflow: \" << value << \" does not fit\" << endl;",
+      "text": "Pushing 50: `isFull()` is true, so the push stops here. A fixed-size array can overflow; a linked stack only stops when memory runs out."
+    },
+    {
+      "at": "return arr[top--];",
+      "occurrence": 1,
+      "text": "Pop returns the value at `top` (40) and then moves `top` down. The 40 is still in the cell, but it is no longer part of the stack: the next push will overwrite it."
+    },
+    {
+      "at": "return 0;",
+      "text": "Popped 40, then 30: last in, first out. Push and pop each touch one cell and one int, so both are O(1)."
+    }
+  ]
+}

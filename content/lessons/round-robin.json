@@ -1,0 +1,32 @@
+{
+  "id": "round-robin",
+  "title": "Using a queue: taking turns",
+  "summary": "Three programs share one CPU. Each runs for 2 time units, then goes to the back of the queue.",
+  "code": "#include <iostream>\nusing namespace std;\n\nvoid enqueue(int q[], int& rear, int& count, int p) {\n    rear = (rear + 1) % 4;\n    q[rear] = p;\n    count++;\n}\n\nint dequeue(int q[], int& front, int& count) {\n    int p = q[front];\n    front = (front + 1) % 4;\n    count--;\n    return p;\n}\n\nint main() {\n    int need[3] = {5, 2, 3};\n    int q[4];\n    int front = 0;\n    int rear = -1;\n    int count = 0;\n    for (int p = 0; p < 3; p++) {\n        enqueue(q, rear, count, p);\n    }\n    while (count > 0) {\n        int p = dequeue(q, front, count);\n        int run = min(2, need[p]);\n        need[p] -= run;\n        cout << \"P\" << p << \" runs \" << run;\n        if (need[p] > 0) {\n            enqueue(q, rear, count, p);\n            cout << endl;\n        } else {\n            cout << \" and finishes\" << endl;\n        }\n    }\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "while (count > 0) {",
+      "occurrence": 1,
+      "text": "P0, P1 and P2 are waiting in the queue, in that order. They need 5, 2 and 3 units of time."
+    },
+    {
+      "at": "need[p] -= run;",
+      "occurrence": 1,
+      "text": "P0 got its turn: 2 units. It still needs 3 more."
+    },
+    {
+      "line": 32,
+      "occurrence": 1,
+      "text": "P0 is not finished, so it joins the back of the queue, behind P1 and P2."
+    },
+    {
+      "at": "cout << \" and finishes\" << endl;",
+      "occurrence": 1,
+      "text": "P1 needed only 2 units, so it finishes in its first turn and does not come back."
+    },
+    {
+      "at": "return 0;",
+      "text": "Every program got a fair share in turn: P0, P1, P2, P0, P2, P0. Operating systems schedule programs this way (round robin), using a queue."
+    }
+  ]
+}

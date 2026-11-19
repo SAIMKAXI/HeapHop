@@ -96,7 +96,7 @@ manual's own AVL listing.
 | --- | --- | --- |
 | Singly, doubly, circular linked list | one self-pointer; or two that mirror each other | one horizontal row |
 | Binary tree (BST, AVL) | two self-pointers that do not mirror each other (`left` / `right`) | parents above children |
-| Array-based stack or queue | not recognised as a structure | the array inside its object, in the stack panel |
+| Arrays of values or pointers: local, inside an object, or made with `new[]` | any such array | a row of cells in the drawing area, with its indexes; ints the program uses as subscripts of that array (`a[j]`, `arr[top]`) are tags above their cell; cells a step read are outlined; pointer cells have arrows; an array named like a heap is also drawn as a tree |
 
 ## Step limits
 A trace stops with a "trace truncated" notice at 2000 steps, 500 rounds of one loop,

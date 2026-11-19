@@ -18,7 +18,7 @@ const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
 const WAYS = [
   {
     href: "/learn", icon: <GraduationCap size={22} />, title: "Learn", cta: "Start learning",
-    text: "Guided lessons on linked lists, stacks, queues and trees. The program pauses at the moments that matter and asks you to predict the next step.",
+    text: "Guided lessons on sorting, linked lists, stacks, queues, trees and heaps. The program pauses at the moments that matter and asks you to predict the next step.",
   },
   {
     href: "/editor", icon: <CodeXml size={22} />, title: "Editor", cta: "Open the editor",

@@ -1,0 +1,32 @@
+{
+  "id": "heap-remove-max",
+  "title": "A priority queue: remove the largest",
+  "summary": "Take the root, move the last value to the top, then swap it down below its larger child.",
+  "code": "#include <iostream>\nusing namespace std;\n\nint removeMax(int heap[], int& size) {\n    int best = heap[0];\n    size--;\n    heap[0] = heap[size];\n    int i = 0;\n    while (true) {\n        int largest = i;\n        int left = 2 * i + 1;\n        int right = 2 * i + 2;\n        if (left < size && heap[left] > heap[largest]) {\n            largest = left;\n        }\n        if (right < size && heap[right] > heap[largest]) {\n            largest = right;\n        }\n        if (largest == i) {\n            break;\n        }\n        swap(heap[i], heap[largest]);\n        i = largest;\n    }\n    return best;\n}\n\nint main() {\n    int heap[8] = {50, 30, 40, 10, 20, 35};\n    int size = 6;\n    cout << \"Served first: \" << removeMax(heap, size) << endl;\n    cout << \"Served next: \" << removeMax(heap, size) << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "heap[0] = heap[size];",
+      "occurrence": 1,
+      "text": "The root, 50, is the largest value: it is saved to be returned. The last value, 35, moves into the root, and `size` shrinks by one."
+    },
+    {
+      "at": "if (largest == i) {",
+      "occurrence": 1,
+      "text": "35 is compared with its children, 30 and 40. The larger child, 40, is bigger than 35, so it has to come up."
+    },
+    {
+      "at": "swap(heap[i], heap[largest]);",
+      "occurrence": 1,
+      "text": "35 and 40 swap. 35 sank one level."
+    },
+    {
+      "at": "return best;",
+      "occurrence": 1,
+      "text": "35 is now in cell 2, which has no children inside the heap, so it stops. 50 is returned, and the heap is valid again with 40 at the root."
+    },
+    {
+      "at": "cout << \"Served next: \" << removeMax(heap, size) << endl;",
+      "text": "Served first 50, then 40: a priority queue always hands out the most important item next, not the oldest. Removing costs O(log n) and finding the largest is O(1): it is always at the root."
+    }
+  ]
+}

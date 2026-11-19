@@ -12,6 +12,7 @@ import { intersects, planRobotMove, robotHome, visibleWorldRect, type Rect, type
 import { RobotPlayer } from "@/ui/robot/robot-player";
 import { useRobotShown, toggleRobot } from "@/ui/robot/robot-setting";
 import { RobotSprite } from "@/ui/robot/robot-sprite";
+import { ArrayView } from "./array-view";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { computeStep, traceBounds, unionRect } from "./layout-cache";
 import { NodeView } from "./node-view";
@@ -221,7 +222,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
         onPointerMove={onPointerMove}
         onPointerLeave={() => setHoverId(null)}
       >
-        {layout.nodes.length === 0 && (
+        {layout.nodes.length === 0 && layout.arrays.length === 0 && (
           <p className="absolute inset-0 flex items-center justify-center text-sm italic text-muted">The heap is empty</p>
         )}
         {/* The zoom and pan transform sits on this HTML layer, which the browser can move
@@ -236,6 +237,13 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
             ))}
           </defs>
           <g>
+            {layout.arrays.map((strip) => (
+              <ArrayView
+                key={strip.id} strip={strip}
+                title={strip.owner === "heap" ? nameOf(strip.id) : `${strip.title} · ${strip.owner}`}
+                selectedCell={selectedCell} onSelectCell={selectCell}
+              />
+            ))}
             {layout.terminals.filter((t) => shown(t.nodeId)).map((t) => (
               <g key={t.id} data-terminal={t.label} data-terminal-id={t.id} className="hh-fade">
                 <line x1={t.stem.from.x} y1={t.stem.from.y} x2={t.stem.to.x} y2={t.stem.to.y} className={t.label === "?" ? "stroke-muted" : "stroke-danger/70"} strokeWidth={1.5} strokeDasharray={t.label === "?" ? "3 3" : undefined} />

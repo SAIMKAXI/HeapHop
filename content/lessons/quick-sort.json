@@ -1,0 +1,32 @@
+{
+  "id": "quick-sort",
+  "title": "Quick sort",
+  "summary": "Pick a pivot, move smaller values to its left and larger ones to its right, then sort each side.",
+  "code": "#include <iostream>\nusing namespace std;\n\nint partition(int a[], int low, int high) {\n    int pivot = a[high];\n    int i = low - 1;\n    for (int j = low; j < high; j++) {\n        if (a[j] < pivot) {\n            i++;\n            swap(a[i], a[j]);\n        }\n    }\n    swap(a[i + 1], a[high]);\n    return i + 1;\n}\n\nvoid quickSort(int a[], int low, int high) {\n    if (low < high) {\n        int p = partition(a, low, high);\n        quickSort(a, low, p - 1);\n        quickSort(a, p + 1, high);\n    }\n}\n\nvoid printArray(int a[], int n) {\n    for (int i = 0; i < n; i++) {\n        cout << a[i] << \" \";\n    }\n    cout << endl;\n}\n\nint main() {\n    int a[6] = {10, 80, 30, 90, 40, 50};\n    quickSort(a, 0, 5);\n    printArray(a, 6);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "int pivot = a[high];",
+      "occurrence": 1,
+      "text": "The pivot is the last value, 50. The goal: everything smaller than 50 ends up on its left."
+    },
+    {
+      "at": "swap(a[i], a[j]);",
+      "occurrence": 2,
+      "text": "30 is smaller than the pivot, so it is swapped to the front part, which `i` marks the end of. 10 was already there."
+    },
+    {
+      "at": "swap(a[i + 1], a[high]);",
+      "occurrence": 1,
+      "text": "The scan is over: 10 30 40 are smaller than 50. The pivot is swapped in right after them, and 50 is now in its final place."
+    },
+    {
+      "at": "quickSort(a, low, p - 1);",
+      "occurrence": 1,
+      "text": "Now each side is sorted the same way, on its own. The left side is 10 30 40; the right side is 80 90."
+    },
+    {
+      "at": "printArray(a, 6);",
+      "text": "10 30 40 50 80 90. When the pivots split the array evenly, quick sort is O(n log n) and very fast in practice. If the pivot is always the smallest or largest value (already sorted input with this pivot choice), it falls to O(n\u00b2)."
+    }
+  ]
+}

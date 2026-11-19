@@ -1,0 +1,32 @@
+{
+  "id": "merge-sort",
+  "title": "Merge sort",
+  "summary": "Split the array in half until each part has one value, then merge the sorted halves back together.",
+  "code": "#include <iostream>\nusing namespace std;\n\nvoid merge(int a[], int left, int mid, int right) {\n    int temp[8];\n    int i = left;\n    int j = mid + 1;\n    int k = 0;\n    while (i <= mid && j <= right) {\n        if (a[i] <= a[j]) {\n            temp[k++] = a[i++];\n        } else {\n            temp[k++] = a[j++];\n        }\n    }\n    while (i <= mid) {\n        temp[k++] = a[i++];\n    }\n    while (j <= right) {\n        temp[k++] = a[j++];\n    }\n    for (int t = 0; t < k; t++) {\n        a[left + t] = temp[t];\n    }\n}\n\nvoid mergeSort(int a[], int left, int right) {\n    if (left >= right) {\n        return;\n    }\n    int mid = (left + right) / 2;\n    mergeSort(a, left, mid);\n    mergeSort(a, mid + 1, right);\n    merge(a, left, mid, right);\n}\n\nvoid printArray(int a[], int n) {\n    for (int i = 0; i < n; i++) {\n        cout << a[i] << \" \";\n    }\n    cout << endl;\n}\n\nint main() {\n    int a[6] = {38, 27, 43, 3, 9, 82};\n    mergeSort(a, 0, 5);\n    printArray(a, 6);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "return;",
+      "occurrence": 1,
+      "text": "The calls kept splitting: 0 to 5, then 0 to 2, then 0 to 1, then 0 to 0. A part with one value is already sorted, so this call returns at once. Look at the stack panel: every waiting call remembers its own `left` and `right`."
+    },
+    {
+      "at": "merge(a, left, mid, right);",
+      "occurrence": 1,
+      "text": "Cells 0 and 1 were merged into 27 38: the first sorted pair."
+    },
+    {
+      "line": 13,
+      "occurrence": 2,
+      "text": "Merging 27 38 43 with 3 9 82. The fronts of the two halves are compared, and the smaller one, 3, is copied into `temp`."
+    },
+    {
+      "at": "a[left + t] = temp[t];",
+      "occurrence": 11,
+      "text": "The final merge is complete in `temp` (3 9 27 38 43 82), and it is copied back into the array one cell at a time."
+    },
+    {
+      "at": "printArray(a, 6);",
+      "text": "3 9 27 38 43 82. The array is halved about log\u2082 n times, and each level of merging touches all n values, so merge sort is O(n log n) in every case. The price is the extra `temp` array."
+    }
+  ]
+}

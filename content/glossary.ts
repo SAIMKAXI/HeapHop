@@ -17,4 +17,8 @@ export const GLOSSARY: Record<string, string> = {
   front: "front: in a queue, the pointer to the next item to leave (the one that joined first).",
   rear: "rear: in a queue, the pointer to the last item that joined. New items are added after it.",
   topNode: "topNode: in a stack, the pointer to the top item: the only one push and pop touch.",
+  top: "top: in an array stack, the index of the top item. -1 means the stack is empty.",
+  size: "size: how many cells of the array are in use. The next free cell is at index size.",
+  pivot: "pivot: in quick sort, the value the others are split around: smaller ones left, larger ones right.",
+  swap: "swap(a, b): exchanges the values of a and b.",
 };

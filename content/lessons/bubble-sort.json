@@ -1,0 +1,31 @@
+{
+  "id": "bubble-sort",
+  "title": "Bubble sort",
+  "summary": "Compare neighbours and swap them if they are in the wrong order. The largest value bubbles to the end.",
+  "code": "#include <iostream>\nusing namespace std;\n\nvoid bubbleSort(int a[], int n, int& comparisons, int& swaps) {\n    for (int i = 0; i < n - 1; i++) {\n        for (int j = 0; j < n - i - 1; j++) {\n            comparisons++;\n            if (a[j] > a[j + 1]) {\n                swap(a[j], a[j + 1]);\n                swaps++;\n            }\n        }\n    }\n}\n\nvoid printArray(int a[], int n) {\n    for (int i = 0; i < n; i++) {\n        cout << a[i] << \" \";\n    }\n    cout << endl;\n}\n\nint main() {\n    int a[6] = {5, 1, 4, 2, 8, 3};\n    int comparisons = 0;\n    int swaps = 0;\n    bubbleSort(a, 6, comparisons, swaps);\n    printArray(a, 6);\n    cout << comparisons << \" comparisons, \" << swaps << \" swaps\" << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "if (a[j] > a[j + 1]) {",
+      "occurrence": 1,
+      "text": "The two cells being compared are outlined in amber: a[0] = 5 and a[1] = 1. 5 is larger, so they will swap."
+    },
+    {
+      "at": "swap(a[j], a[j + 1]);",
+      "occurrence": 1,
+      "text": "Swapped: 1 is now in front of 5. `j` moves one cell to the right and compares the next pair."
+    },
+    {
+      "at": "for (int i = 0; i < n - 1; i++) {",
+      "occurrence": 2,
+      "text": "The first pass is done. The largest value, 8, has bubbled all the way to the last cell and will never move again, so the next pass can stop one cell earlier."
+    },
+    {
+      "at": "printArray(a, 6);",
+      "text": "Sorted: 1 2 3 4 5 8."
+    },
+    {
+      "at": "cout << comparisons << \" comparisons, \" << swaps << \" swaps\" << endl;",
+      "text": "15 comparisons for 6 values: 5 + 4 + 3 + 2 + 1 = n(n-1)/2. That grows like n\u00b2, so bubble sort is O(n\u00b2). The number of swaps depends on how mixed-up the input was."
+    }
+  ]
+}

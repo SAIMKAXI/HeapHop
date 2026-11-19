@@ -20,7 +20,32 @@ function visibleChildren(item: MemoryItem): MemoryItem[] {
   return (set.length > 0 ? set : all).slice(0, MAX_ARRAY_ROWS);
 }
 
-export function MemoryBlock({ item, depth = 0 }: MemoryBlockProps) {
+/** An array of plain values or pointers is drawn as cells in the memory area; here it is one line. */
+const SUMMARY_VALUES = 8;
+function arraySummary(item: MemoryItem): string {
+  const values = (item.children ?? []).map((c) => (c.kind === "pointer" ? (c.pointsTo ? "→" : c.dangling ? "deleted" : c.value === "?" ? "?" : "null") : c.value ?? ""));
+  const shown = values.slice(0, SUMMARY_VALUES).join(", ");
+  return `[${shown}${values.length > SUMMARY_VALUES ? `, … +${values.length - SUMMARY_VALUES}` : ""}]`;
+}
+
+function ArrayLine({ item }: { item: MemoryItem }) {
+  return (
+    <div data-cell-id={item.id} data-array-summary data-changed={item.changed || undefined} title="Drawn as cells in the memory area"
+      className={cn("flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg px-4 py-2 text-sm transition-all duration-300", item.changed && "cell-changed")}>
+      <span className="min-w-0 shrink-0 font-medium text-muted-foreground">{item.label}</span>
+      <span className="text-muted">=</span>
+      <span className="min-w-0 font-mono text-[13px] font-bold text-success [overflow-wrap:anywhere]">{arraySummary(item)}</span>
+    </div>
+  );
+}
+
+const isValueArray = (item: MemoryItem) => item.kind === "array" && (item.children ?? []).every((c) => !c.children);
+
+export function MemoryBlock(props: MemoryBlockProps) {
+  return isValueArray(props.item) ? <ArrayLine item={props.item} /> : <MemoryCell {...props} />;
+}
+
+function MemoryCell({ item, depth = 0 }: MemoryBlockProps) {
   const isStruct = !!item.children;
   const isOrphaned = item.orphaned;
   const inspect = useInspect();

@@ -3,10 +3,11 @@
 // List nodes sit in one horizontal row per list family, ordered by the trace-wide plan,
 // so a node keeps its place from step to step. A node that has not been linked in yet, or
 // that nothing can reach any more, sits in a lane just below its slot. Everything that is not
-// a list node flows into a grid underneath.
+// a list node flows into a grid underneath. Arrays are drawn as rows of cells above it all.
 import type { MemoryItem, Step } from "@/core/types";
 import type { ListPlan, StepStructures } from "@/core/structures";
 import { heapRootOf } from "@/core/trace";
+import { CELL_H, CELL_W, layoutArrays } from "./arrays";
 import type { Arrow, ArrowKind, Chip, FieldRow, Layout, NodeBox, Rect, Terminal } from "./types";
 
 export const NODE_W = 148;
@@ -119,6 +120,9 @@ const allocNumber = (id: string) => Number(id.slice(1));
 export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, structures: StepStructures): Layout {
   const items = new Map(step.heap.map((h) => [h.id, h]));
   const sized = new Map(step.heap.map((h) => [h.id, boxFor(h)]));
+  const { strips: arrays, height: arraysH } = layoutArrays(step, 0, plan.arrayIndexes);
+  const asStrip = new Set(arrays.map((a) => a.id));
+  const stripCells = new Set(arrays.flatMap((a) => a.cells.map((c) => c.cellId)));
 
   // ---- list families: one row band each -----------------------------------
   const families: MemoryItem[][] = Array.from({ length: plan.familyCount }, () => []);
@@ -127,12 +131,12 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
     const f = plan.family.get(h.id);
     const isListNode = f !== undefined && structures.shapes.has(h.typeName);
     if (isListNode) families[f].push(h);
-    else loose.push(h);
+    else if (!asStrip.has(h.id)) loose.push(h);
   }
 
   const nodes: NodeBox[] = [];
   const boxes = new Map<string, NodeBox>();
-  let top = 0;
+  let top = arraysH > 0 ? arraysH + ROW_GAP : 0;
 
   families.forEach((members, family) => {
     if (members.length === 0) return;
@@ -221,6 +225,18 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
       pendingTerminals.push({ box, row, cell, kind });
     }
   }
+  // Pointer cells of arrays (hash buckets, adjacency lists): from the bottom of the cell down to the node.
+  for (const strip of arrays) {
+    for (const cell of strip.cells) {
+      if (!cell.pointer) continue;
+      const target = boxes.get(heapRootOf(cell.pointsTo) ?? "");
+      if (!target) continue;
+      const start = { x: cell.x + CELL_W / 2, y: cell.y + CELL_H };
+      const end = { x: target.x + target.width / 2, y: target.y };
+      const bend = Math.max(30, (end.y - start.y) / 2);
+      arrows.push({ id: cell.cellId, from: strip.id, to: target.id, kind: "next", start, end, path: `M${start.x} ${start.y} C${start.x} ${r1(start.y + bend)} ${end.x} ${r1(end.y - bend)} ${end.x} ${end.y}` });
+    }
+  }
   // End markers go in the gap beside the node, on whichever side no straight arrow uses.
   const laneTaken = (x0: number, x1: number, y: number) =>
     arrows.some((a) => a.start.y === a.end.y && Math.abs(a.start.y - y) < TERM_H &&
@@ -247,9 +263,9 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
     const frame = step.stack[fi];
     for (const variable of frame.variables) {
       for (const leaf of variable.children ? leafRows(variable) : [{ cell: variable, label: variable.name }]) {
-        const label = variable.children ? `${variable.name}.${leaf.label}` : leaf.label;
+        const label = !variable.children ? leaf.label : leaf.label.startsWith("[") ? `${variable.name}${leaf.label}` : `${variable.name}.${leaf.label}`;
         const box = boxes.get(heapRootOf(leaf.cell.pointsTo) ?? "");
-        if (leaf.cell.kind !== "pointer" || !box) continue;
+        if (leaf.cell.kind !== "pointer" || !box || stripCells.has(leaf.cell.id)) continue; // array cells draw their own arrow
         const list = perNode.get(box.id) ?? [];
         perNode.set(box.id, list);
         list.push({ id: leaf.cell.id, label, nodeId: box.id, frameId: frame.id, active: frame === topFrame, x: 0, y: 0, width: chipWidth(label), height: CHIP_H });
@@ -277,7 +293,8 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
     minX = Math.min(minX, r.x - pad); minY = Math.min(minY, r.y - pad);
     maxX = Math.max(maxX, r.x + r.width + pad); maxY = Math.max(maxY, r.y + r.height + pad);
   };
-  if (nodes.length > 0) { minX = Infinity; minY = Infinity; maxX = -Infinity; maxY = -Infinity; }
+  if (nodes.length + arrays.length > 0) { minX = Infinity; minY = Infinity; maxX = -Infinity; maxY = -Infinity; }
+  arrays.forEach((a) => grow(a));
   nodes.forEach((n) => grow(n));
   chips.forEach((c) => grow(c));
   terminals.forEach((t) => grow(t));
@@ -286,5 +303,6 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
     grow({ x: Math.min(a.start.x, a.end.x), y: Math.min(a.start.y, a.end.y), width: Math.abs(a.end.x - a.start.x), height: Math.abs(a.end.y - a.start.y) }, a.path.includes("C") ? 60 : 0);
   }
   const bounds = { x: r1(minX), y: r1(minY), width: r1(maxX - minX), height: r1(maxY - minY) };
-  return { nodes, arrows, terminals, chips, bounds };
+  return { arrays, nodes, arrows, terminals, chips, bounds };
 }
+

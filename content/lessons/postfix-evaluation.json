@@ -1,0 +1,32 @@
+{
+  "id": "postfix-evaluation",
+  "title": "Using a stack: evaluate a postfix expression",
+  "summary": "In 2 3 * 5 4 * +, each operator works on the last two numbers. A stack keeps them in the right order.",
+  "code": "#include <iostream>\nusing namespace std;\n\n#include <string>\n\nint evaluatePostfix(string expr) {\n    int stack[10];\n    int top = -1;\n    for (int i = 0; i < expr.length(); i++) {\n        char c = expr[i];\n        if (c >= '0' && c <= '9') {\n            stack[++top] = c - '0';\n        } else {\n            int right = stack[top--];\n            int left = stack[top--];\n            int result = 0;\n            if (c == '+') {\n                result = left + right;\n            } else if (c == '-') {\n                result = left - right;\n            } else if (c == '*') {\n                result = left * right;\n            } else {\n                result = left / right;\n            }\n            stack[++top] = result;\n        }\n    }\n    return stack[top];\n}\n\nint main() {\n    cout << evaluatePostfix(\"23*54*+\") << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "stack[++top] = c - '0';",
+      "occurrence": 1,
+      "text": "A digit is pushed. `c - '0'` turns the character '2' into the number 2."
+    },
+    {
+      "at": "int left = stack[top--];",
+      "occurrence": 1,
+      "text": "The first operator, `*`. The two numbers on top of the stack are popped: 3 (right) and then 2 (left)."
+    },
+    {
+      "at": "stack[++top] = result;",
+      "occurrence": 1,
+      "text": "2 * 3 = 6 is pushed back. The stack now holds one number, the value of everything read so far."
+    },
+    {
+      "at": "int right = stack[top--];",
+      "occurrence": 3,
+      "text": "At `+`, the stack held 6 and 20 (from 5 * 4): exactly the two operands. 20 has just been popped as the right one; 6 comes next."
+    },
+    {
+      "at": "cout << evaluatePostfix(\"23*54*+\") << endl;",
+      "text": "26, which is 2 * 3 + 5 * 4. Postfix needs no brackets and no precedence rules; calculators and compilers use this idea."
+    }
+  ]
+}

@@ -168,19 +168,20 @@ test("5.10 REAL LAB 9: every step of the AVL programs lays out without overlap",
   }
 });
 
-test("5.2 objects that are not list nodes go to the grid", () => {
-  const t = trace(`int main() { int* a = new int[3]; int* p = new int(5); a[0] = 1; return 0; }`);
+test("5.2 objects that are not list nodes go to the grid; an array made with new[] is drawn as cells", () => {
+  const t = trace(`int main() { int* a = new int[3]; int* p = new int(5); int* q = new int(6); a[0] = 1; return 0; }`);
   const l = layouts(t)[liveIndex(t)];
   assert.deepEqual(l.nodes.map((n) => n.family), [-1, -1]);
-  assert.equal(l.nodes[0].rows.length, 3);
   assert.equal(l.nodes[0].y, l.nodes[1].y);
+  assert.deepEqual(l.arrays.map((a) => [a.id, a.cells.length]), [["h1", 3]]);
+  assert.ok(l.arrays[0].y + l.arrays[0].height < l.nodes[0].y, "arrays sit above the other objects");
 });
 
 test("5.2 bounds contain everything", () => {
   const t = trace(fixture("14_circular_class.cpp"));
   for (const l of layouts(t)) {
     const b = l.bounds;
-    for (const r of [...l.nodes, ...l.chips, ...l.terminals]) {
+    for (const r of [...l.arrays, ...l.nodes, ...l.chips, ...l.terminals]) {
       assert.ok(r.x >= b.x && r.y >= b.y && r.x + r.width <= b.x + b.width && r.y + r.height <= b.y + b.height);
     }
   }

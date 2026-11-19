@@ -7,6 +7,7 @@
 //
 // Nothing here knows about drawing. The layout engine consumes the result.
 import type { MemoryItem, Step, Trace } from "../types";
+import { arrayIndexNames } from "./arrays";
 import { heapRootOf } from "../trace/diff";
 import { detectTrees, treeShapeOf, type DetectedTree } from "./trees";
 
@@ -173,6 +174,8 @@ export interface ListPlan {
   familyCount: number;
   /** Index of the first step at which the node was linked to another one. Absent if it never was. */
   firstLinked: Map<string, number>;
+  /** For each array name, the variables the program uses to index it (see arrays.ts). */
+  arrayIndexes: Map<string, Set<string>>;
 }
 
 /**
@@ -225,5 +228,5 @@ export function planLists(trace: Trace, options: DetectOptions = {}): ListPlan {
     if (!familyIndex.has(root)) familyIndex.set(root, familyIndex.size);
     family.set(id, familyIndex.get(root)!);
   }
-  return { rank, family, familyCount: familyIndex.size, firstLinked };
+  return { rank, family, familyCount: familyIndex.size, firstLinked, arrayIndexes: arrayIndexNames(trace.source) };
 }

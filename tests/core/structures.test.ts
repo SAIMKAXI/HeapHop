@@ -115,3 +115,13 @@ test("plan: separate lists get separate families", () => {
   assert.notEqual(plan.family.get("h1"), plan.family.get("h3"));
   assert.equal(plan.family.get("h1"), plan.family.get("h2"));
 });
+
+test("11.4 index names are read per array: a nested subscript indexes the inner array only", async () => {
+  const { arrayIndexNames } = await import("../../src/core/structures");
+  const m = arrayIndexNames(["table[keys[k] % 5] = n; // a[x] in a comment", "if (a[j] > a[j + 1]) swap(a[j], a[j + 1]);", "arr[++topIndex] = v;", "q.arr[q.rear] = 1; cout << \"b[i]\";"]);
+  assert.deepEqual([...m.get("table")!], []);
+  assert.deepEqual([...m.get("keys")!], ["k"]);
+  assert.deepEqual([...m.get("a")!], ["j"]);
+  assert.deepEqual([...m.get("arr")!].sort(), ["q", "rear", "topIndex"]);
+  assert.equal(m.get("b"), undefined, "text inside a string is ignored");
+});

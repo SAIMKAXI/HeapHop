@@ -62,7 +62,60 @@ export interface Chip extends Rect {
   active: boolean;
 }
 
+/** One drawn element of an array. */
+export interface ArrayCell extends Rect {
+  /** Id of the memory cell. */
+  cellId: string;
+  index: number;
+  /** What the cell shows: the value, "NULL", "?" or "deleted". Empty for a pointer that has an arrow. */
+  text: string;
+  pointer: boolean;
+  /** For a pointer cell: the id of the cell it points at. */
+  pointsTo?: string;
+  /** The value changed in this step. */
+  changed: boolean;
+  /** This step read the value (e.g. a comparison looked at it). */
+  read: boolean;
+}
+
+/** An index variable (top, front, i, j...) shown as a tag above the cell it names. */
+export interface ArrayMarker extends Rect {
+  /** Id of the int variable. */
+  id: string;
+  label: string;
+  /** May be -1 or the array's length: just outside the cells. */
+  index: number;
+  /** Belongs to the function that is running now. */
+  active: boolean;
+}
+
+/** An array used as a binary heap, also drawn as the complete tree it stands for. */
+export interface HeapView {
+  nodes: (Rect & { cellId: string; index: number; text: string; changed: boolean; read: boolean })[];
+  edges: { from: Point; to: Point }[];
+}
+
+/** An array drawn as a row of cells, with its index labels and markers. */
+export interface ArrayStrip extends Rect {
+  /** Id of the array's memory cell ("f0_values", "f0_s_arr", "h3"). */
+  id: string;
+  /** "values", "s.arr"; empty for a heap array (the canvas names it). */
+  title: string;
+  /** Function whose stack frame holds the array, or "heap". */
+  owner: string;
+  length: number;
+  /** Top of the cells, in world coordinates. */
+  cellsY: number;
+  cells: ArrayCell[];
+  /** Cells before / after the drawn window, for long arrays. */
+  skippedBefore: number;
+  hiddenAfter: number;
+  markers: ArrayMarker[];
+  heap?: HeapView;
+}
+
 export interface Layout {
+  arrays: ArrayStrip[];
   nodes: NodeBox[];
   arrows: Arrow[];
   terminals: Terminal[];

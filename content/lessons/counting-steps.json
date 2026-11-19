@@ -1,0 +1,30 @@
+{
+  "id": "counting-steps",
+  "title": "Counting steps: best, worst and Big-O",
+  "summary": "Count what an algorithm does as the input grows. Big-O is the worst case, Big-Omega the best case.",
+  "code": "#include <iostream>\nusing namespace std;\n\nint linearSearch(int a[], int n, int target, int& checks) {\n    for (int i = 0; i < n; i++) {\n        checks++;\n        if (a[i] == target) {\n            return i;\n        }\n    }\n    return -1;\n}\n\nint countPairs(int n) {\n    int steps = 0;\n    for (int i = 0; i < n; i++) {\n        for (int j = 0; j < n; j++) {\n            steps++;\n        }\n    }\n    return steps;\n}\n\nint main() {\n    int a[6] = {12, 5, 8, 21, 3, 17};\n    int best = 0;\n    linearSearch(a, 6, 12, best);\n    int worst = 0;\n    linearSearch(a, 6, 40, worst);\n    cout << \"Best case: \" << best << \" check, worst case: \" << worst << \" checks\" << endl;\n    cout << \"Two nested loops over 6 items: \" << countPairs(6) << \" steps\" << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "checks++;",
+      "occurrence": 1,
+      "text": "Searching for 12, which happens to be in the first cell. One check and the search is over: this is the best case."
+    },
+    {
+      "at": "return i;",
+      "text": "Found after 1 check, whatever the size of the array. The best case never grows, so it is \u03a9(1) (Big-Omega: a lower bound)."
+    },
+    {
+      "at": "return -1;",
+      "text": "Searching for 40, which is not there: every one of the 6 cells was checked. With n cells the worst case takes n checks, so linear search is O(n) (Big-O: an upper bound)."
+    },
+    {
+      "at": "steps++;",
+      "occurrence": 7,
+      "text": "Two loops, one inside the other. `i` is now 1 and `j` starts again from 0: the inner loop runs all 6 times for every value of `i`."
+    },
+    {
+      "at": "cout << \"Two nested loops over 6 items: \" << countPairs(6) << \" steps\" << endl;",
+      "text": "6 \u00d7 6 = 36 steps. Doubling n to 12 would give 144: four times as many. Nested loops over the input usually mean O(n\u00b2). When the best and worst case grow the same way, we write \u0398 (Big-Theta): this loop is \u0398(n\u00b2)."
+    }
+  ]
+}

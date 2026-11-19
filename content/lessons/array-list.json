@@ -1,0 +1,35 @@
+{
+  "id": "array-list",
+  "title": "A list in an array",
+  "summary": "Inserting in the middle of an array means shifting everything after it. Compare that with a linked list.",
+  "code": "#include <iostream>\nusing namespace std;\n\nvoid insertAt(int items[], int& size, int pos, int value) {\n    for (int i = size; i > pos; i--) {\n        items[i] = items[i - 1];\n    }\n    items[pos] = value;\n    size++;\n}\n\nvoid removeAt(int items[], int& size, int pos) {\n    for (int i = pos; i < size - 1; i++) {\n        items[i] = items[i + 1];\n    }\n    size--;\n}\n\nvoid printItems(int items[], int size) {\n    for (int i = 0; i < size; i++) {\n        cout << items[i] << \" \";\n    }\n    cout << endl;\n}\n\nint main() {\n    int items[8] = {10, 20, 40, 50};\n    int size = 4;\n    insertAt(items, size, 2, 30);\n    printItems(items, size);\n    removeAt(items, size, 0);\n    printItems(items, size);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "int size = 4;",
+      "text": "The list keeps its values in an array of 8 cells and counts how many are in use: 4. The rest of the array is spare room."
+    },
+    {
+      "at": "items[i] = items[i - 1];",
+      "occurrence": 1,
+      "text": "To make room for 30 at position 2, the values after it move one cell right, starting from the end: 50 is copied into cell 4 first."
+    },
+    {
+      "at": "items[i] = items[i - 1];",
+      "occurrence": 2,
+      "text": "Then 40 moves into cell 3. Cell 2 is free to be overwritten."
+    },
+    {
+      "at": "items[pos] = value;",
+      "text": "30 goes into cell 2. Two values had to move; inserting at the front would move all of them, so insertion is O(n)."
+    },
+    {
+      "at": "items[i] = items[i + 1];",
+      "occurrence": 1,
+      "text": "Removing the first value: everything after it moves one cell left to close the gap."
+    },
+    {
+      "line": 32,
+      "text": "20 30 40 50. Reading items[k] is instant (O(1)), which a linked list cannot do. A linked list wins when values are inserted and removed often, because only pointers change."
+    }
+  ]
+}
