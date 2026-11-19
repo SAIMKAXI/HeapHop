@@ -1,0 +1,33 @@
+{
+  "id": "avl-delete-rebalance",
+  "title": "Delete, then rebalance",
+  "summary": "Removing a node can make an ancestor lopsided. Check the balance and rotate, done by hand.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* left;\n    Node* right;\n    Node(int d) : data(d), left(nullptr), right(nullptr) {}\n};\n\nNode* insert(Node* node, int value) {\n    if (node == nullptr) {\n        return new Node(value);\n    }\n    if (value < node->data) {\n        node->left = insert(node->left, value);\n    } else {\n        node->right = insert(node->right, value);\n    }\n    return node;\n}\n\nint height(Node* node) {\n    if (node == nullptr) {\n        return 0;\n    }\n    return 1 + max(height(node->left), height(node->right));\n}\n\nint balance(Node* node) {\n    return height(node->left) - height(node->right);\n}\n\nNode* leftRotate(Node* x) {\n    Node* y = x->right;\n    Node* T = y->left;\n    y->left = x;\n    x->right = T;\n    return y;\n}\n\nvoid preOrder(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    cout << node->data << \" \";\n    preOrder(node->left);\n    preOrder(node->right);\n}\n\nvoid destroy(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    destroy(node->left);\n    destroy(node->right);\n    delete node;\n}\n\nint main() {\n    Node* root = nullptr;\n    int values[] = {40, 20, 60, 10, 50, 70, 80};\n    for (int i = 0; i < 7; i++) {\n        root = insert(root, values[i]);\n    }\n    cout << \"Root balance: \" << balance(root) << endl;\n\n    Node* parent = root->left;\n    Node* leaf = parent->left;\n    parent->left = nullptr;\n    delete leaf;\n    cout << \"Root balance after deleting 10: \" << balance(root) << endl;\n    cout << \"Its right child's balance: \" << balance(root->right) << endl;\n\n    root = leftRotate(root);\n    cout << \"Root balance after the rotation: \" << balance(root) << endl;\n    preOrder(root);\n    cout << endl;\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "cout << \"Root balance: \" << balance(root) << endl;",
+      "text": "A balanced tree: the root's left side is 2 levels and its right side 3, so its balance is -1, which is allowed."
+    },
+    {
+      "at": "delete leaf;",
+      "text": "The leaf 10 is gone. Deleting is an ordinary BST delete first; the AVL part comes next."
+    },
+    {
+      "at": "cout << \"Its right child's balance: \" << balance(root->right) << endl;",
+      "text": "The root's left side shrank to 1 level, so its balance is 1 - 3 = -2. Its right child leans right too (-1): a right-right case, fixed by one left rotation at the root."
+    },
+    {
+      "at": "Node* y = x->right;",
+      "predict": "y",
+      "text": "The left rotation lifts the root's right child."
+    },
+    {
+      "at": "cout << \"Root balance after the rotation: \" << balance(root) << endl;",
+      "text": "60 is the new root and its balance is 0. 50 was handed from 60 to 40, because it is between them."
+    },
+    {
+      "at": "preOrder(root);",
+      "text": "60 40 20 50 70 80. After a delete, every ancestor on the way back up must be checked, and unlike insert, a delete can need more than one rotation."
+    }
+  ]
+}

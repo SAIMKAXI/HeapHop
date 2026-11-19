@@ -3,14 +3,18 @@
 // The list of everything in Learn: guided lessons by topic, then ready-made programs to
 // step through. Each entry is a real link, so it can be opened in a new tab or shared.
 import type { MouseEvent, ReactNode } from "react";
-import { ArrowRight, Link2, ListTree, Play } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, ArrowRightToLine, Layers, Link2, ListTree, Play, Scale } from "lucide-react";
 import { EXAMPLES, GROUP_TITLES, type Example } from "@content/examples";
-import { LESSONS, type LessonEntry } from "@content/lessons";
+import { LESSONS, type LessonTopic } from "@content/lessons";
 import { hrefOf, openPick, type Pick } from "./address";
 
-const TOPICS: { topic: LessonEntry["topic"]; title: string; intro: string; icon: ReactNode }[] = [
+const TOPICS: { topic: LessonTopic; title: string; intro: string; icon: ReactNode }[] = [
   { topic: "lists", title: "Linked lists", intro: "Nodes, next pointers, and why the order of two lines matters.", icon: <Link2 size={18} aria-hidden /> },
-  { topic: "trees", title: "Trees", intro: "Binary search trees, traversal and balancing, one pointer at a time.", icon: <ListTree size={18} aria-hidden /> },
+  { topic: "doubly", title: "Doubly and circular lists", intro: "Two arrows per node, and lists that loop back to the start.", icon: <ArrowLeftRight size={18} aria-hidden /> },
+  { topic: "stacks", title: "Stacks", intro: "Last in, first out: push and pop at the top, and the call stack behind recursion.", icon: <Layers size={18} aria-hidden /> },
+  { topic: "queues", title: "Queues", intro: "First in, first out: add at the rear, remove from the front.", icon: <ArrowRightToLine size={18} aria-hidden /> },
+  { topic: "bst", title: "Binary search trees", intro: "Smaller to the left, larger to the right: searching, traversing and deleting.", icon: <ListTree size={18} aria-hidden /> },
+  { topic: "avl", title: "AVL trees", intro: "Balance factors and the rotations that keep a search tree short.", icon: <Scale size={18} aria-hidden /> },
 ];
 const EXAMPLE_GROUPS: Example["group"][] = ["lists", "mistakes", "pointers"];
 

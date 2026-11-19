@@ -1,0 +1,37 @@
+{
+  "id": "bst-delete-cases",
+  "title": "Deleting from a BST: three cases",
+  "summary": "A leaf, a node with one child, and a node with two children, each done by hand on one tree.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* left;\n    Node* right;\n    Node(int d) : data(d), left(nullptr), right(nullptr) {}\n};\n\nNode* insert(Node* node, int value) {\n    if (node == nullptr) {\n        return new Node(value);\n    }\n    if (value < node->data) {\n        node->left = insert(node->left, value);\n    } else {\n        node->right = insert(node->right, value);\n    }\n    return node;\n}\n\nvoid inOrder(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    inOrder(node->left);\n    cout << node->data << \" \";\n    inOrder(node->right);\n}\n\nvoid destroy(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    destroy(node->left);\n    destroy(node->right);\n    delete node;\n}\n\nint main() {\n    Node* root = nullptr;\n    int values[] = {50, 30, 70, 20, 40, 60, 80, 65};\n    for (int i = 0; i < 8; i++) {\n        root = insert(root, values[i]);\n    }\n    inOrder(root);\n    cout << endl;\n\n    // Case 1: 20 is a leaf.\n    Node* leaf = root->left->left;\n    root->left->left = nullptr;\n    delete leaf;\n    inOrder(root);\n    cout << endl;\n\n    // Case 2: 60 has one child, 65.\n    Node* parent = root->right;\n    Node* gone = parent->left;\n    parent->left = gone->right;\n    delete gone;\n    inOrder(root);\n    cout << endl;\n\n    // Case 3: the root, 50, has two children.\n    Node* succParent = root->right;\n    Node* succ = succParent->left;\n    root->data = succ->data;\n    succParent->left = succ->right;\n    delete succ;\n    inOrder(root);\n    cout << endl;\n\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "Node* leaf = root->left->left;",
+      "text": "Case 1, a leaf: 20 has no children, so nothing hangs below it."
+    },
+    {
+      "at": "delete leaf;",
+      "text": "Its parent's pointer was set to NULL first, then the node was freed. Nothing else had to move."
+    },
+    {
+      "at": "parent->left = gone->right;",
+      "text": "Case 2, one child: 60 has only a right child, 65. The parent of 60 (70) now points straight at 65, skipping 60. 65 is larger than 50 and smaller than 70, so it is still in the right place."
+    },
+    {
+      "at": "Node* succ = succParent->left;",
+      "predict": "succ",
+      "text": "Case 3, two children: the root cannot simply be removed, because it would leave two subtrees with one gap. The value that can replace it is its successor, the smallest value in its right subtree."
+    },
+    {
+      "at": "root->data = succ->data;",
+      "text": "The successor's value, 65, is copied into the root. 65 is larger than everything on the left and smaller than everything else on the right, so the ordering rule still holds."
+    },
+    {
+      "at": "delete succ;",
+      "text": "Now the old copy of 65 is removed. A successor never has a left child, so removing it is always case 1 or case 2."
+    },
+    {
+      "at": "destroy(root);",
+      "text": "The four lines of output are always sorted: 20 30 40 50 60 65 70 80, then without 20, then without 60, then without 50. In-order output staying sorted is a quick check that a delete kept the tree valid."
+    }
+  ]
+}

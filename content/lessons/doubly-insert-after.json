@@ -1,0 +1,32 @@
+{
+  "id": "doubly-insert-after",
+  "title": "Insert after a node",
+  "summary": "Four pointers change. The two on the new node go first, so nothing is lost.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n    Node* prev;\n};\n\nvoid pushBack(Node** headRef, int newData) {\n    Node* newNode = new Node();\n    newNode->data = newData;\n    newNode->next = nullptr;\n    if (*headRef == nullptr) {\n        newNode->prev = nullptr;\n        *headRef = newNode;\n        return;\n    }\n    Node* last = *headRef;\n    while (last->next != nullptr) {\n        last = last->next;\n    }\n    last->next = newNode;\n    newNode->prev = last;\n}\n\nvoid insertAfter(Node* prevNode, int newData) {\n    if (prevNode == nullptr) {\n        return;\n    }\n    Node* newNode = new Node();\n    newNode->data = newData;\n    newNode->next = prevNode->next;\n    newNode->prev = prevNode;\n    if (prevNode->next != nullptr) {\n        prevNode->next->prev = newNode;\n    }\n    prevNode->next = newNode;\n}\n\nvoid printList(Node* head) {\n    while (head != nullptr) {\n        cout << head->data << \" \";\n        head = head->next;\n    }\n    cout << endl;\n}\n\nvoid freeList(Node* head) {\n    while (head != nullptr) {\n        Node* old = head;\n        head = head->next;\n        delete old;\n    }\n}\n\nint main() {\n    Node* head = nullptr;\n    pushBack(&head, 10);\n    pushBack(&head, 30);\n    insertAfter(head, 20);\n    printList(head);\n    freeList(head);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "pushBack(&head, 30);",
+      "text": "Before: 10 and 30 point at each other. Next, 20 goes between them, right after the node `head` points at."
+    },
+    {
+      "at": "newNode->next = prevNode->next;",
+      "text": "1 of 4: the new node points forward at 30. Its own arrows are set first because nobody depends on them yet."
+    },
+    {
+      "at": "newNode->prev = prevNode;",
+      "text": "2 of 4: the new node points back at 10. The list itself has not changed yet: 10 and 30 still point at each other."
+    },
+    {
+      "at": "prevNode->next->prev = newNode;",
+      "text": "3 of 4: 30 now points back at 20. `prevNode->next` still means 30 here, because 10's `next` has not changed yet."
+    },
+    {
+      "at": "prevNode->next = newNode;",
+      "text": "4 of 4: 10 points forward at 20, and 20 is fully linked. If this line ran before step 3, `prevNode->next` would already be 20, and step 3 would point 20 back at itself."
+    },
+    {
+      "at": "printList(head);",
+      "text": "10 20 30. Inserting after a known node is O(1) in a doubly linked list: no walking, just four pointers."
+    }
+  ]
+}

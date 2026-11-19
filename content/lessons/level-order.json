@@ -1,0 +1,31 @@
+{
+  "id": "level-order",
+  "title": "Level-order traversal with a queue",
+  "summary": "Visit a tree level by level. A queue remembers which nodes are waiting.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct TreeNode {\n    int data;\n    TreeNode* left;\n    TreeNode* right;\n    TreeNode(int d) : data(d), left(nullptr), right(nullptr) {}\n};\n\nstruct QNode {\n    TreeNode* item;\n    QNode* next;\n};\n\nvoid enqueue(QNode*& front, QNode*& rear, TreeNode* t) {\n    QNode* n = new QNode();\n    n->item = t;\n    n->next = nullptr;\n    if (rear == nullptr) {\n        front = rear = n;\n    } else {\n        rear->next = n;\n        rear = n;\n    }\n}\n\nTreeNode* dequeue(QNode*& front, QNode*& rear) {\n    QNode* old = front;\n    TreeNode* t = old->item;\n    front = front->next;\n    if (front == nullptr) {\n        rear = nullptr;\n    }\n    delete old;\n    return t;\n}\n\nvoid levelOrder(TreeNode* root) {\n    QNode* front = nullptr;\n    QNode* rear = nullptr;\n    enqueue(front, rear, root);\n    while (front != nullptr) {\n        TreeNode* cur = dequeue(front, rear);\n        cout << cur->data << \" \";\n        if (cur->left != nullptr) {\n            enqueue(front, rear, cur->left);\n        }\n        if (cur->right != nullptr) {\n            enqueue(front, rear, cur->right);\n        }\n    }\n    cout << endl;\n}\n\nvoid destroy(TreeNode* node) {\n    if (node == nullptr) {\n        return;\n    }\n    destroy(node->left);\n    destroy(node->right);\n    delete node;\n}\n\nint main() {\n    TreeNode* root = new TreeNode(40);\n    root->left = new TreeNode(20);\n    root->right = new TreeNode(60);\n    root->left->left = new TreeNode(10);\n    root->left->right = new TreeNode(30);\n    root->right->left = new TreeNode(50);\n    levelOrder(root);\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "enqueue(front, rear, root);",
+      "text": "The tree has three levels. The queue starts with one entry, which points at the root, 40."
+    },
+    {
+      "at": "cout << cur->data << \" \";",
+      "occurrence": 1,
+      "text": "40 left the queue and is printed. Its children, 20 and 60, will join at the rear."
+    },
+    {
+      "at": "cout << cur->data << \" \";",
+      "occurrence": 2,
+      "text": "20 is printed. 60 is still waiting in the queue, and 20's children, 10 and 30, will join behind it. A level only starts after the whole level above it."
+    },
+    {
+      "at": "cout << cur->data << \" \";",
+      "occurrence": 3,
+      "text": "60 is printed before 10 and 30, because it joined the queue before them. 10 and 30 are waiting now."
+    },
+    {
+      "at": "levelOrder(root);",
+      "text": "40 20 60 10 30 50: level by level, left to right. Searching a graph breadth-first (BFS) works the same way, with the same queue."
+    }
+  ]
+}

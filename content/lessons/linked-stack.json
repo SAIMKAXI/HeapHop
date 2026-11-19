@@ -1,0 +1,37 @@
+{
+  "id": "linked-stack",
+  "title": "Push and pop on a linked stack",
+  "summary": "Last in, first out. Both operations touch only the top node, so both are O(1).",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n};\n\nclass LinkedStack {\nprivate:\n    Node* topNode;\npublic:\n    LinkedStack() {\n        topNode = nullptr;\n    }\n    bool isEmpty() {\n        return topNode == nullptr;\n    }\n    void push(int value) {\n        Node* newNode = new Node();\n        newNode->data = value;\n        newNode->next = topNode;\n        topNode = newNode;\n    }\n    int pop() {\n        if (isEmpty()) {\n            cout << \"Stack is empty!\" << endl;\n            return -1;\n        }\n        Node* temp = topNode;\n        int value = temp->data;\n        topNode = topNode->next;\n        delete temp;\n        return value;\n    }\n    int peek() {\n        if (isEmpty()) {\n            return -1;\n        }\n        return topNode->data;\n    }\n};\n\nint main() {\n    LinkedStack s;\n    s.push(5);\n    s.push(15);\n    s.push(25);\n    cout << \"Top: \" << s.peek() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    if (s.isEmpty()) {\n        cout << \"The stack is empty again\" << endl;\n    }\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "LinkedStack s;",
+      "text": "The stack is an object in `main`. Its only member is `topNode`, which is NULL: the stack is empty."
+    },
+    {
+      "at": "topNode = newNode;",
+      "occurrence": 2,
+      "predict": "s.topNode",
+      "text": "Pushing 15. The new node points down at the old top (5), and `topNode` moves up to it. These are the same two lines as inserting at the front of a list."
+    },
+    {
+      "at": "cout << \"Top: \" << s.peek() << endl;",
+      "text": "`peek` reads the top value without removing it: 25. The last value pushed is the first one you can reach."
+    },
+    {
+      "at": "topNode = topNode->next;",
+      "occurrence": 1,
+      "predict": "s.topNode",
+      "text": "Popping. `topNode` moves down to the node below before the old top is deleted."
+    },
+    {
+      "at": "delete temp;",
+      "occurrence": 1,
+      "text": "The old top (25) is freed. Its value was copied into `value` first, because a deleted node must not be read."
+    },
+    {
+      "at": "cout << \"The stack is empty again\" << endl;",
+      "text": "Popped 25, 15, then 5: the reverse of the order they were pushed. Every node was deleted by `pop`, so nothing leaked."
+    }
+  ]
+}

@@ -10,4 +10,11 @@ export const GLOSSARY: Record<string, string> = {
   delete: "delete: gives an object's memory back. Pointers to it keep the old address and become dangling.",
   temp: "temp: a helper pointer, usually used to walk the list or to remember a node before unlinking it.",
   cur: "cur: the pointer that marks the current node during a walk.",
+  root: "root: the pointer to the top node of a tree, the only node with no parent.",
+  left: "left: the field that points at a node's left child. In a BST everything down there is smaller.",
+  right: "right: the field that points at a node's right child. In a BST everything down there is larger.",
+  height: "height: the number of levels from a node down to its deepest leaf. An empty tree has height 0.",
+  front: "front: in a queue, the pointer to the next item to leave (the one that joined first).",
+  rear: "rear: in a queue, the pointer to the last item that joined. New items are added after it.",
+  topNode: "topNode: in a stack, the pointer to the top item: the only one push and pop touch.",
 };

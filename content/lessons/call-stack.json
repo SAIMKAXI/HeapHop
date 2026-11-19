@@ -1,0 +1,31 @@
+{
+  "id": "call-stack",
+  "title": "Recursion and the call stack",
+  "summary": "Every call gets its own frame on a stack. Watch the frames pile up and come off in reverse.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n    Node(int d) : data(d), next(nullptr) {}\n};\n\nvoid printBackward(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    printBackward(node->next);\n    cout << node->data << \" \";\n}\n\nvoid freeList(Node* head) {\n    while (head != nullptr) {\n        Node* old = head;\n        head = head->next;\n        delete old;\n    }\n}\n\nint main() {\n    Node* head = new Node(1);\n    head->next = new Node(2);\n    head->next->next = new Node(3);\n    printBackward(head);\n    cout << endl;\n    freeList(head);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "Node* head = new Node(1);",
+      "text": "We'll print this list backwards without a loop and without changing a single pointer."
+    },
+    {
+      "at": "return;",
+      "occurrence": 1,
+      "text": "Four calls are waiting at once: one for each node, plus this one for NULL. Look at the stack panel: every frame has its own `node`. Calls are pushed on top of each other, like a stack of plates."
+    },
+    {
+      "at": "cout << node->data << \" \";",
+      "occurrence": 1,
+      "text": "The NULL call returned, and its frame came off the top. We are back in the frame for node 3, so 3 prints first."
+    },
+    {
+      "at": "cout << node->data << \" \";",
+      "occurrence": 3,
+      "text": "The frame for node 1 was the first call made and it finishes last. Last in, first out: the call stack is a stack."
+    },
+    {
+      "at": "printBackward(head);",
+      "text": "3 2 1. Recursion that never reaches its base case keeps pushing frames until memory runs out: a stack overflow. HeapHop stops at 64 waiting calls."
+    }
+  ]
+}

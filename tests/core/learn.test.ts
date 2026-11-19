@@ -65,8 +65,8 @@ test("7.2 every lesson loads, runs, and places all its checkpoints in running or
 });
 
 test("the tree lessons build real binary trees and ask the student to predict", async () => {
-  const trees = LESSONS.filter((l) => l.topic === "trees");
-  assert.deepEqual(trees.map((l) => l.id), ["build-a-bst", "search-a-bst", "inorder-traversal", "avl-rotation"]);
+  const trees = LESSONS.filter((l) => l.topic === "bst" || l.topic === "avl");
+  for (const id of ["build-a-bst", "search-a-bst", "inorder-traversal", "avl-rotation"]) assert.ok(trees.some((l) => l.id === id), id);
   for (const entry of trees) {
     const lesson = await entry.load();
     const r = run(lesson.code);
@@ -154,4 +154,11 @@ test("7.3 a prediction about a reference parameter is answered correctly", async
   const cp = resolveLesson(lesson, m).checkpoints.find((c) => c.prediction)!;
   // Nodes are pushed 30, 20, 10, so the list is #3 -> #2 -> #1 and head moves to Node #2.
   assert.equal(m.nameOf(cp.prediction!.answer!), "Node #2");
+});
+
+test("11.2 every Learn topic has at least two lessons, and lesson ids are unique", () => {
+  for (const topic of ["lists", "doubly", "stacks", "queues", "bst", "avl"] as const) {
+    assert.ok(LESSONS.filter((l) => l.topic === topic).length >= 2, topic);
+  }
+  assert.equal(new Set(LESSONS.map((l) => l.id)).size, LESSONS.length);
 });

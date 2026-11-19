@@ -1,0 +1,32 @@
+{
+  "id": "stack-reverse-word",
+  "title": "A stack turns things around",
+  "summary": "Push the letters of a word, pop them off, and they come out reversed.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    char letter;\n    Node* next;\n};\n\nvoid push(Node*& top, char c) {\n    Node* n = new Node();\n    n->letter = c;\n    n->next = top;\n    top = n;\n}\n\nchar pop(Node*& top) {\n    Node* old = top;\n    char c = old->letter;\n    top = top->next;\n    delete old;\n    return c;\n}\n\nint main() {\n    char word[4] = {'H', 'E', 'A', 'P'};\n    Node* top = nullptr;\n    for (int i = 0; i < 4; i++) {\n        push(top, word[i]);\n    }\n    while (top != nullptr) {\n        cout << pop(top);\n    }\n    cout << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "Node* top = nullptr;",
+      "text": "The word is in an array, and the stack is empty. We'll push the letters H, E, A, P one at a time."
+    },
+    {
+      "at": "top = n;",
+      "occurrence": 4,
+      "text": "P went on last, so it is on top. H, the first letter pushed, is at the bottom."
+    },
+    {
+      "at": "top = top->next;",
+      "occurrence": 1,
+      "predict": "top",
+      "text": "Popping takes the top letter, P."
+    },
+    {
+      "at": "cout << pop(top);",
+      "occurrence": 2,
+      "text": "After P left, A was on top, so the output is now PA."
+    },
+    {
+      "at": "cout << endl;",
+      "text": "PAEH: the word reversed. The same idea is behind the Undo button: the last thing you did is the first thing undone."
+    }
+  ]
+}

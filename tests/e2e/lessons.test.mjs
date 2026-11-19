@@ -30,10 +30,19 @@ async function play(page, id, choose) {
 const learn = { path: "/learn", ready: "[data-lesson]" };
 const WITH_QUESTIONS = ["walk-a-list", "insert-at-front", "delete-safely", "reverse-a-list", "build-a-bst", "search-a-bst", "avl-rotation"];
 
-test("Learn lists the linked-list and tree lessons by topic", async () => {
+test("Learn lists the lessons by topic", async () => {
   const page = await newPage(learn);
   const topics = await page.$$eval("[data-topic]", (s) => s.map((t) => `${t.dataset.topic}:${t.querySelectorAll("[data-lesson]").length}`));
-  assert.deepEqual(topics, ["lists:4", "trees:4"]);
+  assert.deepEqual(topics, ["lists:7", "doubly:5", "stacks:3", "queues:2", "bst:8", "avl:4"]);
+});
+
+test("every other lesson on the Learn page plays to the end in the browser", async () => {
+  const ids = await (await newPage(learn)).$$eval("[data-lesson]", (links) => links.map((a) => a.dataset.lesson));
+  for (const id of ids.filter((x) => x !== "inorder-traversal" && !WITH_QUESTIONS.includes(x))) {
+    const page = await newPage(learn);
+    await play(page, id, () => 0);
+    assert.deepEqual(page.errors, [], id);
+  }
 });
 
 test("lesson inorder-traversal plays to the end without questions", async () => {

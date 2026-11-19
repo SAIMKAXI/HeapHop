@@ -1,0 +1,35 @@
+{
+  "id": "min-max-successor",
+  "title": "Smallest, largest and the next value",
+  "summary": "Go left as far as you can for the minimum, right for the maximum. The successor is the next value in sorted order.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* left;\n    Node* right;\n    Node(int d) : data(d), left(nullptr), right(nullptr) {}\n};\n\nNode* insert(Node* node, int value) {\n    if (node == nullptr) {\n        return new Node(value);\n    }\n    if (value < node->data) {\n        node->left = insert(node->left, value);\n    } else {\n        node->right = insert(node->right, value);\n    }\n    return node;\n}\n\nNode* findMin(Node* node) {\n    while (node->left != nullptr) {\n        node = node->left;\n    }\n    return node;\n}\n\nNode* findMax(Node* node) {\n    while (node->right != nullptr) {\n        node = node->right;\n    }\n    return node;\n}\n\nNode* successor(Node* root, Node* target) {\n    if (target->right != nullptr) {\n        return findMin(target->right);\n    }\n    Node* succ = nullptr;\n    Node* cur = root;\n    while (cur != target) {\n        if (target->data < cur->data) {\n            succ = cur;\n            cur = cur->left;\n        } else {\n            cur = cur->right;\n        }\n    }\n    return succ;\n}\n\nvoid destroy(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    destroy(node->left);\n    destroy(node->right);\n    delete node;\n}\n\nint main() {\n    Node* root = nullptr;\n    int values[] = {50, 30, 70, 20, 40, 60, 80};\n    for (int i = 0; i < 7; i++) {\n        root = insert(root, values[i]);\n    }\n    cout << \"Smallest: \" << findMin(root)->data << endl;\n    cout << \"Largest: \" << findMax(root)->data << endl;\n    Node* thirty = root->left;\n    Node* forty = thirty->right;\n    cout << \"After 30 comes \" << successor(root, thirty)->data << endl;\n    cout << \"After 40 comes \" << successor(root, forty)->data << endl;\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "node = node->left;",
+      "occurrence": 1,
+      "predict": "node",
+      "text": "Smaller values are always on the left, so the minimum is the node you reach by going left until you can't."
+    },
+    {
+      "at": "cout << \"Smallest: \" << findMin(root)->data << endl;",
+      "text": "20 has no left child, so it is the smallest value. No comparisons were needed, only one path from the root."
+    },
+    {
+      "at": "cout << \"Largest: \" << findMax(root)->data << endl;",
+      "text": "The same idea to the right: 80 is the largest."
+    },
+    {
+      "at": "return findMin(target->right);",
+      "text": "The successor of 30 is the next larger value. 30 has a right subtree, so the answer is the smallest value in it: go right once, then left as far as possible."
+    },
+    {
+      "at": "succ = cur;",
+      "occurrence": 1,
+      "text": "40 has no right subtree, so its successor is above it. Walking down from the root, every time the path turns left, that node is larger than 40 and becomes the candidate."
+    },
+    {
+      "at": "cout << \"After 40 comes \" << successor(root, forty)->data << endl;",
+      "text": "The successor of 40 is 50, the root. When a node with two children is deleted, its successor is the value that takes its place."
+    }
+  ]
+}

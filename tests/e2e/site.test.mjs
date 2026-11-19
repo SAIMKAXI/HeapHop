@@ -55,13 +55,13 @@ test("Learn: opening a lesson changes the address, Back returns to the list, and
   await page.waitForSelector("[data-lesson-card]");
   assert.equal(new URL(page.url()).search, "?lesson=build-a-bst");
   await page.goBack();
-  await page.waitForSelector("[data-topic='trees']");
+  await page.waitForSelector("[data-topic='bst']");
   assert.equal(new URL(page.url()).search, "");
 
   await page.goto(origin() + "/learn?lesson=search-a-bst");
   await page.waitForSelector("[data-lesson-card]");
   await page.click("[data-back]");
-  await page.waitForSelector("[data-topic='trees']");
+  await page.waitForSelector("[data-topic='bst']");
   assert.equal(new URL(page.url()).pathname, "/learn");
   assert.equal(new URL(page.url()).search, "");
 

@@ -1,0 +1,31 @@
+{
+  "id": "double-rotation",
+  "title": "Double rotation: left-right",
+  "summary": "When the extra height is on the inside, one rotation is not enough. Two rotations fix it.",
+  "code": "#include <iostream>\nusing namespace std;\n\nclass Node {\npublic:\n    int data;\n    Node* left;\n    Node* right;\n    int height;\n    Node(int value) {\n        data = value;\n        left = right = nullptr;\n        height = 1;\n    }\n};\n\nint getHeight(Node* node) {\n    return node ? node->height : 0;\n}\n\nint getBalance(Node* node) {\n    return node ? getHeight(node->left) - getHeight(node->right) : 0;\n}\n\nNode* rightRotate(Node* y) {\n    Node* x = y->left;\n    Node* T = x->right;\n    x->right = y;\n    y->left = T;\n    y->height = 1 + max(getHeight(y->left), getHeight(y->right));\n    x->height = 1 + max(getHeight(x->left), getHeight(x->right));\n    return x;\n}\n\nNode* leftRotate(Node* x) {\n    Node* y = x->right;\n    Node* T = y->left;\n    y->left = x;\n    x->right = T;\n    x->height = 1 + max(getHeight(x->left), getHeight(x->right));\n    y->height = 1 + max(getHeight(y->left), getHeight(y->right));\n    return y;\n}\n\nNode* insert(Node* node, int value) {\n    if (!node) return new Node(value);\n    if (value < node->data)\n        node->left = insert(node->left, value);\n    else if (value > node->data)\n        node->right = insert(node->right, value);\n    else\n        return node;\n    node->height = 1 + max(getHeight(node->left), getHeight(node->right));\n    int balance = getBalance(node);\n    if (balance > 1 && value < node->left->data)\n        return rightRotate(node);\n    if (balance < -1 && value > node->right->data)\n        return leftRotate(node);\n    if (balance > 1 && value > node->left->data) {\n        node->left = leftRotate(node->left);\n        return rightRotate(node);\n    }\n    if (balance < -1 && value < node->right->data) {\n        node->right = rightRotate(node->right);\n        return leftRotate(node);\n    }\n    return node;\n}\n\nvoid preOrder(Node* node) {\n    if (!node) return;\n    cout << node->data << \" \";\n    preOrder(node->left);\n    preOrder(node->right);\n}\n\nvoid destroy(Node* node) {\n    if (!node) return;\n    destroy(node->left);\n    destroy(node->right);\n    delete node;\n}\n\nint main() {\n    Node* root = nullptr;\n    int values[] = {50, 20, 70, 10, 30, 25};\n    for (int i = 0; i < 6; i++) {\n        root = insert(root, values[i]);\n    }\n    preOrder(root);\n    cout << endl;\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "int balance = getBalance(node);",
+      "occurrence": 9,
+      "text": "25 went left of 50, then right of 20, then left of 30. Back at 50, the left side is now 3 levels tall and the right side 1: a balance of +2."
+    },
+    {
+      "at": "node->left = leftRotate(node->left);",
+      "text": "The extra height is in 20's right side: a zig-zag (left, then right). A single right rotation at 50 would just move the zig-zag to the other side. First, a left rotation at 20 straightens it into a line."
+    },
+    {
+      "at": "Node* x = y->left;",
+      "occurrence": 1,
+      "predict": "x",
+      "text": "Now the right rotation at 50. The first rotation changed who is directly below 50 on the left."
+    },
+    {
+      "line": 61,
+      "text": "30 was lifted twice and is now on top, with 20 and 50 as its children; 25 was handed to 20. `insert` returns 30, so `root` in `main` will point at it."
+    },
+    {
+      "at": "preOrder(root);",
+      "text": "Pre-order 30 20 10 25 50 70: every node is balanced again. The rotation and insert functions are the ones from the Lab 9 manual, written outside a class, with `max()` working as in real C++."
+    }
+  ]
+}

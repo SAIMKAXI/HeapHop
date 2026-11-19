@@ -1,0 +1,42 @@
+{
+  "id": "traversal-orders",
+  "title": "Pre-order and post-order",
+  "summary": "The same recursion, with the visit moved before or after the children.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* left;\n    Node* right;\n    Node(int d) : data(d), left(nullptr), right(nullptr) {}\n};\n\nNode* insert(Node* node, int value) {\n    if (node == nullptr) {\n        return new Node(value);\n    }\n    if (value < node->data) {\n        node->left = insert(node->left, value);\n    } else {\n        node->right = insert(node->right, value);\n    }\n    return node;\n}\n\nvoid preOrder(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    cout << node->data << \" \";\n    preOrder(node->left);\n    preOrder(node->right);\n}\n\nvoid destroy(Node* node) {\n    if (node == nullptr) {\n        return;\n    }\n    destroy(node->left);\n    destroy(node->right);\n    cout << \"delete \" << node->data << endl;\n    delete node;\n}\n\nint main() {\n    Node* root = nullptr;\n    int values[] = {50, 30, 70, 20, 40, 60};\n    for (int i = 0; i < 6; i++) {\n        root = insert(root, values[i]);\n    }\n    preOrder(root);\n    cout << endl;\n    destroy(root);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "root = insert(root, values[i]);",
+      "occurrence": 1,
+      "predict": "root",
+      "text": "The first value becomes the root."
+    },
+    {
+      "at": "cout << node->data << \" \";",
+      "occurrence": 1,
+      "text": "Pre-order visits a node before its children, so the root, 50, prints first."
+    },
+    {
+      "at": "cout << node->data << \" \";",
+      "occurrence": 3,
+      "text": "20 prints right after 30: pre-order finishes the whole left side before it looks right."
+    },
+    {
+      "at": "preOrder(root);",
+      "text": "50 30 20 40 70 60. Pre-order lists a parent before its children, so building a new tree from this order gives the same shape."
+    },
+    {
+      "at": "delete node;",
+      "occurrence": 1,
+      "text": "`destroy` is post-order: it visits both children before the node itself. The first node deleted is the leaf 20."
+    },
+    {
+      "at": "delete node;",
+      "occurrence": 3,
+      "text": "30 is deleted only after both of its children are gone. If it went first, the only pointers to 20 and 40 would be lost with it and they would leak."
+    },
+    {
+      "at": "destroy(root);",
+      "text": "The root went last. Pre-order: node, left, right. In-order: left, node, right. Post-order: left, right, node."
+    }
+  ]
+}

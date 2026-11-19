@@ -1,0 +1,27 @@
+{
+  "id": "doubly-reverse",
+  "title": "Reverse a doubly linked list",
+  "summary": "Swap next and prev in every node, then move head to the old last node.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n    Node* prev;\n};\n\nvoid pushBack(Node** headRef, int newData) {\n    Node* newNode = new Node();\n    newNode->data = newData;\n    newNode->next = nullptr;\n    if (*headRef == nullptr) {\n        newNode->prev = nullptr;\n        *headRef = newNode;\n        return;\n    }\n    Node* last = *headRef;\n    while (last->next != nullptr) {\n        last = last->next;\n    }\n    last->next = newNode;\n    newNode->prev = last;\n}\n\nvoid reverse(Node** headRef) {\n    Node* current = *headRef;\n    Node* temp = nullptr;\n    while (current != nullptr) {\n        temp = current->prev;\n        current->prev = current->next;\n        current->next = temp;\n        current = current->prev;\n    }\n    if (temp != nullptr) {\n        *headRef = temp->prev;\n    }\n}\n\nvoid printList(Node* head) {\n    while (head != nullptr) {\n        cout << head->data << \" \";\n        head = head->next;\n    }\n    cout << endl;\n}\n\nvoid freeList(Node* head) {\n    while (head != nullptr) {\n        Node* old = head;\n        head = head->next;\n        delete old;\n    }\n}\n\nint main() {\n    Node* head = nullptr;\n    pushBack(&head, 1);\n    pushBack(&head, 2);\n    pushBack(&head, 3);\n    reverse(&head);\n    printList(head);\n    freeList(head);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "current = current->prev;",
+      "occurrence": 1,
+      "predict": "current",
+      "text": "Node 1 has swapped its arrows: `next` is now NULL, because it will be the last node, and `prev` points at 2. To move on, the loop follows `prev`, because the swap just put the old `next` there."
+    },
+    {
+      "at": "current->next = temp;",
+      "occurrence": 2,
+      "text": "Node 2 swapped too: its `next` points at 1 and its `prev` at 3."
+    },
+    {
+      "at": "*headRef = temp->prev;",
+      "text": "`temp` holds the last swapped `prev`, which was node 2. Its `prev` is now node 3, the new first node, so `head` moves there."
+    },
+    {
+      "at": "printList(head);",
+      "text": "3 2 1. Every node was visited once, so reversing is O(n), and no node was created or deleted."
+    }
+  ]
+}

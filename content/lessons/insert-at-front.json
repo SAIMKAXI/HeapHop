@@ -11,7 +11,7 @@
     {
       "at": "Node* n = new Node();",
       "occurrence": 2,
-      "text": "A new node exists but is not part of the list yet. It is drawn below its future place, with a dashed border, and its `next` shows `?` because it has no value."
+      "text": "A new node exists but is not part of the list yet. It is drawn below its future place, with a dashed border. Its fields are 0 and NULL, because `new Node()` with empty brackets fills a plain struct with zeros."
     },
     {
       "at": "n->next = head;",
