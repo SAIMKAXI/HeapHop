@@ -1,0 +1,36 @@
+{
+  "id": "prim",
+  "title": "Prim's minimum spanning tree",
+  "summary": "Grow one tree from a start vertex, always adding the cheapest edge that reaches a new vertex.",
+  "code": "#include <iostream>\nusing namespace std;\n\nconst int V = 5;\nconst int INF = 1000000;\n\nint main() {\n    int graph[V][V] = {\n        {0, 4, 1, 0, 0},\n        {4, 0, 2, 5, 0},\n        {1, 2, 0, 8, 0},\n        {0, 5, 8, 0, 3},\n        {0, 0, 0, 3, 0},\n    };\n    int key[V];\n    bool inMST[V];\n    int parent[V];\n    for (int i = 0; i < V; i++) {\n        key[i] = INF;\n        inMST[i] = false;\n    }\n    key[0] = 0;\n    parent[0] = -1;\n    int total = 0;\n    for (int round = 0; round < V; round++) {\n        int u = -1;\n        for (int i = 0; i < V; i++) {\n            if (!inMST[i] && (u == -1 || key[i] < key[u])) {\n                u = i;\n            }\n        }\n        inMST[u] = true;\n        total += key[u];\n        for (int v = 0; v < V; v++) {\n            if (graph[u][v] > 0 && !inMST[v] && graph[u][v] < key[v]) {\n                key[v] = graph[u][v];\n                parent[v] = u;\n            }\n        }\n    }\n    for (int v = 1; v < V; v++) {\n        cout << parent[v] << \" - \" << v << endl;\n    }\n    cout << \"Total weight \" << total << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "int total = 0;",
+      "text": "A minimum spanning tree connects every vertex using the cheapest set of edges. `key` (under each vertex) is the cheapest edge found so far that would bring the vertex into the tree."
+    },
+    {
+      "at": "inMST[u] = true;",
+      "occurrence": 1,
+      "text": "The tree starts with vertex 0."
+    },
+    {
+      "at": "key[v] = graph[u][v];",
+      "occurrence": 2,
+      "text": "From 0, vertex 2 can join for 1 and vertex 1 for 4."
+    },
+    {
+      "at": "inMST[u] = true;",
+      "occurrence": 2,
+      "text": "The cheapest key belongs to vertex 2 (1), so edge 0 \u2013 2 joins the tree."
+    },
+    {
+      "at": "key[v] = graph[u][v];",
+      "occurrence": 3,
+      "text": "Through 2, vertex 1 can now join for 2, cheaper than 4. Its key and parent change."
+    },
+    {
+      "at": "cout << \"Total weight \" << total << endl;",
+      "text": "Tree edges 2 - 1, 0 - 2, 1 - 3, 3 - 4, total weight 11. Prim is like Dijkstra, but `key` holds the cost of one edge instead of a whole path. O(V\u00b2) with a matrix scan."
+    }
+  ]
+}

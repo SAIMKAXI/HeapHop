@@ -1,0 +1,31 @@
+{
+  "id": "kruskal",
+  "title": "Kruskal's minimum spanning tree",
+  "summary": "Sort all edges by weight and take each one that does not close a cycle. A union-find array tracks the groups.",
+  "code": "#include <iostream>\nusing namespace std;\n\nconst int V = 5;\nint parent[V];\n\nint find(int x) {\n    while (parent[x] != x) {\n        x = parent[x];\n    }\n    return x;\n}\n\nint main() {\n    int graph[V][V] = {\n        {0, 4, 1, 0, 0},\n        {4, 0, 2, 5, 0},\n        {1, 2, 0, 8, 0},\n        {0, 5, 8, 0, 3},\n        {0, 0, 0, 3, 0},\n    };\n    int eu[10];\n    int ev[10];\n    int ew[10];\n    int e = 0;\n    for (int u = 0; u < V; u++) {\n        for (int v = u + 1; v < V; v++) {\n            if (graph[u][v] > 0) {\n                eu[e] = u;\n                ev[e] = v;\n                ew[e] = graph[u][v];\n                e++;\n            }\n        }\n    }\n    for (int i = 0; i < e - 1; i++) {\n        for (int j = 0; j < e - i - 1; j++) {\n            if (ew[j] > ew[j + 1]) {\n                swap(ew[j], ew[j + 1]);\n                swap(eu[j], eu[j + 1]);\n                swap(ev[j], ev[j + 1]);\n            }\n        }\n    }\n    for (int i = 0; i < V; i++) {\n        parent[i] = i;\n    }\n    int total = 0;\n    for (int k = 0; k < e; k++) {\n        int a = find(eu[k]);\n        int b = find(ev[k]);\n        if (a != b) {\n            parent[a] = b;\n            total += ew[k];\n            cout << eu[k] << \" - \" << ev[k] << endl;\n        }\n    }\n    cout << \"Total weight \" << total << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "for (int i = 0; i < e - 1; i++) {",
+      "occurrence": 1,
+      "text": "The six edges are copied into three arrays: one end, the other end, the weight."
+    },
+    {
+      "at": "int total = 0;",
+      "text": "The edges are sorted by weight, cheapest first. `parent` gives every vertex its own group: each one is its own leader."
+    },
+    {
+      "at": "parent[a] = b;",
+      "occurrence": 1,
+      "text": "The cheapest edge, 0 \u2013 2 (weight 1), joins two different groups, so it is taken. Group 0 now points at group 2."
+    },
+    {
+      "at": "if (a != b) {",
+      "occurrence": 4,
+      "text": "Edge 0 \u2013 1 (weight 4): `find` follows `parent` from 0 and from 1 to the same leader, so 0 and 1 are already connected. Taking this edge would close a cycle, so it is skipped."
+    },
+    {
+      "at": "cout << \"Total weight \" << total << endl;",
+      "text": "The same tree as Prim, total weight 11, found a different way. Sorting the edges dominates: O(E log E) with a fast sort."
+    }
+  ]
+}

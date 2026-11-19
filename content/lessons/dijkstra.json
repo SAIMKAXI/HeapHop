@@ -1,0 +1,36 @@
+{
+  "id": "dijkstra",
+  "title": "Dijkstra's shortest paths",
+  "summary": "Always settle the closest unsettled vertex next, then see if going through it shortens the way to its neighbours.",
+  "code": "#include <iostream>\nusing namespace std;\n\nconst int V = 5;\nconst int INF = 1000000;\n\nint main() {\n    int graph[V][V] = {\n        {0, 4, 1, 0, 0},\n        {4, 0, 2, 5, 0},\n        {1, 2, 0, 8, 0},\n        {0, 5, 8, 0, 3},\n        {0, 0, 0, 3, 0},\n    };\n    int dist[V];\n    bool visited[V];\n    for (int i = 0; i < V; i++) {\n        dist[i] = INF;\n        visited[i] = false;\n    }\n    dist[0] = 0;\n    for (int round = 0; round < V; round++) {\n        int u = -1;\n        for (int i = 0; i < V; i++) {\n            if (!visited[i] && (u == -1 || dist[i] < dist[u])) {\n                u = i;\n            }\n        }\n        visited[u] = true;\n        for (int v = 0; v < V; v++) {\n            if (graph[u][v] > 0 && !visited[v] && dist[u] + graph[u][v] < dist[v]) {\n                dist[v] = dist[u] + graph[u][v];\n            }\n        }\n    }\n    for (int i = 0; i < V; i++) {\n        cout << \"0 to \" << i << \": \" << dist[i] << endl;\n    }\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "dist[0] = 0;",
+      "text": "The edges have weights (distances). Every vertex starts at \u221e except the start, 0, at distance 0. The numbers under the vertices are `dist`."
+    },
+    {
+      "at": "visited[u] = true;",
+      "occurrence": 1,
+      "text": "Vertex 0 is the closest unsettled vertex, so its distance is final."
+    },
+    {
+      "at": "dist[v] = dist[u] + graph[u][v];",
+      "occurrence": 2,
+      "text": "Through 0, vertex 1 can be reached in 4 and vertex 2 in 1. Both distances drop from \u221e."
+    },
+    {
+      "at": "visited[u] = true;",
+      "occurrence": 2,
+      "text": "Vertex 2 (distance 1) is settled next."
+    },
+    {
+      "at": "dist[v] = dist[u] + graph[u][v];",
+      "occurrence": 3,
+      "text": "Going 0 \u2192 2 \u2192 1 costs 1 + 2 = 3, shorter than the direct edge of 4, so `dist[1]` improves. Finding a shorter way like this is called relaxing an edge."
+    },
+    {
+      "line": 36,
+      "text": "All settled: 0, 3, 1, 8, 11. Dijkstra needs non-negative weights. With a simple scan for the closest vertex it is O(V\u00b2); with a heap (priority queue) it is O((V + E) log V)."
+    }
+  ]
+}

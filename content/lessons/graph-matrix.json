@@ -1,0 +1,30 @@
+{
+  "id": "graph-matrix",
+  "title": "Representing a graph: adjacency matrix",
+  "summary": "A V \u00d7 V grid: a 1 in row u, column v means an edge between u and v.",
+  "code": "#include <iostream>\nusing namespace std;\n\nconst int V = 5;\n\nvoid addEdge(int adj[][V], int u, int v) {\n    adj[u][v] = 1;\n    adj[v][u] = 1;\n}\n\nint main() {\n    int adj[V][V] = {};\n    addEdge(adj, 0, 1);\n    addEdge(adj, 0, 2);\n    addEdge(adj, 1, 3);\n    addEdge(adj, 2, 3);\n    addEdge(adj, 3, 4);\n    int u = 3;\n    cout << \"Neighbours of \" << u << \":\";\n    for (int v = 0; v < V; v++) {\n        if (adj[u][v] == 1) {\n            cout << \" \" << v;\n        }\n    }\n    cout << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "int adj[V][V] = {};",
+      "text": "5 vertices, numbered 0 to 4, and a 5 \u00d7 5 grid of zeros: no edges yet."
+    },
+    {
+      "at": "adj[v][u] = 1;",
+      "occurrence": 1,
+      "text": "Edge 0\u20131. The graph is undirected, so the edge is stored twice: row 0, column 1 and row 1, column 0. The graph view on the right is drawn from the grid."
+    },
+    {
+      "at": "addEdge(adj, 3, 4);",
+      "text": "All five edges are in. The grid is symmetric across its diagonal, which is how you can tell an undirected graph from a directed one."
+    },
+    {
+      "at": "if (adj[u][v] == 1) {",
+      "occurrence": 3,
+      "text": "To list the neighbours of vertex 3, the loop reads its whole row, one column at a time."
+    },
+    {
+      "at": "cout << endl;",
+      "text": "Neighbours of 3: 1 2 4. Checking one edge takes O(1), but listing neighbours always reads V cells, and the grid uses V\u00b2 memory even when there are few edges."
+    }
+  ]
+}

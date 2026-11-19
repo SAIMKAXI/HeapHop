@@ -128,3 +128,8 @@ test("library functions check their argument count", () => {
   const e = rejected(`int main() { cout << max(1); return 0; }`);
   assert.match(e.message, /max\(\) takes 2 arguments/);
 });
+
+test("global variables start at zero (static storage), locals do not", () => {
+  const t = trace(`int count;\nbool seen[3];\nint* p;\nint main() { cout << count << seen[2] << (p == nullptr); int local; return 0; }`);
+  assert.equal(t.output, "001");
+});

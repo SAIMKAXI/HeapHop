@@ -33,7 +33,7 @@ const WITH_QUESTIONS = ["walk-a-list", "insert-at-front", "delete-safely", "reve
 test("Learn lists the lessons by topic", async () => {
   const page = await newPage(learn);
   const topics = await page.$$eval("[data-topic]", (s) => s.map((t) => `${t.dataset.topic}:${t.querySelectorAll("[data-lesson]").length}`));
-  assert.deepEqual(topics, ["sorting:5", "lists:8", "doubly:5", "stacks:5", "queues:4", "bst:8", "avl:4", "heaps:3"]);
+  assert.deepEqual(topics, ["sorting:5", "lists:8", "doubly:5", "stacks:5", "queues:4", "bst:8", "avl:4", "heaps:3", "graphs:9"]);
 });
 
 test("every other lesson on the Learn page plays to the end in the browser", async () => {

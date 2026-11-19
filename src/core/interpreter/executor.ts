@@ -374,6 +374,9 @@ export class Executor {
 
   private declare(d: Declarator) {
     const t = d.type;
+    // Globals have static storage, so C++ fills them with zeros; locals start unknown.
+    const global = this.hasGlobals && this.mem.frames.length === 1;
+    const blank = (ty: TypeRef) => (global ? this.zero(ty) : this.fresh(ty));
     const cls = t.ptr === 0 ? this.classes.get(t.base) : undefined;
 
     if (d.arraySize2 !== null) {
@@ -386,7 +389,7 @@ export class Executor {
       const grid: Value[] = Array.from({ length: rows }, (_, r) => {
         const init = d.initRows?.[r];
         if (init && init.length > cols) throw compileError(`row ${r} of "${d.name}" has too many values.`, d.line);
-        return { k: "arr", e: Array.from({ length: cols }, (_, c) => (init && c < init.length ? this.coerce(t, this.value(init[c]), d.line) : filled ? this.zero(t) : this.fresh(t))) };
+        return { k: "arr", e: Array.from({ length: cols }, (_, c) => (init && c < init.length ? this.coerce(t, this.value(init[c]), d.line) : filled ? this.zero(t) : blank(t))) };
       });
       this.mem.declare(d.name, t, true, { k: "arr", e: grid });
       return;
@@ -400,8 +403,8 @@ export class Executor {
       const e: Value[] = [];
       for (let i = 0; i < n; i++) {
         if (init && i < init.length) e.push(this.coerce(t, this.value(init[i]), d.line));
-        else if (cls) e.push(this.makeObject(cls, false, d.line));
-        else e.push(init ? this.zero(t) : this.fresh(t));
+        else if (cls) e.push(this.makeObject(cls, global, d.line));
+        else e.push(init ? this.zero(t) : blank(t));
       }
       const slot = this.mem.declare(d.name, t, true, { k: "arr", e });
       if (cls && cls.ctors.length > 0) {
@@ -418,14 +421,14 @@ export class Executor {
         this.mem.declare(d.name, t, false, copyValue(v));
         return;
       }
-      const slot = this.mem.declare(d.name, t, false, this.makeObject(cls, false, d.line));
+      const slot = this.mem.declare(d.name, t, false, this.makeObject(cls, global, d.line));
       this.construct(cls, this.mem.slotAddr(this.mem.top(), slot), d.ctorArgs ?? [], d.line);
       this.line = d.line;
       return;
     }
 
     const initExpr = d.init ?? (d.ctorArgs?.length === 1 ? d.ctorArgs[0] : null); // `int x(5);`
-    const v = initExpr ? this.coerce(t, this.valueFor(t, initExpr), d.line) : this.fresh(t);
+    const v = initExpr ? this.coerce(t, this.valueFor(t, initExpr), d.line) : blank(t);
     this.mem.declare(d.name, t, false, copyValue(v));
   }
 

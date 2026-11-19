@@ -1,0 +1,31 @@
+{
+  "id": "topological-sort",
+  "title": "Topological sort",
+  "summary": "Order the tasks of a directed graph so that every arrow points forward. Start with tasks nothing depends on.",
+  "code": "#include <iostream>\nusing namespace std;\n\nconst int V = 5;\n\nint main() {\n    int adj[V][V] = {\n        {0, 1, 1, 0, 0},\n        {0, 0, 0, 1, 0},\n        {0, 0, 0, 1, 1},\n        {0, 0, 0, 0, 1},\n        {0, 0, 0, 0, 0},\n    };\n    int indegree[V] = {};\n    for (int u = 0; u < V; u++) {\n        for (int v = 0; v < V; v++) {\n            indegree[v] += adj[u][v];\n        }\n    }\n    int queue[V];\n    int front = 0;\n    int rear = 0;\n    for (int v = 0; v < V; v++) {\n        if (indegree[v] == 0) {\n            queue[rear++] = v;\n        }\n    }\n    while (front < rear) {\n        int u = queue[front++];\n        cout << u << \" \";\n        for (int v = 0; v < V; v++) {\n            if (adj[u][v] == 1) {\n                indegree[v]--;\n                if (indegree[v] == 0) {\n                    queue[rear++] = v;\n                }\n            }\n        }\n    }\n    cout << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "int queue[V];",
+      "text": "A directed graph with no cycles: think of 0 as \"install\", 1 and 2 as steps that need it, 4 as the last step. Each vertex is labelled with its in-degree: how many arrows point into it."
+    },
+    {
+      "at": "while (front < rear) {",
+      "occurrence": 1,
+      "text": "Only vertex 0 has in-degree 0, so only it can go first. It waits in the queue."
+    },
+    {
+      "at": "indegree[v]--;",
+      "occurrence": 1,
+      "text": "0 is output and its arrows are removed: 1's in-degree drops from 1 to 0, so 1 is ready."
+    },
+    {
+      "line": 35,
+      "occurrence": 3,
+      "text": "3 waited until both 1 and 2 were done: its in-degree reached 0 only after the second arrow was removed."
+    },
+    {
+      "at": "cout << endl;",
+      "text": "0 1 2 3 4: every arrow points from earlier to later in this order. If a cycle existed, some vertex would never reach in-degree 0 and the output would come out short. This is Kahn's algorithm, O(V + E) with lists."
+    }
+  ]
+}

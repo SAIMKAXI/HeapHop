@@ -67,6 +67,9 @@ export interface ArrayCell extends Rect {
   /** Id of the memory cell. */
   cellId: string;
   index: number;
+  /** For a 2-D array: the cell's row and column (index is row * columns + column). */
+  row?: number;
+  col?: number;
   /** What the cell shows: the value, "NULL", "?" or "deleted". Empty for a pointer that has an arrow. */
   text: string;
   pointer: boolean;
@@ -83,8 +86,10 @@ export interface ArrayMarker extends Rect {
   /** Id of the int variable. */
   id: string;
   label: string;
-  /** May be -1 or the array's length: just outside the cells. */
+  /** May be -1 or the array's length: just outside the cells. For a 2-D array, a row or column number. */
   index: number;
+  /** 2-D arrays: "row" tags sit left of their row, "col" tags above their column. */
+  axis?: "row" | "col";
   /** Belongs to the function that is running now. */
   active: boolean;
 }
@@ -93,6 +98,20 @@ export interface ArrayMarker extends Rect {
 export interface HeapView {
   nodes: (Rect & { cellId: string; index: number; text: string; changed: boolean; read: boolean })[];
   edges: { from: Point; to: Point }[];
+}
+
+/** A graph read from an adjacency matrix or adjacency list: vertices on a circle, joined by edges. */
+export interface GraphView {
+  vertices: (Rect & {
+    index: number;
+    /** True in the program's visited / inMST / done array. */
+    visited: boolean;
+    /** The vertex the running code is working on (the row it is reading). */
+    current: boolean;
+    /** From a dist / key array: the value, or "∞". */
+    label?: string;
+  })[];
+  edges: { from: Point; to: Point; directed: boolean; weight?: string; labelAt?: Point; /** Being looked at right now. */ active: boolean }[];
 }
 
 /** An array drawn as a row of cells, with its index labels and markers. */
@@ -112,6 +131,9 @@ export interface ArrayStrip extends Rect {
   hiddenAfter: number;
   markers: ArrayMarker[];
   heap?: HeapView;
+  /** A 2-D array: its cells form a grid; row labels end at `x`, column labels sit above the first row. */
+  matrix?: { rows: number; cols: number; x: number; cellW: number; cellH: number };
+  graph?: GraphView;
 }
 
 export interface Layout {

@@ -124,4 +124,8 @@ test("11.4 index names are read per array: a nested subscript indexes the inner 
   assert.deepEqual([...m.get("a")!], ["j"]);
   assert.deepEqual([...m.get("arr")!].sort(), ["q", "rear", "topIndex"]);
   assert.equal(m.get("b"), undefined, "text inside a string is ignored");
+  const g = arrayIndexNames(["if (adj[u][v] && !visited[v]) dist[v] = dist[u] + adj[u][v];"]);
+  assert.deepEqual([...g.get("adj")!], ["u"]);
+  assert.deepEqual([...g.get("adj[]")!], ["v"]);
+  assert.deepEqual([...g.get("dist")!].sort(), ["u", "v"]);
 });

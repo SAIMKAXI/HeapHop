@@ -1,0 +1,35 @@
+{
+  "id": "bfs",
+  "title": "Breadth-first search and shortest paths",
+  "summary": "Visit the start, then all its neighbours, then theirs: level by level, using a queue.",
+  "code": "#include <iostream>\nusing namespace std;\n\nconst int V = 6;\n\nint main() {\n    int adj[V][V] = {\n        {0, 1, 1, 0, 0, 0},\n        {1, 0, 0, 1, 0, 0},\n        {1, 0, 0, 1, 1, 0},\n        {0, 1, 1, 0, 0, 1},\n        {0, 0, 1, 0, 0, 1},\n        {0, 0, 0, 1, 1, 0},\n    };\n    bool visited[V] = {};\n    int parent[V];\n    int queue[V];\n    int front = 0;\n    int rear = 0;\n    visited[0] = true;\n    parent[0] = -1;\n    queue[rear++] = 0;\n    while (front < rear) {\n        int u = queue[front++];\n        cout << \"Visit \" << u << endl;\n        for (int v = 0; v < V; v++) {\n            if (adj[u][v] == 1 && !visited[v]) {\n                visited[v] = true;\n                parent[v] = u;\n                queue[rear++] = v;\n            }\n        }\n    }\n    cout << \"Path from 5 back to 0:\";\n    for (int x = 5; x != -1; x = parent[x]) {\n        cout << \" \" << x;\n    }\n    cout << endl;\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "queue[rear++] = 0;",
+      "text": "BFS starts at vertex 0: it is marked visited (filled in the graph) and put in the queue."
+    },
+    {
+      "at": "queue[rear++] = v;",
+      "occurrence": 2,
+      "text": "Vertex 0's neighbours 1 and 2 are found, marked and queued. `parent` remembers who found them: 0."
+    },
+    {
+      "at": "int u = queue[front++];",
+      "occurrence": 2,
+      "text": "Next out of the queue is 1, which joined first. Vertices leave in the order they were found, which is why BFS goes level by level."
+    },
+    {
+      "at": "if (adj[u][v] == 1 && !visited[v]) {",
+      "occurrence": 16,
+      "text": "Vertex 2 looks at 3 (the amber edge), but 3 was already found through 1, so it is skipped. Marking when a vertex is queued stops it being queued twice."
+    },
+    {
+      "at": "cout << \"Path from 5 back to 0:\";",
+      "text": "Every vertex was visited once. The order was 0, 1, 2, 3, 4, 5: by distance from 0 in edges."
+    },
+    {
+      "at": "return 0;",
+      "text": "Path from 5 back to 0: 5 3 1 0, found by following `parent`. In an unweighted graph BFS always finds a path with the fewest edges. BFS is O(V + E) with lists, O(V\u00b2) with a matrix."
+    }
+  ]
+}

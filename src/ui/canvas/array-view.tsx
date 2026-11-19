@@ -1,8 +1,9 @@
 "use client";
 
-// An array drawn from layout coordinates (task 11.4): touching cells with their index
-// below, amber tags for index variables (top, front, i, j...) above, cells the current
-// step read outlined in amber, and, for a heap, the same values as a tree underneath.
+// An array drawn from layout coordinates (tasks 11.4 and 11.6): touching cells with their
+// index below (a grid with row and column numbers for a 2-D array), amber tags for index
+// variables (top, front, i, j...), cells the current step read outlined in amber, for a
+// heap the same values as a tree, and for an adjacency matrix or list the graph itself.
 // Memoized like NodeView: a step that changes one array re-renders one array.
 import { memo } from "react";
 import { CELL_H, type ArrayStrip } from "@/layout";
@@ -21,12 +22,19 @@ const cellClass = (read: boolean, empty: boolean) =>
 function ArrayViewImpl({ strip, title, selectedCell, onSelectCell }: ArrayViewProps) {
   const first = strip.cells[0];
   const end = strip.cells.at(-1);
+  const grid = strip.matrix;
   return (
-    <g data-array={strip.id} data-array-length={strip.length}>
+    <g data-array={strip.id} data-array-length={strip.length} data-matrix={grid ? `${grid.rows}x${grid.cols}` : undefined}>
       <text x={strip.x} y={strip.y + 13} className="hh-detail fill-muted-foreground text-[12px] font-bold">
         {title}
-        <tspan className="font-normal"> · {strip.length} cell{strip.length === 1 ? "" : "s"}</tspan>
+        <tspan className="font-normal"> · {grid ? `${strip.length} × ${grid.cols}` : `${strip.length} cell${strip.length === 1 ? "" : "s"}`}</tspan>
       </text>
+      {grid && Array.from({ length: grid.cols }, (_, c) => (
+        <text key={`c${c}`} x={grid.x + c * grid.cellW + grid.cellW / 2} y={strip.cellsY - 5} textAnchor="middle" className="hh-detail fill-muted text-[10px]">{c}</text>
+      ))}
+      {grid && Array.from({ length: grid.rows }, (_, r) => (
+        <text key={`r${r}`} x={grid.x - 6} y={strip.cellsY + r * grid.cellH + grid.cellH / 2 + 4} textAnchor="end" className="hh-detail fill-muted text-[10px]">{r}</text>
+      ))}
       {strip.skippedBefore > 0 && first && (
         <text x={first.x - 24} y={first.y + CELL_H / 2 + 4} textAnchor="middle" className="fill-muted text-[12px]">…</text>
       )}
@@ -47,12 +55,12 @@ function ArrayViewImpl({ strip, title, selectedCell, onSelectCell }: ArrayViewPr
           ) : (
             <text
               x={c.x + c.width / 2} y={c.y + c.height / 2 + 5} textAnchor="middle"
-              className={`${c.text === "NULL" || c.text === "deleted" ? "fill-danger text-[10px]" : c.text === "?" ? "fill-muted text-[13px]" : "fill-foreground text-[14px]"} font-bold`}
+              className={`${c.text === "NULL" || c.text === "deleted" ? "fill-danger text-[10px]" : c.text === "?" ? "fill-muted text-[13px]" : grid ? (c.text === "0" ? "fill-muted text-[12px]" : "fill-foreground text-[12px]") : "fill-foreground text-[14px]"} font-bold`}
             >
               {c.text}
             </text>
           )}
-          <text x={c.x + c.width / 2} y={c.y + c.height + 13} textAnchor="middle" className="hh-detail fill-muted text-[10px]">{c.index}</text>
+          {!grid && <text x={c.x + c.width / 2} y={c.y + c.height + 13} textAnchor="middle" className="hh-detail fill-muted text-[10px]">{c.index}</text>}
         </g>
       ))}
       {strip.hiddenAfter > 0 && end && (
@@ -64,6 +72,27 @@ function ArrayViewImpl({ strip, title, selectedCell, onSelectCell }: ArrayViewPr
           <text x={m.width / 2} y={13} textAnchor="middle" className={`hh-detail text-[11px] font-bold ${m.active ? "fill-on-accent" : "fill-prev"}`}>{m.label}</text>
         </g>
       ))}
+      {strip.graph && (
+        <g data-graph-view>
+          {strip.graph.edges.map((e, i) => (
+            <g key={i} data-graph-edge={e.active || undefined}>
+              <line x1={e.from.x} y1={e.from.y} x2={e.to.x} y2={e.to.y} className={e.active ? "stroke-prev" : "stroke-accent/60"} strokeWidth={e.active ? 3 : 2} strokeLinecap="round"
+                markerEnd={e.directed ? `url(#hh-arrow-${e.active ? "prev" : "next"})` : undefined} />
+              {e.weight && e.labelAt && (
+                <text x={e.labelAt.x} y={e.labelAt.y + 4} textAnchor="middle" className="fill-foreground stroke-background text-[11px] font-bold" strokeWidth={3} style={{ paintOrder: "stroke" }}>{e.weight}</text>
+              )}
+            </g>
+          ))}
+          {strip.graph.vertices.map((v) => (
+            <g key={v.index} data-vertex={v.index} data-visited={v.visited || undefined} data-current={v.current || undefined}>
+              <circle cx={v.x + v.width / 2} cy={v.y + v.height / 2} r={v.width / 2}
+                className={`${v.visited ? "fill-accent/25" : "fill-card"} ${v.current ? "stroke-prev" : "stroke-accent/70"}`} strokeWidth={v.current ? 3 : 1.5} />
+              <text x={v.x + v.width / 2} y={v.y + v.height / 2 + 5} textAnchor="middle" className="fill-foreground text-[13px] font-bold">{v.index}</text>
+              {v.label && <text x={v.x + v.width / 2} y={v.y + v.height + 13} textAnchor="middle" className="fill-muted-foreground text-[11px] font-bold">{v.label}</text>}
+            </g>
+          ))}
+        </g>
+      )}
       {strip.heap && (
         <g data-heap-view>
           {strip.heap.edges.map((e, i) => (

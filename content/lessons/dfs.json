@@ -1,0 +1,27 @@
+{
+  "id": "dfs",
+  "title": "Depth-first search",
+  "summary": "Go as deep as you can along one path, and back up only when you hit a dead end. Recursion does the backing up.",
+  "code": "#include <iostream>\nusing namespace std;\n\nconst int V = 6;\nbool visited[V];\n\nvoid dfs(int adj[][V], int u) {\n    visited[u] = true;\n    cout << \"Visit \" << u << endl;\n    for (int v = 0; v < V; v++) {\n        if (adj[u][v] == 1 && !visited[v]) {\n            dfs(adj, v);\n        }\n    }\n}\n\nint main() {\n    int adj[V][V] = {\n        {0, 1, 1, 0, 0, 0},\n        {1, 0, 0, 1, 0, 0},\n        {1, 0, 0, 1, 1, 0},\n        {0, 1, 1, 0, 0, 1},\n        {0, 0, 1, 0, 0, 1},\n        {0, 0, 0, 1, 1, 0},\n    };\n    dfs(adj, 0);\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "cout << \"Visit \" << u << endl;",
+      "occurrence": 1,
+      "text": "DFS starts at 0 and marks it visited."
+    },
+    {
+      "at": "cout << \"Visit \" << u << endl;",
+      "occurrence": 4,
+      "text": "From 0 it went to 1, then from 1 to 3, then from 3 to 2: always the first unvisited neighbour, deeper and deeper. Look at the call stack: one frame per vertex on the current path."
+    },
+    {
+      "at": "cout << \"Visit \" << u << endl;",
+      "occurrence": 6,
+      "text": "From 2 it went on to 4, then 5. Vertex 5's neighbours are all visited: a dead end."
+    },
+    {
+      "at": "dfs(adj, 0);",
+      "text": "The calls return one by one, each checking whether its vertex has any unvisited neighbours left. None do, so DFS is finished: 0 1 3 2 4 5. A stack (here, the call stack) is what makes it go deep first, where BFS's queue made it go wide."
+    }
+  ]
+}

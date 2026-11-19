@@ -1,0 +1,29 @@
+{
+  "id": "graph-list",
+  "title": "Representing a graph: adjacency lists",
+  "summary": "Each vertex keeps a linked list of its neighbours, so memory grows with the number of edges.",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct Edge {\n    int to;\n    Edge* next;\n};\n\nconst int V = 4;\n\nvoid addEdge(Edge* adj[], int u, int v) {\n    Edge* e = new Edge();\n    e->to = v;\n    e->next = adj[u];\n    adj[u] = e;\n}\n\nint main() {\n    Edge* adj[V];\n    for (int i = 0; i < V; i++) {\n        adj[i] = nullptr;\n    }\n    addEdge(adj, 0, 1);\n    addEdge(adj, 1, 0);\n    addEdge(adj, 0, 2);\n    addEdge(adj, 2, 0);\n    addEdge(adj, 2, 3);\n    addEdge(adj, 3, 2);\n    for (Edge* e = adj[0]; e != nullptr; e = e->next) {\n        cout << \"0 -> \" << e->to << endl;\n    }\n    for (int i = 0; i < V; i++) {\n        while (adj[i] != nullptr) {\n            Edge* old = adj[i];\n            adj[i] = adj[i]->next;\n            delete old;\n        }\n    }\n    return 0;\n}\n",
+  "checkpoints": [
+    {
+      "at": "addEdge(adj, 0, 1);",
+      "text": "An array of 4 list heads, one per vertex. Edge 0\u20131 is added to vertex 0's list as a node holding 1."
+    },
+    {
+      "at": "addEdge(adj, 1, 0);",
+      "text": "Undirected again: the same edge goes into vertex 1's list too, as a node holding 0."
+    },
+    {
+      "at": "addEdge(adj, 3, 2);",
+      "text": "Three edges, six nodes. Each new neighbour was inserted at the front of its list, so vertex 0's list reads 2 then 1."
+    },
+    {
+      "at": "cout << \"0 -> \" << e->to << endl;",
+      "occurrence": 2,
+      "text": "Listing a vertex's neighbours walks only its own list: no empty cells to skip, unlike a matrix row."
+    },
+    {
+      "at": "return 0;",
+      "text": "Adjacency lists use memory for V heads plus one node per edge end, much less than V\u00b2 for a sparse graph. The matrix answers \"is u connected to v?\" faster."
+    }
+  ]
+}

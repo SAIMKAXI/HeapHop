@@ -24,6 +24,8 @@ const ROW_GAP = 40;
 const TERM_W = 44;
 const TERM_H = 20;
 const MAX_ROWS = 10;
+/** Space between the columns of chains hanging from array cells, and between their nodes. */
+const BUCKET_GAP = 40;
 /** Trees: each node is a circle showing its value; gap between neighbours in left-to-right order, and between levels. */
 export const TREE_NODE_D = 60;
 const TREE_GAP_X = 26;
@@ -124,19 +126,51 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
   const asStrip = new Set(arrays.map((a) => a.id));
   const stripCells = new Set(arrays.flatMap((a) => a.cells.map((c) => c.cellId)));
 
+  // Chains that hang from array cells (adjacency lists, hash buckets) get one column per cell.
+  const bucketOf = new Map<string, { col: number; depth: number }>();
+  let columns = 0;
+  for (const strip of arrays) {
+    for (const cell of strip.cells) {
+      const head = cell.pointer ? heapRootOf(cell.pointsTo) : undefined;
+      const list = head ? structures.lists.find((l) => l.nodes[0] === head) : undefined;
+      if (!list || list.nodes.some((id) => bucketOf.has(id))) continue;
+      const col = columns++;
+      list.nodes.forEach((id, depth) => bucketOf.set(id, { col, depth }));
+    }
+  }
+
   // ---- list families: one row band each -----------------------------------
   const families: MemoryItem[][] = Array.from({ length: plan.familyCount }, () => []);
   const loose: MemoryItem[] = [];
+  const hanging: MemoryItem[] = [];
   for (const h of step.heap) {
     const f = plan.family.get(h.id);
     const isListNode = f !== undefined && structures.shapes.has(h.typeName);
-    if (isListNode) families[f].push(h);
+    if (isListNode && bucketOf.has(h.id)) hanging.push(h);
+    else if (isListNode) families[f].push(h);
     else if (!asStrip.has(h.id)) loose.push(h);
   }
 
   const nodes: NodeBox[] = [];
   const boxes = new Map<string, NodeBox>();
   let top = arraysH > 0 ? arraysH + ROW_GAP : 0;
+
+  if (hanging.length > 0) {
+    const nodeH = Math.max(...hanging.map((h) => sized.get(h.id)!.height));
+    let deepest = 0;
+    for (const h of hanging) {
+      const { col, depth } = bucketOf.get(h.id)!;
+      const s = sized.get(h.id)!;
+      const box: NodeBox = {
+        id: h.id, x: col * (NODE_W + BUCKET_GAP), y: top + CHIP_ZONE + depth * (nodeH + BUCKET_GAP),
+        width: s.width, height: s.height, rows: s.rows, hiddenRows: s.hiddenRows, level: 0, family: plan.family.get(h.id) ?? 0,
+      };
+      nodes.push(box);
+      boxes.set(h.id, box);
+      deepest = Math.max(deepest, depth);
+    }
+    top += CHIP_ZONE + (deepest + 1) * (nodeH + BUCKET_GAP) + ROW_GAP;
+  }
 
   families.forEach((members, family) => {
     if (members.length === 0) return;

@@ -97,7 +97,9 @@ manual's own AVL listing.
 | --- | --- | --- |
 | Singly, doubly, circular linked list | one self-pointer; or two that mirror each other | one horizontal row |
 | Binary tree (BST, AVL) | two self-pointers that do not mirror each other (`left` / `right`) | parents above children |
-| Arrays of values or pointers: local, inside an object, or made with `new[]` | any such array | a row of cells in the drawing area, with its indexes; ints the program uses as subscripts of that array (`a[j]`, `arr[top]`) are tags above their cell; cells a step read are outlined; pointer cells have arrows; an array named like a heap is also drawn as a tree |
+| Arrays of values or pointers: local, inside an object, or made with `new[]` | any such array | a row of cells in the drawing area, with its indexes; ints the program uses as subscripts of that array (`a[j]`, `arr[top]`) are tags above their cell; cells a step read are outlined; pointer cells have arrows (chains hanging from cells are drawn one column per cell); an array named like a heap is also drawn as a tree |
+| 2-D arrays | any array of arrays | a grid with row and column numbers; ints used in the first subscript tag their row, ints used in the second tag their column |
+| Graphs | a square 2-D array, or an array of list heads, whose name (or class) contains adj, graph, edge, cost or weight | also drawn as numbered vertices on a circle joined by edges (arrows if one-way, weights if any); arrays named visited / inMST / done fill the vertices, dist / key / indegree / component label them, and the edge being examined is amber |
 
 ## Step limits
 A trace stops with a "trace truncated" notice at 2000 steps, 500 rounds of one loop,

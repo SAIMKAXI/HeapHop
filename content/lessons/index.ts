@@ -3,7 +3,7 @@
 import type { Lesson } from "@/core/learn";
 
 /** Learn is grouped by topic, in the order of the course outline, not by lab number. */
-export type LessonTopic = "sorting" | "lists" | "doubly" | "stacks" | "queues" | "bst" | "avl" | "heaps";
+export type LessonTopic = "sorting" | "lists" | "doubly" | "stacks" | "queues" | "bst" | "avl" | "heaps" | "graphs";
 
 export interface LessonEntry {
   id: string;
@@ -56,4 +56,13 @@ export const LESSONS: LessonEntry[] = [
   { id: "complete-binary-tree", topic: "heaps", title: "A tree stored in an array", summary: "A complete binary tree needs no pointers: the children of cell i are cells 2i+1 and 2i+2.", load: () => import("./complete-binary-tree.json").then((m) => m.default as Lesson) },
   { id: "heap-insert", topic: "heaps", title: "Insert into a max-heap", summary: "Add the new value at the end, then swap it upwards while it is larger than its parent.", load: () => import("./heap-insert.json").then((m) => m.default as Lesson) },
   { id: "heap-remove-max", topic: "heaps", title: "A priority queue: remove the largest", summary: "Take the root, move the last value to the top, then swap it down below its larger child.", load: () => import("./heap-remove-max.json").then((m) => m.default as Lesson) },
+  { id: "graph-matrix", topic: "graphs", title: "Representing a graph: adjacency matrix", summary: "A V \u00d7 V grid: a 1 in row u, column v means an edge between u and v.", load: () => import("./graph-matrix.json").then((m) => m.default as Lesson) },
+  { id: "graph-list", topic: "graphs", title: "Representing a graph: adjacency lists", summary: "Each vertex keeps a linked list of its neighbours, so memory grows with the number of edges.", load: () => import("./graph-list.json").then((m) => m.default as Lesson) },
+  { id: "bfs", topic: "graphs", title: "Breadth-first search and shortest paths", summary: "Visit the start, then all its neighbours, then theirs: level by level, using a queue.", load: () => import("./bfs.json").then((m) => m.default as Lesson) },
+  { id: "dfs", topic: "graphs", title: "Depth-first search", summary: "Go as deep as you can along one path, and back up only when you hit a dead end. Recursion does the backing up.", load: () => import("./dfs.json").then((m) => m.default as Lesson) },
+  { id: "connected-components", topic: "graphs", title: "Connected components", summary: "Start a search from every vertex no search has reached yet. Each new start is a new component.", load: () => import("./connected-components.json").then((m) => m.default as Lesson) },
+  { id: "topological-sort", topic: "graphs", title: "Topological sort", summary: "Order the tasks of a directed graph so that every arrow points forward. Start with tasks nothing depends on.", load: () => import("./topological-sort.json").then((m) => m.default as Lesson) },
+  { id: "dijkstra", topic: "graphs", title: "Dijkstra's shortest paths", summary: "Always settle the closest unsettled vertex next, then see if going through it shortens the way to its neighbours.", load: () => import("./dijkstra.json").then((m) => m.default as Lesson) },
+  { id: "prim", topic: "graphs", title: "Prim's minimum spanning tree", summary: "Grow one tree from a start vertex, always adding the cheapest edge that reaches a new vertex.", load: () => import("./prim.json").then((m) => m.default as Lesson) },
+  { id: "kruskal", topic: "graphs", title: "Kruskal's minimum spanning tree", summary: "Sort all edges by weight and take each one that does not close a cycle. A union-find array tracks the groups.", load: () => import("./kruskal.json").then((m) => m.default as Lesson) },
 ];

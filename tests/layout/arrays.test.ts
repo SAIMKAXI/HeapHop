@@ -106,3 +106,54 @@ test("only the running call marks the array: waiting recursive calls add no tags
   const strip = ls[deep].arrays.find((a) => a.title === "v")!;
   assert.deepEqual(strip.markers.map((m) => `${m.label}:${m.index}:${m.active}`), ["left:2:true"]);
 });
+
+test("a 2-D array is drawn as a grid, with u tagging its row and v its column", () => {
+  const t = trace(`${H}int main() {\nint grid[2][3] = {{1, 2, 3}, {4, 5, 6}};\nint u = 1;\nint v = 2;\ngrid[u][v] = 9;\nreturn 0; }`);
+  const l = layouts(t)[t.steps.length - 2];
+  const s = l.arrays[0];
+  assert.deepEqual(s.matrix && [s.matrix.rows, s.matrix.cols], [2, 3]);
+  const c = s.cells.find((x) => x.row === 1 && x.col === 2)!;
+  assert.equal(c.text, "9");
+  assert.equal(c.y, s.cells.find((x) => x.row === 1 && x.col === 0)!.y, "a row shares one y");
+  assert.equal(c.x, s.cells.find((x) => x.row === 0 && x.col === 2)!.x, "a column shares one x");
+  const u = s.markers.find((m) => m.label === "u")!, v = s.markers.find((m) => m.label === "v")!;
+  assert.equal(u.axis, "row");
+  assert.ok(u.x + u.width <= s.matrix!.x && u.y >= c.y && u.y + u.height <= c.y + c.height, "u sits left of row 1");
+  assert.equal(v.axis, "col");
+  assert.ok(v.y + v.height <= s.cellsY && v.x >= c.x && v.x + v.width <= c.x + c.width, "v sits above column 2");
+});
+
+test("an adjacency matrix is also drawn as a graph: one line per undirected edge, weights when there are any", () => {
+  const t = trace(`${H}int main() {\nint graph[4][4] = {{0, 2, 0, 5}, {2, 0, 3, 0}, {0, 3, 0, 0}, {5, 0, 0, 0}};\nbool visited[4] = {true, true, false, false};\nint dist[4] = {0, 2, 1000000, 5};\nreturn 0; }`);
+  const l = layouts(t)[t.steps.length - 2];
+  const g = l.arrays.find((a) => a.title === "graph")!.graph!;
+  assert.equal(g.vertices.length, 4);
+  assert.equal(g.edges.length, 3);
+  assert.ok(g.edges.every((e) => !e.directed));
+  assert.deepEqual(g.edges.map((e) => e.weight).sort(), ["2", "3", "5"]);
+  assert.deepEqual(g.vertices.map((v) => v.visited), [true, true, false, false]);
+  assert.deepEqual(g.vertices.map((v) => v.label), ["0", "2", "∞", "5"]);
+});
+
+test("a one-way matrix is a directed graph, and an array of adjacency lists is a graph too", () => {
+  const dir = trace(`${H}int main() {\nint adj[3][3] = {{0, 1, 0}, {0, 0, 1}, {0, 0, 0}};\nreturn 0; }`);
+  const g = layouts(dir)[dir.steps.length - 2].arrays[0].graph!;
+  assert.equal(g.edges.length, 2);
+  assert.ok(g.edges.every((e) => e.directed && e.weight === undefined));
+
+  const list = trace(`${H}struct Edge {\nint to;\nEdge* next;\n};\nint main() {\nEdge* adj[3];\nfor (int i = 0; i < 3; i++) adj[i] = nullptr;\nEdge* e = new Edge();\ne->to = 2;\ne->next = nullptr;\nadj[0] = e;\nEdge* f = new Edge();\nf->to = 0;\nf->next = nullptr;\nadj[2] = f;\nreturn 0; }`);
+  const lg = layouts(list)[list.steps.length - 2].arrays[0].graph!;
+  assert.equal(lg.vertices.length, 3);
+  assert.equal(lg.edges.length, 1, "0-2 and 2-0 are one undirected edge");
+});
+
+test("chains that hang from array cells (adjacency lists) are drawn as one column per cell", () => {
+  const t = trace(`${H}struct Edge {\nint to;\nEdge* next;\n};\nvoid add(Edge* adj[], int u, int v) {\nEdge* e = new Edge();\ne->to = v;\ne->next = adj[u];\nadj[u] = e;\n}\nint main() {\nEdge* adj[3];\nfor (int i = 0; i < 3; i++) adj[i] = nullptr;\nadd(adj, 0, 1);\nadd(adj, 0, 2);\nadd(adj, 2, 0);\nreturn 0; }`);
+  const l = layouts(t)[t.steps.length - 2];
+  const [first, second] = [l.nodes.find((n) => n.id === "h2")!, l.nodes.find((n) => n.id === "h1")!]; // vertex 0's list: 2 then 1
+  assert.equal(first.x, second.x, "one column");
+  assert.ok(second.y > first.y + first.height, "the next node is below");
+  const other = l.nodes.find((n) => n.id === "h3")!;
+  assert.notEqual(other.x, first.x, "vertex 2's list is another column");
+  assert.ok(l.nodes.every((n) => n.y > l.arrays[0].y + l.arrays[0].height), "below the array");
+});

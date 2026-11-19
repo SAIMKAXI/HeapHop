@@ -157,7 +157,7 @@ test("7.3 a prediction about a reference parameter is answered correctly", async
 });
 
 test("11.2 every Learn topic has at least two lessons, and lesson ids are unique", () => {
-  for (const topic of ["sorting", "lists", "doubly", "stacks", "queues", "bst", "avl", "heaps"] as const) {
+  for (const topic of ["sorting", "lists", "doubly", "stacks", "queues", "bst", "avl", "heaps", "graphs"] as const) {
     assert.ok(LESSONS.filter((l) => l.topic === topic).length >= 2, topic);
   }
   assert.equal(new Set(LESSONS.map((l) => l.id)).size, LESSONS.length);
