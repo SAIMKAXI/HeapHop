@@ -21,7 +21,7 @@ export default function PrivacyPage() {
       <ul className="mt-3 list-disc space-y-1.5 pl-6 leading-relaxed text-muted-foreground">
         <li>the programs in the Editor, with their names, so your work is still there next time;</li>
         <li>whether you chose the light or the dark theme;</li>
-        <li>whether you switched the robot helper on or off;</li>
+        <li>whether you switched Byte, the robot helper, on or off;</li>
         <li>how wide you made the code and stack panels in the visualizer.</li>
       </ul>
       <p className={p}>

@@ -212,9 +212,16 @@ html:not(.light) .hh-born .hh-shape { animation: hh-born 1.4s ease-out; }
 @keyframes hh-flash { from { opacity: 1; } to { opacity: 0.45; } }
 /* Low zoom: boxes and arrows only. */
 .hh-canvas[data-lod="low"] .hh-detail { display: none; }
+/* Byte on the landing page: a slow hover over flickering rocket jets, and a shadow that shrinks as it rises. */
+.hh-hover { animation: hh-hover 3.4s ease-in-out infinite; }
+.hh-hover-shadow { animation: hh-hover-shadow 3.4s ease-in-out infinite; }
+.hh-flicker { transform-box: fill-box; transform-origin: 50% 0; animation: hh-flicker 160ms ease-in-out infinite alternate; }
+@keyframes hh-hover { 50% { transform: translateY(-14px); } }
+@keyframes hh-hover-shadow { 50% { transform: scaleX(0.7); opacity: 0.55; } }
+@keyframes hh-flicker { from { transform: scaleY(0.8); } to { transform: scaleY(1.2); } }
 @media (prefers-reduced-motion: reduce) {
   .hh-node, .hh-chip { transition: none; }
-  .hh-fade, .hh-flash { animation: none; }
+  .hh-fade, .hh-flash, .hh-hover, .hh-hover-shadow, .hh-flicker { animation: none; }
 }
 .hh-arrow, .hh-chip, .hh-pointer-row { cursor: pointer; }
 .hh-arrow:hover > path:first-child { stroke-width: 3.5; }

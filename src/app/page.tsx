@@ -1,16 +1,18 @@
-// The landing page: what HeapHop is, a live demo, and the two ways in (Learn, Editor).
+// The landing page: the slogan with Byte beside it, a live demo, and the two ways in (Learn, Editor).
 import type { ReactNode } from "react";
 import { ArrowRight, CodeXml, GraduationCap, ListTree, MessageSquareText, MousePointerClick, ShieldCheck, TriangleAlert, Undo2 } from "lucide-react";
 import { PageFrame } from "@/ui/site/page-frame";
+import { ByteHero } from "@/ui/landing/byte-hero";
 import { LiveDemoPlayer } from "./live-demo-player";
 
+// One punchy line each, with a short sentence to back it up.
 const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
-  { icon: <Undo2 size={18} />, title: "Steps both ways", text: "The whole run is recorded first, so going back a step is as reliable as going forward." },
-  { icon: <MessageSquareText size={18} />, title: "Explains every step", text: "Plain sentences built from what your program actually did, like “cur moves along next to Node #2”." },
-  { icon: <TriangleAlert size={18} />, title: "Catches pointer mistakes", text: "A null pointer, a use after delete or a memory leak stops at its line, with an explanation." },
-  { icon: <ListTree size={18} />, title: "Lists and trees, drawn properly", text: "Singly, doubly and circular lists in one row, binary trees as trees, with head and cur on their nodes." },
-  { icon: <MousePointerClick size={18} />, title: "Inspect anything", text: "Click a node, a pointer or a line of code to see its history and jump to any moment in it." },
-  { icon: <ShieldCheck size={18} />, title: "Runs in your browser", text: "Your code never leaves your computer. No account, no install." },
+  { icon: <Undo2 size={22} />, title: "Rewind anything.", text: "The whole run is recorded first, so a step back is as exact as a step forward." },
+  { icon: <MessageSquareText size={22} />, title: "Read it in plain English.", text: "Every step explained from what your program actually did." },
+  { icon: <TriangleAlert size={22} />, title: "Catch the crash.", text: "Null pointers, use after delete and leaks stop at their line, with the reason." },
+  { icon: <ListTree size={22} />, title: "Trees that look like trees.", text: "Lists in a row, binary trees with real branches, head and cur on their nodes." },
+  { icon: <MousePointerClick size={22} />, title: "Click to investigate.", text: "Any node, pointer or line of code shows its history. Jump to any moment in it." },
+  { icon: <ShieldCheck size={22} />, title: "Nothing leaves your browser.", text: "No account, no install, no upload." },
 ];
 
 const WAYS = [
@@ -27,23 +29,30 @@ const WAYS = [
 export default function LandingPage() {
   return (
     <PageFrame current="home">
-      <section className="mx-auto max-w-5xl px-5 py-12 sm:py-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">See what your C++ does to memory</h1>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-            HeapHop runs your linked-list and tree programs one statement at a time and draws the stack, the heap and
-            every pointer as they change.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <a href="/learn" data-cta="learn" className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-on-accent shadow-lg shadow-accent/20 transition-colors hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-              Start learning <ArrowRight size={16} aria-hidden />
-            </a>
-            <a href="/editor" data-cta="editor" className="flex items-center gap-2 rounded-full border border-card-border bg-card px-6 py-3 text-sm font-bold transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-              Open the editor
-            </a>
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
+        <div className="grid items-center gap-10 lg:grid-cols-[auto_1fr]">
+          <div className="text-center lg:text-left">
+            <p className="inline-flex rounded-full border border-card-border bg-card px-4 py-1.5 text-xs font-semibold tracking-wide text-muted-foreground">
+              C++ memory visualizer · linked lists and trees · free
+            </p>
+            <h1 className="mt-6 text-6xl font-black leading-[0.95] tracking-tighter sm:text-7xl lg:text-8xl">
+              Hop through <span className="block text-accent">the heap.</span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl lg:mx-0">
+              Step forward, step back, and watch every pointer move.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+              <a href="/learn" data-cta="learn" className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-on-accent shadow-lg shadow-accent/20 transition-colors hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                Start learning <ArrowRight size={16} aria-hidden />
+              </a>
+              <a href="/editor" data-cta="editor" className="flex items-center gap-2 rounded-full border border-card-border bg-card px-6 py-3 text-sm font-bold transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                Open the editor
+              </a>
+            </div>
           </div>
+          <ByteHero />
         </div>
-        <div className="mt-12"><LiveDemoPlayer /></div>
+        <div className="mx-auto mt-12 max-w-5xl"><LiveDemoPlayer /></div>
       </section>
 
       <section className="border-y-2 border-card-border bg-card/50">
@@ -65,15 +74,13 @@ export default function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-14">
-        <h2 className="text-2xl font-bold tracking-tight">What it does</h2>
-        <ul className="mt-6 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+        <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Pointers, finally visible.</h2>
+        <ul className="mt-10 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <li key={f.title} className="flex gap-3">
-              <span className="mt-0.5 shrink-0 text-accent" aria-hidden>{f.icon}</span>
-              <span>
-                <span className="block font-semibold">{f.title}</span>
-                <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">{f.text}</span>
-              </span>
+            <li key={f.title}>
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent" aria-hidden>{f.icon}</span>
+              <span className="mt-4 block text-2xl font-bold tracking-tight">{f.title}</span>
+              <span className="mt-2 block leading-relaxed text-muted-foreground">{f.text}</span>
             </li>
           ))}
         </ul>

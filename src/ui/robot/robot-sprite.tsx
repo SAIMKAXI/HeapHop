@@ -1,4 +1,4 @@
-// The HeapHop robot, drawn from the approved artwork. Its feet are at (0, 0) and it is
+// Byte, the HeapHop robot, drawn from the approved artwork. Its feet are at (0, 0) and it is
 // about 64 world units tall, a little under half a node's width. The player moves it and works three parts:
 // data-part="flame" (rocket jets), "arm" (the right arm, rotated to reach) and "hand" (the claw).
 import { memo } from "react";
@@ -9,7 +9,8 @@ export const ROBOT_HAND = { x: 25.7, y: -32 };
 /** Rotation of the right arm around its shoulder when reaching. */
 export const REACH = "rotate(-76 260 252)";
 
-function RobotSpriteImpl() {
+/** `thrust` lights the rocket jets from the start, flickering (the landing page); in the canvas the player works them. */
+function RobotSpriteImpl({ thrust = false }: { thrust?: boolean }) {
   return (
     <g transform={`scale(${SCALE}) translate(-205 -464)`}>
       <defs>
@@ -62,7 +63,7 @@ function RobotSpriteImpl() {
       <stop offset="0" stopColor="#5d626c"/><stop offset="0.5" stopColor="#2f323a"/><stop offset="1" stopColor="#16181c"/>
       </linearGradient>
       </defs>
-      <g data-part="flame" style={{ display: "none" }}>
+      <g data-part="flame" className={thrust ? "hh-flicker" : undefined} style={thrust ? undefined : { display: "none" }}>
       <path d="M124,462 Q140,540 156,462 Z" fill="#ef9f27"/><path d="M132,462 Q140,505 148,462 Z" fill="#fde7b0"/>
       <path d="M282,462 Q298,540 314,462 Z" fill="#ef9f27"/><path d="M290,462 Q298,505 306,462 Z" fill="#fde7b0"/>
       </g>
