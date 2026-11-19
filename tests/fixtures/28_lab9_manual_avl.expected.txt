@@ -1,0 +1,8 @@
+In-order: 10 
+In-order: 10 20 
+In-order: 10 20 30 
+In-order: 10 20 30 40 
+In-order: 10 20 30 40 50 
+In-order: 10 20 25 30 40 50 
+Pre-order: 30 20 10 25 40 50 
+found

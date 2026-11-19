@@ -7,8 +7,9 @@ line number, never a wrong picture (rule 7).
 Status column: **yes** = works and is tested, **no** = not in v1 (gives an
 "is not supported yet" error with the line number).
 
-Version: v2 (16 Nov 2026). 27 fixtures print exactly what `g++` prints: 18 starter
-programs plus 9 taken from the team's real lab reports (labs 3, 6, 7 and 9).
+Version: v2 (16 Nov 2026). 28 fixtures print exactly what `g++` prints: 18 starter
+programs, 9 taken from the team's real lab reports (labs 3, 6, 7 and 9) and the Lab 9
+manual's own AVL listing.
 
 ## Program structure
 | Construct | Example | Status |
@@ -71,6 +72,7 @@ programs plus 9 taken from the team's real lab reports (labs 3, 6, 7 and 9).
 | `++x`, `x++`, `--x`, `x--` | yes |
 | `p->field`, `obj.field`, `*p`, `&x`, `a[i]` | yes |
 | `nullptr`, `NULL`, `true`, `false`, integers | yes |
+| Library functions `max(a, b)`, `min(a, b)`, `abs(x)`, `swap(a, b)` | yes (a program's own function of the same name wins) |
 | Character literals (`'a'`), decimal numbers (`3.5`) | yes |
 | String literals with escapes (`"a\n"`) | yes |
 | Ternary `c ? a : b` | yes |

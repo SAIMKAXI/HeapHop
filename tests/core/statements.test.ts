@@ -1,7 +1,7 @@
 // Statement and expression coverage.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { lastLive, trace, variable } from "./helpers";
+import { lastLive, NODE, rejected, trace, variable } from "./helpers";
 
 const out = (body: string, pre = "") => trace(`${pre}\nint main() {\n${body}\nreturn 0; }`).output;
 
@@ -107,4 +107,24 @@ test("snippet style: statements with no main() still run", () => {
   const t = trace(`struct Node { int data; Node* next; };\nNode* head = new Node;\nhead->data = 1;\nhead->next = nullptr;`);
   assert.equal(t.status, "completed");
   assert.equal(lastLive(t).heap.length, 1);
+});
+
+test("library functions max, min, abs and swap", () => {
+  assert.equal(out(`cout << max(3, 7) << min(3, 7) << max(2.5, 1.0) << abs(-4);`), "732.54");
+  assert.equal(out(`int a = 1; int b = 2; swap(a, b); cout << a << b;`), "21");
+  assert.equal(out(`int x[2]; x[0] = 5; x[1] = 9; swap(x[0], x[1]); cout << x[0] << x[1];`), "95");
+});
+
+test("swap exchanges two pointers, so both arrows move", () => {
+  const t = trace(`${NODE}\nint main() { Node* p = new Node(1); Node* q = new Node(2); swap(p, q); cout << p->data << q->data; return 0; }`);
+  assert.equal(t.output, "21");
+});
+
+test("a program's own max() wins over the library one", () => {
+  assert.equal(out(`cout << max(3, 7);`, `int max(int a, int b) { return a < b ? a : a; }`), "3");
+});
+
+test("library functions check their argument count", () => {
+  const e = rejected(`int main() { cout << max(1); return 0; }`);
+  assert.match(e.message, /max\(\) takes 2 arguments/);
 });

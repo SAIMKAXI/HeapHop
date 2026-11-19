@@ -503,10 +503,36 @@ export class Executor {
       if (m) return this.invoke(m, e.args, frame.thisAddr, e.line);
     }
     const named = this.program.functions.filter((f) => f.name === e.name);
-    if (named.length === 0) throw compileError(`"${e.name}" is not a function in this program.`, e.line);
+    if (named.length === 0) {
+      const result = this.library(e);
+      if (result === undefined) throw compileError(`"${e.name}" is not a function in this program.`, e.line);
+      return result;
+    }
     const fn = named.find((f) => f.params.length === e.args.length);
     if (!fn) throw compileError(`${e.name}() is called with ${e.args.length} argument${e.args.length === 1 ? "" : "s"}, but it expects ${named[0].params.length}.`, e.line);
     return this.invoke(fn, e.args, null, e.line);
+  }
+
+  /** The standard functions lab code uses (std::max in the AVL lab, swap in sorting). A program's own function of the same name wins. */
+  private library(e: Extract<Expr, { k: "call" }>): Value | undefined {
+    const LIBRARY: Record<string, number> = { max: 2, min: 2, abs: 1, swap: 2 };
+    const arity = LIBRARY[e.name];
+    if (arity === undefined) return undefined;
+    if (e.args.length !== arity) throw compileError(`${e.name}() takes ${arity} argument${arity === 1 ? "" : "s"}.`, e.line);
+    const [a, b] = e.args;
+    if (e.name === "swap") {
+      const [ra, rb] = [this.ref(a), this.ref(b)];
+      const [va, vb] = [this.mem.read(ra), this.mem.read(rb)];
+      this.mem.write(ra, copyValue(vb));
+      this.mem.write(rb, copyValue(va));
+      return UNINIT;
+    }
+    const x = this.use(this.value(a), a);
+    if (e.name === "abs") return isK(x, "dbl") ? dbl(Math.abs(x.v)) : Math.abs(this.num(x, a)) | 0;
+    const y = this.use(this.value(b), b);
+    // Like std::max and std::min: on a tie the first argument is returned.
+    const [nx, ny] = [this.num(x, a), this.num(y, b)];
+    return (e.name === "max" ? ny > nx : ny < nx) ? y : x;
   }
 
   private methodCall(e: Extract<Expr, { k: "mcall" }>): Value {
