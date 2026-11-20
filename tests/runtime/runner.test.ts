@@ -145,3 +145,30 @@ test("parse errors pass through the worker with their line number", async () => 
   assert.equal(r.error.kind, "parse");
   assert.equal(r.error.line, 2);
 });
+
+test("8.8 a forged message to the worker is answered with a readable error, never a crash", () => {
+  const forged = [
+    null,
+    "run",
+    { v: PROTOCOL_VERSION, id: 1, type: "run", code: 42, input: "", limits: DEFAULT_LIMITS },
+    { v: PROTOCOL_VERSION, id: 2, type: "run", code: "int main() { return 0; }", input: { toString: 1 }, limits: DEFAULT_LIMITS },
+    { v: PROTOCOL_VERSION, id: 3, type: "run", code: "int main() { return 0; }", input: "", limits: "fast" },
+    { v: PROTOCOL_VERSION, id: 4, type: "steal", code: "int main() { return 0; }", input: "", limits: DEFAULT_LIMITS },
+  ];
+  for (const message of forged) {
+    const reply = handle(message as unknown as RunRequest);
+    assert.equal(reply.type, "result");
+    assert.equal(reply.result.ok, false);
+    if (!reply.result.ok) assert.match(reply.result.error.message, /not a valid run request|updated/);
+  }
+});
+
+test("8.8 the worker never raises its own safety limits, whatever the page asks for", () => {
+  const greedy = { maxSteps: 1e9, maxLoopIterations: 1e9, maxCallDepth: 1e9, maxHeapObjects: 1e9, maxOutputChars: 1e9 };
+  const reply = handle({ v: PROTOCOL_VERSION, id: 5, type: "run", code: "int main() { while (true) {} return 0; }", input: "", limits: greedy });
+  assert.ok(reply.result.ok);
+  if (reply.result.ok) {
+    assert.equal(reply.result.trace.status, "truncated");
+    assert.ok(reply.result.trace.steps.length <= DEFAULT_LIMITS.maxSteps + 1);
+  }
+});

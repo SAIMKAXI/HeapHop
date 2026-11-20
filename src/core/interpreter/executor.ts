@@ -1,6 +1,6 @@
 // Executor: walks the AST, changes Memory, and asks the Recorder for one step per
 // statement. It knows nothing about how steps are stored or drawn.
-import type { RunLimits, RuntimeErrorInfo, StepKind, TraceStatus } from "../types";
+import { MAX_STRING_CHARS, type RunLimits, type RuntimeErrorInfo, type StepKind, type TraceStatus } from "../types";
 import {
   qualifiedName, typeText,
   type AssignOp, type ClassDef, type Declarator, type Expr, type FuncDef, type Program, type Stmt, type TypeRef,
@@ -451,7 +451,8 @@ export class Executor {
   }
 
   private makeObject(cls: ClassDef, zeroed: boolean, line: number): Value {
-    const f: Record<string, Value> = {};
+    // No prototype: a C++ member may be called __proto__ or constructor.
+    const f: Record<string, Value> = Object.create(null);
     for (const field of cls.fields) {
       const nested = field.type.ptr === 0 ? this.classes.get(field.type.base) : undefined;
       if (nested && nested.ctors.length > 0) {
@@ -536,7 +537,7 @@ export class Executor {
   /** The standard functions lab code uses (std::max in the AVL lab, swap in sorting). A program's own function of the same name wins. */
   private library(e: Extract<Expr, { k: "call" }>): Value | undefined {
     const LIBRARY: Record<string, number> = { max: 2, min: 2, abs: 1, swap: 2 };
-    const arity = LIBRARY[e.name];
+    const arity = Object.hasOwn(LIBRARY, e.name) ? LIBRARY[e.name] : undefined;
     if (arity === undefined) return undefined;
     if (e.args.length !== arity) throw compileError(`${e.name}() takes ${arity} argument${arity === 1 ? "" : "s"}.`, e.line);
     const [a, b] = e.args;
@@ -784,7 +785,13 @@ export class Executor {
         if (isK(v, "chr")) return v.c;
         throw compileError(`${exprText(e)} cannot be joined to a string with ${op}.`, line);
       };
-      if (op === "+") return str(text(l, le) + text(r, re));
+      if (op === "+") {
+        const [a, b] = [text(l, le), text(r, re)];
+        if (a.length + b.length > MAX_STRING_CHARS) {
+          throw new StopSignal("truncated", `The string grew past ${MAX_STRING_CHARS} characters, so the trace stops here.`);
+        }
+        return str(a + b);
+      }
       if (isK(l, "str") && isK(r, "str")) {
         switch (op) {
           case "<": return l.s < r.s;

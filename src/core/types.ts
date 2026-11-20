@@ -186,6 +186,22 @@ export const DEFAULT_LIMITS: RunLimits = {
   maxOutputChars: 20000,
 };
 
+/** Hard caps that no request can raise. The longest lab program is under 300 lines and 6 KB. */
+export const MAX_SOURCE_CHARS = 100_000;
+export const MAX_SOURCE_LINES = 3_000;
+export const MAX_INPUT_CHARS = 20_000;
+export const MAX_STRING_CHARS = 10_000;
+
+/** The limits a run actually gets: what was asked for, but never above the defaults or below 1. */
+export function clampLimits(asked: Partial<RunLimits> | undefined): RunLimits {
+  const out = { ...DEFAULT_LIMITS };
+  for (const key of Object.keys(DEFAULT_LIMITS) as (keyof RunLimits)[]) {
+    const v = asked?.[key];
+    if (typeof v === "number" && Number.isFinite(v)) out[key] = Math.max(1, Math.min(Math.floor(v), DEFAULT_LIMITS[key]));
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // Events and indexes (built in src/core/trace from the snapshots)
 // ---------------------------------------------------------------------------

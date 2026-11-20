@@ -58,3 +58,26 @@ test("formatCpp indents by braces, including closing braces of nested blocks", (
 test("formatCpp ignores braces inside strings and comments", () => {
   assert.equal(formatCpp('int main() {\ncout << "{";\n// }\nreturn 0;\n}'), 'int main() {\n    cout << "{";\n    // }\n    return 0;\n}');
 });
+
+test("8.8 saved editor data is checked before use: tampered or oversized storage starts fresh or is trimmed", async () => {
+  const { fromSaved, codeOf, MAX_SNIPPETS } = await import("../../src/ui/editor/snippet-store");
+  const fresh = fromSaved(null);
+  for (const raw of ["not json", "42", "null", '{"tab":1}', '{"tab":"a","codes":[],"snippets":"x"}']) {
+    assert.deepEqual(fromSaved(raw), fresh, raw);
+  }
+  // Wrong types inside are dropped, not trusted.
+  const s = fromSaved(JSON.stringify({
+    tab: "__proto__",
+    codes: { "my:1": 7, "my:2": "int main() { return 0; }", __proto__: "x" },
+    snippets: [{ id: "my:1", title: "one" }, { id: 5, title: "bad" }, { id: "my:2", title: "t".repeat(500) }, { id: "__proto__", title: "p" }, "junk"],
+  }));
+  assert.ok(s.snippets.every((x) => typeof x.id === "string" && x.title.length <= 80));
+  assert.ok(!s.snippets.some((x) => x.id === "__proto__"));
+  assert.equal(typeof codeOf(s, "my:1"), "string");
+  assert.equal(codeOf(s, "my:2"), "int main() { return 0; }");
+  assert.equal(typeof codeOf(s, "__proto__"), "string");
+  // Too many programs, or one far too long, are cut down.
+  const many = fromSaved(JSON.stringify({ tab: "my:0", codes: { "my:0": "x".repeat(500_000) }, snippets: Array.from({ length: 200 }, (_, i) => ({ id: `my:${i}`, title: `p${i}` })) }));
+  assert.ok(many.snippets.length <= MAX_SNIPPETS);
+  assert.ok(codeOf(many, "my:0").length <= 100_000);
+});

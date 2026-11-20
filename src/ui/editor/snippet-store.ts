@@ -6,6 +6,7 @@
 // the defaults, and the saved state is picked up right after hydration without an
 // effect that calls setState.
 import { useSyncExternalStore } from "react";
+import { MAX_SOURCE_CHARS } from "@/core/types";
 
 interface Snippet {
   id: string;
@@ -28,7 +29,7 @@ const FIRST: Snippet = { id: "my:first", title: "My program" };
 const DEFAULT_STATE: EditorState = { tab: FIRST.id, codes: {}, snippets: [FIRST] };
 
 export function codeOf(state: EditorState, tab = state.tab): string {
-  return state.codes[tab] ?? STARTER;
+  return Object.hasOwn(state.codes, tab) ? state.codes[tab] : STARTER;
 }
 
 export function titleOf(state: EditorState, tab = state.tab): string {
@@ -48,16 +49,46 @@ function normalize(state: EditorState): EditorState {
 const listeners = new Set<() => void>();
 let current: EditorState | null = null;
 
+const MAX_TITLE = 80;
+const SNIPPET_ID = /^my:[\w-]{1,40}$/;
+
+/**
+ * Saved state, checked field by field. localStorage can be edited by anyone with the
+ * browser's developer tools, so nothing read from it is trusted: wrong types are dropped,
+ * sizes are capped, and anything unreadable starts fresh.
+ */
+export function fromSaved(raw: string | null): EditorState {
+  let saved: unknown;
+  try {
+    saved = JSON.parse(raw ?? "null");
+  } catch {
+    return DEFAULT_STATE;
+  }
+  if (typeof saved !== "object" || saved === null) return DEFAULT_STATE;
+  const { tab, codes, snippets } = saved as Record<string, unknown>;
+  if (typeof tab !== "string" || typeof codes !== "object" || codes === null || Array.isArray(codes) || !Array.isArray(snippets)) return DEFAULT_STATE;
+  const kept: Snippet[] = [];
+  for (const x of snippets) {
+    if (kept.length >= MAX_SNIPPETS) break;
+    if (typeof x !== "object" || x === null) continue;
+    const { id, title } = x as Record<string, unknown>;
+    if (typeof id !== "string" || !SNIPPET_ID.test(id) || kept.some((k) => k.id === id)) continue;
+    kept.push({ id, title: typeof title === "string" && title.trim() ? title.slice(0, MAX_TITLE) : FIRST.title });
+  }
+  const clean: Record<string, string> = {};
+  for (const [id, code] of Object.entries(codes)) {
+    if (typeof code === "string") clean[id] = code.slice(0, MAX_SOURCE_CHARS);
+  }
+  return normalize({ tab, codes: clean, snippets: kept });
+}
+
 function load(): EditorState {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") as Partial<EditorState> | null;
-    if (saved && typeof saved.tab === "string" && saved.codes && Array.isArray(saved.snippets)) {
-      return normalize({ tab: saved.tab, codes: saved.codes, snippets: saved.snippets });
-    }
+    return fromSaved(localStorage.getItem(STORAGE_KEY));
   } catch {
-    // Storage blocked or unreadable: start fresh.
+    // Storage blocked: start fresh.
+    return DEFAULT_STATE;
   }
-  return DEFAULT_STATE;
 }
 
 /** Writes the state; when storage is full, keeps dropping the oldest snippets' code. */

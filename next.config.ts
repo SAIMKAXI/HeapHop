@@ -4,6 +4,9 @@ import type { NextConfig } from "next";
 // which any free static host can serve. There is no server.
 const nextConfig: NextConfig = {
   output: "export",
+  // No source maps in the shipped site; the source is on GitHub for anyone who wants it.
+  productionBrowserSourceMaps: false,
+  poweredByHeader: false,
 };
 
 export default nextConfig;

@@ -31,7 +31,7 @@ export function kindOf(v: Value): "int" | "bool" | Exclude<Value, number | boole
 export function copyValue(v: Value): Value {
   if (typeof v !== "object") return v;
   if (v.k === "obj") {
-    const f: Record<string, Value> = {};
+    const f: Record<string, Value> = Object.create(null);
     for (const key of Object.keys(v.f)) f[key] = copyValue(v.f[key]);
     return { k: "obj", type: v.type, f };
   }

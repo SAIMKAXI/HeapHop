@@ -1,6 +1,6 @@
 // Public entry point of the interpreter: C++ source in, RunResult out.
 // Nothing outside this folder may import the files next to this one.
-import { DEFAULT_LIMITS, TRACE_VERSION, type RunLimits, type RunResult, type Trace } from "../types";
+import { clampLimits, DEFAULT_LIMITS, MAX_INPUT_CHARS, MAX_SOURCE_CHARS, MAX_SOURCE_LINES, TRACE_VERSION, type RunLimits, type RunResult, type Trace } from "../types";
 import { tokenize } from "./tokenizer";
 import { parse } from "./parser";
 import { Executor } from "./executor";
@@ -13,6 +13,19 @@ export function run(code: string, limits: RunLimits = DEFAULT_LIMITS, input = ""
   try {
     const text = code.replace(/\r\n?/g, "\n");
     const source = text.split("\n");
+    // Size caps come first, so a giant paste is refused before any work is done on it.
+    if (source.length > MAX_SOURCE_LINES) {
+      const line = MAX_SOURCE_LINES + 1;
+      return { ok: false, error: { kind: "unsupported", line, message: `Line ${line}: the program is longer than ${MAX_SOURCE_LINES} lines, which is more than HeapHop can draw. Try a smaller program.` } };
+    }
+    if (text.length > MAX_SOURCE_CHARS) {
+      const line = text.slice(0, MAX_SOURCE_CHARS).split("\n").length;
+      return { ok: false, error: { kind: "unsupported", line, message: `Line ${line}: the program is longer than ${MAX_SOURCE_CHARS} characters, which is more than HeapHop can draw. Try a smaller program.` } };
+    }
+    if (input.length > MAX_INPUT_CHARS) {
+      return { ok: false, error: { kind: "unsupported", line: 1, message: `Line 1: the input for cin is longer than ${MAX_INPUT_CHARS} characters. Give the program less input.` } };
+    }
+    limits = clampLimits(limits);
     const program = parse(tokenize(text));
     const hasMain = program.functions.some((f) => f.name === "main");
     if (!hasMain && program.topLevel.length === 0) {
