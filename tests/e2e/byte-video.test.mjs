@@ -7,13 +7,13 @@ import { setupBrowser } from "./harness.mjs";
 const { newPage, origin } = setupBrowser();
 const MAX_BYTES = 3 * 1024 * 1024;
 
-test("the hero plays the dark-theme loop: muted, looping, inline, with its still frame as the poster", async () => {
+test("the hero plays the dark-theme clip: muted, inline, with its still frame as the poster", async () => {
   const page = await newPage({ path: "/", ready: "[data-byte-video]" });
   const video = await page.$eval("[data-byte-video]", (v) => ({
     theme: v.dataset.byteVideo, src: v.getAttribute("src"), poster: v.getAttribute("poster"),
     muted: v.muted, loop: v.loop, autoplay: v.autoplay, inline: v.playsInline,
   }));
-  assert.deepEqual(video, { theme: "dark", src: "/media/byte-dark.mp4", poster: "/media/byte-dark.webp", muted: true, loop: true, autoplay: true, inline: true });
+  assert.deepEqual(video, { theme: "dark", src: "/media/byte-dark.mp4", poster: "/media/byte-dark.webp", muted: true, loop: false, autoplay: true, inline: true });
   assert.ok(await page.$eval("[data-byte-still='dark']", (i) => getComputedStyle(i).display !== "none"));
   assert.equal(await page.$eval("[data-byte-still='light']", (i) => getComputedStyle(i).display), "none");
   assert.deepEqual(page.errors, []);
@@ -50,4 +50,15 @@ test("the videos and stills are served from the site itself and stay small", asy
       assert.ok(size > 1000 && size < MAX_BYTES, `byte-${theme}.${ext} is ${size} bytes`);
     }
   }
+});
+
+test("after each run Byte stands still for 3 seconds, then the clip plays again", async () => {
+  const page = await newPage({ path: "/", ready: "[data-byte-video]" });
+  await page.waitForFunction(() => document.querySelector("[data-byte-video]").ended, { timeout: 15000 });
+  await new Promise((r) => setTimeout(r, 2000));
+  assert.ok(await page.$eval("[data-byte-video]", (v) => v.ended || v.paused), "still resting 2 s after the end");
+  await page.waitForFunction(() => { const v = document.querySelector("[data-byte-video]"); return !v.paused && v.currentTime > 0.2; }, { timeout: 5000 });
+  assert.equal(await page.$eval("[data-byte-hero] figcaption", (c) => c.textContent), "Byte · takes itself apart so you can see inside");
+  assert.deepEqual(page.errors, []);
+  await page.close();
 });

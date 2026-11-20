@@ -32,10 +32,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
         <div className="grid items-center gap-10 lg:grid-cols-[auto_1fr]">
           <div className="text-center lg:text-left">
-            <p className="inline-flex rounded-full border border-card-border bg-card px-4 py-1.5 text-xs font-semibold tracking-wide text-muted-foreground">
-              C++ memory visualizer · linked lists and trees · free
-            </p>
-            <h1 className="mt-6 text-6xl font-black leading-[0.95] tracking-tighter sm:text-7xl lg:text-8xl">
+            <h1 className="text-6xl font-black leading-[0.95] tracking-tighter sm:text-7xl lg:text-8xl">
               Hop through <span className="block text-accent">the heap.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl lg:mx-0">
