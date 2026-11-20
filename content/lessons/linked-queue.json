@@ -1,19 +1,18 @@
 {
   "id": "linked-queue",
-  "title": "A linked queue: front and rear",
-  "summary": "Add at the rear, remove from the front. Two pointers keep both O(1).",
-  "code": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int data;\n    Node* next;\n};\n\nclass LinkedQueue {\nprivate:\n    Node* front;\n    Node* rear;\npublic:\n    LinkedQueue() {\n        front = rear = nullptr;\n    }\n    bool isEmpty() {\n        return front == nullptr;\n    }\n    void enqueue(int value) {\n        Node* newNode = new Node();\n        newNode->data = value;\n        newNode->next = nullptr;\n        if (rear == nullptr) {\n            front = rear = newNode;\n        } else {\n            rear->next = newNode;\n            rear = newNode;\n        }\n        cout << value << \" joins the queue\" << endl;\n    }\n    void dequeue() {\n        if (isEmpty()) {\n            cout << \"The queue is empty\" << endl;\n            return;\n        }\n        Node* temp = front;\n        front = front->next;\n        cout << temp->data << \" leaves the queue\" << endl;\n        delete temp;\n        if (front == nullptr) {\n            rear = nullptr;\n        }\n    }\n};\n\nint main() {\n    LinkedQueue q;\n    q.enqueue(10);\n    q.enqueue(20);\n    q.dequeue();\n    q.dequeue();\n    q.enqueue(30);\n    q.dequeue();\n    return 0;\n}\n",
+  "title": "A linked queue: front and back",
+  "summary": "Add at the back, remove from the front. Two pointers keep both O(1).",
+  "code": "#include <iostream>\nusing namespace std;\n\nstruct QNode {\n    int iData;\n    QNode* next;\n};\n\nclass L_Queue {\nprivate:\n    QNode* front;\n    QNode* back;\npublic:\n    L_Queue() {\n        front = NULL;\n        back = NULL;\n    }\n    bool isEmpty() {\n        return front == NULL;\n    }\n    void enqueue(int value) {\n        QNode* newNode = new QNode();\n        newNode->iData = value;\n        newNode->next = NULL;\n        if (back == NULL) {\n            front = newNode;\n            back = newNode;\n        } else {\n            back->next = newNode;\n            back = newNode;\n        }\n        cout << value << \" joins the queue\" << endl;\n    }\n    void dequeue() {\n        if (isEmpty()) {\n            cout << \"The queue is empty\" << endl;\n            return;\n        }\n        QNode* temp = front;\n        front = front->next;\n        cout << temp->iData << \" leaves the queue\" << endl;\n        delete temp;\n        if (front == NULL) {\n            back = NULL;\n        }\n    }\n};\n\nint main() {\n    L_Queue q;\n    q.enqueue(10);\n    q.enqueue(20);\n    q.dequeue();\n    q.dequeue();\n    q.enqueue(30);\n    q.dequeue();\n    return 0;\n}\n",
   "checkpoints": [
     {
-      "at": "front = rear = newNode;",
-      "occurrence": 1,
-      "text": "The queue was empty, so the first node is both the front and the rear."
+      "line": 27,
+      "text": "The queue was empty, so the first node is both the front and the back."
     },
     {
-      "at": "rear = newNode;",
+      "line": 30,
       "occurrence": 1,
-      "predict": "q.rear",
-      "text": "20 joins at the rear. The old rear (10) points at it, then `rear` moves."
+      "predict": "q.back",
+      "text": "20 joins at the back. The old back node (10) points at it, then `back` moves."
     },
     {
       "at": "front = front->next;",
@@ -22,12 +21,12 @@
       "text": "Dequeue takes from the front: 10 joined first, so it leaves first."
     },
     {
-      "at": "rear = nullptr;",
-      "text": "The last node just left. `front` became NULL by itself, but `rear` still held the address of the deleted node. This line resets it; without it, the next enqueue would write into freed memory."
+      "line": 44,
+      "text": "The last node just left. `front` became NULL by itself, but `back` still held the address of the deleted node. This line resets it; without it, the next enqueue would write into freed memory."
     },
     {
       "at": "q.enqueue(30);",
-      "text": "Because `rear` was reset, 30 starts a fresh queue as both front and rear."
+      "text": "Because `back` was reset, 30 starts a fresh queue as both front and back."
     },
     {
       "at": "return 0;",

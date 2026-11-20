@@ -1,31 +1,40 @@
 {
   "id": "circular-queue",
   "title": "A circular queue in an array",
-  "summary": "front and rear chase each other around the array. The % operator wraps them back to cell 0.",
-  "code": "#include <iostream>\nusing namespace std;\n\nclass Queue {\nprivate:\n    int arr[4];\n    int front;\n    int rear;\n    int count;\npublic:\n    Queue() {\n        front = 0;\n        rear = -1;\n        count = 0;\n    }\n    void enqueue(int value) {\n        if (count == 4) {\n            cout << \"Queue is full\" << endl;\n            return;\n        }\n        rear = (rear + 1) % 4;\n        arr[rear] = value;\n        count++;\n    }\n    int dequeue() {\n        int value = arr[front];\n        front = (front + 1) % 4;\n        count--;\n        return value;\n    }\n};\n\nint main() {\n    Queue q;\n    q.enqueue(1);\n    q.enqueue(2);\n    q.enqueue(3);\n    q.enqueue(4);\n    cout << \"Out: \" << q.dequeue() << endl;\n    cout << \"Out: \" << q.dequeue() << endl;\n    q.enqueue(5);\n    q.enqueue(6);\n    return 0;\n}\n",
+  "summary": "front and back chase each other around the array. The % operator wraps them back to cell 0.",
+  "code": "#include <iostream>\nusing namespace std;\n\nclass A_Queue {\nprivate:\n    char cArray[10];\n    int size = 10;\n    int front = 0;\n    int back = 0;\n    int numElements = 0;\npublic:\n    bool isFull() {\n        return numElements == size;\n    }\n    bool isEmpty() {\n        return numElements == 0;\n    }\n    void enqueue(char c) {\n        if (isFull()) {\n            cout << \"Queue is full\" << endl;\n            return;\n        }\n        cArray[back] = c;\n        back = (++back) % size;\n        numElements++;\n    }\n    char dequeue() {\n        if (isEmpty()) {\n            cout << \"Queue is empty\" << endl;\n            return ' ';\n        }\n        char c = cArray[front];\n        front = (++front) % size;\n        numElements--;\n        return c;\n    }\n};\n\nint main() {\n    A_Queue q;\n    for (char c = 'A'; c <= 'J'; c++) {\n        q.enqueue(c);\n    }\n    q.enqueue('X');\n    cout << \"Out: \" << q.dequeue() << endl;\n    cout << \"Out: \" << q.dequeue() << endl;\n    q.enqueue('K');\n    return 0;\n}\n",
   "checkpoints": [
     {
-      "at": "q.enqueue(4);",
-      "text": "The queue is full: 1, 2, 3, 4, with `front` at cell 0 and `rear` at cell 3."
+      "at": "A_Queue q;",
+      "text": "`front` and `back` both start at cell 0. `front` is the cell to take from, `back` is the free cell where the next item goes."
     },
     {
-      "at": "front = (front + 1) % 4;",
+      "at": "back = (++back) % size;",
       "occurrence": 1,
-      "text": "Dequeue takes the value at `front` (1) and moves `front` one cell right. Cell 0 is free now, but it is behind `front`."
+      "text": "`A` was stored at `back` (cell 0), then `back` moved on to cell 1."
     },
     {
-      "at": "rear = (rear + 1) % 4;",
-      "occurrence": 5,
-      "text": "Enqueuing 5: `rear` is at cell 3, the last one. (3 + 1) % 4 is 0, so `rear` wraps around to cell 0, the free space at the start."
+      "at": "back = (++back) % size;",
+      "occurrence": 10,
+      "text": "`J` went into cell 9, the last one. `++back` makes 10, and 10 % 10 is 0, so `back` wraps around to cell 0."
     },
     {
-      "at": "arr[rear] = value;",
-      "occurrence": 5,
-      "text": "5 is stored in cell 0. In array order the cells read 5, 2, 3, 4, but the 2 in cell 1 was already dequeued. In queue order it is 3, 4, 5: from `front` around to `rear`."
+      "at": "q.enqueue('X');",
+      "text": "All 10 cells are full and `front` and `back` are on the same cell. That also happens when the queue is empty, which is why the class keeps `numElements` to tell the two apart."
+    },
+    {
+      "at": "front = (++front) % size;",
+      "occurrence": 1,
+      "text": "Dequeue takes from `front`: A joined first, so it leaves first. `front` moves on to cell 1."
+    },
+    {
+      "at": "cArray[back] = c;",
+      "occurrence": 11,
+      "text": "Enqueuing K. Cells 0 and 1 were freed by the two dequeues, and `back` is at cell 0, so K goes there."
     },
     {
       "at": "return 0;",
-      "text": "6 went into cell 1. Without wrapping around, the freed cells at the start could never be used again, and the queue would \"fill up\" after only four enqueues in total."
+      "text": "In array order K comes first, but in queue order it is last: C, D, ... J, K, reading from `front` around to `back`. Without the wrap-around, the freed cells at the start could never be used again."
     }
   ]
 }

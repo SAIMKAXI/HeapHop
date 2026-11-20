@@ -23,6 +23,8 @@ function ArrayViewImpl({ strip, title, selectedCell, onSelectCell }: ArrayViewPr
   const first = strip.cells[0];
   const end = strip.cells.at(-1);
   const grid = strip.matrix;
+  const up = strip.upright;
+  const column = up && first && end ? { x: first.x, w: first.width, top: end.y, bottom: first.y + first.height } : null;
   return (
     <g data-array={strip.id} data-array-length={strip.length} data-matrix={grid ? `${grid.rows}x${grid.cols}` : undefined}>
       <text x={strip.x} y={strip.y + 13} className="hh-detail fill-muted-foreground text-[12px] font-bold">
@@ -35,6 +37,12 @@ function ArrayViewImpl({ strip, title, selectedCell, onSelectCell }: ArrayViewPr
       {grid && Array.from({ length: grid.rows }, (_, r) => (
         <text key={`r${r}`} x={grid.x - 6} y={strip.cellsY + r * grid.cellH + grid.cellH / 2 + 4} textAnchor="end" className="hh-detail fill-muted text-[10px]">{r}</text>
       ))}
+      {column && (
+        <path d={`M${column.x - 3} ${column.top - 10} V${column.bottom + 3} H${column.x + column.w + 3} V${column.top - 10}`} fill="none" className="stroke-muted-foreground" strokeWidth={2} strokeLinejoin="round" data-stack-walls />
+      )}
+      {column && strip.hiddenAfter > 0 && (
+        <text x={column.x + column.w / 2} y={column.top - 14} textAnchor="middle" className="hh-detail fill-muted text-[11px]">+{strip.hiddenAfter} more cells above</text>
+      )}
       {strip.skippedBefore > 0 && first && (
         <text x={first.x - 24} y={first.y + CELL_H / 2 + 4} textAnchor="middle" className="fill-muted text-[12px]">…</text>
       )}
@@ -60,10 +68,12 @@ function ArrayViewImpl({ strip, title, selectedCell, onSelectCell }: ArrayViewPr
               {c.text}
             </text>
           )}
-          {!grid && <text x={c.x + c.width / 2} y={c.y + c.height + 13} textAnchor="middle" className="hh-detail fill-muted text-[10px]">{c.index}</text>}
+          {up ? (
+            <text x={c.x - 8} y={c.y + c.height / 2 + 4} textAnchor="end" className="hh-detail fill-muted text-[10px]">{c.index}</text>
+          ) : !grid && <text x={c.x + c.width / 2} y={c.y + c.height + 13} textAnchor="middle" className="hh-detail fill-muted text-[10px]">{c.index}</text>}
         </g>
       ))}
-      {strip.hiddenAfter > 0 && end && (
+      {!up && strip.hiddenAfter > 0 && end && (
         <text x={end.x + end.width + 8} y={end.y + CELL_H / 2 + 4} className="hh-detail fill-muted text-[11px]">+{strip.hiddenAfter} more</text>
       )}
       {strip.markers.map((m) => (

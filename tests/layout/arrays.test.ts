@@ -32,7 +32,7 @@ test("the same step always gives the same array layout", () => {
   t.steps.forEach((s, i) => assert.deepEqual(layoutStep(s, i, plan, detectLists(s)).arrays, layoutStep(s, i, plan, detectLists(s)).arrays));
 });
 
-test("an array-based queue shows front and rear above the cells they name", () => {
+test("an array-based queue shows front above the cell it names and rear below, as lectures draw it", () => {
   const t = trace(fixture("25_lab7_circular_array_queue.cpp"));
   const ls = layouts(t);
   const l = ls.find((x) => x.arrays.some((a) => a.markers.some((m) => m.label === "front" && m.index >= 0) && a.markers.some((m) => m.label === "rear" && m.index >= 0)))!;
@@ -40,21 +40,32 @@ test("an array-based queue shows front and rear above the cells they name", () =
   for (const m of strip.markers) {
     const cell = strip.cells.find((c) => c.index === m.index)!;
     assert.ok(m.x >= cell.x && m.x + m.width <= cell.x + cell.width, `${m.label} sits over cell ${m.index}`);
-    assert.ok(m.y + m.height <= strip.cellsY, `${m.label} is above the cells`);
+    if (m.label === "rear") assert.ok(m.y >= cell.y + cell.height, "rear is below the cells");
+    else assert.ok(m.y + m.height <= strip.cellsY, `${m.label} is above the cells`);
   }
 });
 
-test("an empty array stack shows top = -1 just left of cell 0, and a long array shows a window of cells", () => {
-  const t = trace(fixture("26_lab6_array_stack_menu.cpp"), undefined);
+test("an array stack stands upright: index 0 at the bottom, top tagged beside its cell, the unused rest hidden", () => {
+  const t = trace(`${H}class Stack {\npublic:\nint arr[1000];\nint topIndex = -1;\nvoid push(int v) { arr[++topIndex] = v; }\n};\nint main() {\nStack s;\ns.push(5);\ns.push(28);\nreturn 0; }`);
   const ls = layouts(t);
-  const first = ls.find((l) => l.arrays.some((a) => a.markers.some((m) => m.label === "topIndex")))!;
-  const strip = first.arrays.find((a) => a.markers.some((m) => m.label === "topIndex"))!;
-  const marker = strip.markers.find((m) => m.label === "topIndex")!;
-  assert.equal(marker.index, -1);
-  assert.ok(marker.x + marker.width / 2 < strip.cells[0].x, "the marker is centred left of cell 0");
+  assert.ok(ls.some((x) => x.arrays.some((a) => a.upright && a.markers.some((m) => m.label === "topIndex" && m.index === -1))), "empty stack: top is -1");
+  const l = ls.find((x) => x.arrays.some((a) => a.upright && a.markers.some((m) => m.label === "topIndex" && m.index === 1)))!;
+  const strip = l.arrays.find((a) => a.upright)!;
+  const [c0, c1] = strip.cells;
+  assert.equal(c0.x, c1.x, "one column");
+  assert.ok(c1.y < c0.y, "cell 1 is above cell 0");
+  const top = strip.markers.find((m) => m.label === "topIndex")!;
+  assert.ok(top.x >= c1.x + c1.width && top.y >= c1.y && top.y + top.height <= c1.y + c1.height, "topIndex is beside cell 1");
   assert.equal(strip.length, 1000);
-  assert.equal(strip.cells.length, 16);
-  assert.equal(strip.hiddenAfter, 984);
+  assert.ok(strip.cells.length <= 16 && strip.hiddenAfter === 1000 - strip.cells.length);
+});
+
+test("a linked stack stands upright too: the node topNode points at is on top", () => {
+  const t = trace(`${H}struct Node {\nint data;\nNode* next;\n};\nclass LinkedStack {\npublic:\nNode* topNode = nullptr;\nvoid push(int v) {\nNode* n = new Node();\nn->data = v;\nn->next = topNode;\ntopNode = n;\n}\n};\nint main() {\nLinkedStack s;\ns.push(1);\ns.push(2);\ns.push(3);\nreturn 0; }`);
+  const l = layouts(t)[t.steps.length - 2];
+  const [n3, n2, n1] = ["h3", "h2", "h1"].map((id) => l.nodes.find((n) => n.id === id)!);
+  assert.ok(n3.x === n2.x && n2.x === n1.x, "one column");
+  assert.ok(n3.y < n2.y && n2.y < n1.y, "newest on top");
 });
 
 test("inside a sorting function, the j it indexes with marks the caller's array; the pass counter i does not", () => {
@@ -156,4 +167,12 @@ test("chains that hang from array cells (adjacency lists) are drawn as one colum
   const other = l.nodes.find((n) => n.id === "h3")!;
   assert.notEqual(other.x, first.x, "vertex 2's list is another column");
   assert.ok(l.nodes.every((n) => n.y > l.arrays[0].y + l.arrays[0].height), "below the array");
+});
+
+test("a reference parameter and the variable it refers to share one tag", () => {
+  const t = trace(`${H}void enqueue(int q[], int& back, int p) {\nq[back] = p;\nback = (back + 1) % 4;\n}\nint main() {\nint q[4];\nint back = 0;\nenqueue(q, back, 7);\nreturn 0; }`);
+  const ls = layouts(t);
+  const inside = ls.filter((l) => l.arrays.some((a) => a.markers.length > 0));
+  assert.ok(inside.length > 0);
+  for (const l of inside) for (const a of l.arrays) assert.equal(a.markers.filter((m) => m.label === "back").length, 1);
 });

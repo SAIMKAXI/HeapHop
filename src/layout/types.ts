@@ -134,6 +134,8 @@ export interface ArrayStrip extends Rect {
   /** A 2-D array: its cells form a grid; row labels end at `x`, column labels sit above the first row. */
   matrix?: { rows: number; cols: number; x: number; cellW: number; cellH: number };
   graph?: GraphView;
+  /** An array stack, drawn as a column (index 0 at the bottom) inside an open-topped container. */
+  upright?: boolean;
 }
 
 export interface Layout {

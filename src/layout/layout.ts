@@ -7,7 +7,7 @@
 import type { MemoryItem, Step } from "@/core/types";
 import type { ListPlan, StepStructures } from "@/core/structures";
 import { heapRootOf } from "@/core/trace";
-import { CELL_H, CELL_W, layoutArrays } from "./arrays";
+import { CELL_H, CELL_W, layoutArrays, STACK_NAME } from "./arrays";
 import type { Arrow, ArrowKind, Chip, FieldRow, Layout, NodeBox, Rect, Terminal } from "./types";
 
 export const NODE_W = 148;
@@ -126,16 +126,22 @@ export function layoutStep(step: Step, stepIndex: number, plan: ListPlan, struct
   const asStrip = new Set(arrays.map((a) => a.id));
   const stripCells = new Set(arrays.flatMap((a) => a.cells.map((c) => c.cellId)));
 
-  // Chains that hang from array cells (adjacency lists, hash buckets) get one column per cell.
+  // Chains that hang from array cells (adjacency lists, hash buckets) get one column per cell,
+  // and a linked stack stands upright too, newest node on top, as lectures draw it.
   const bucketOf = new Map<string, { col: number; depth: number }>();
   let columns = 0;
-  for (const strip of arrays) {
-    for (const cell of strip.cells) {
-      const head = cell.pointer ? heapRootOf(cell.pointsTo) : undefined;
-      const list = head ? structures.lists.find((l) => l.nodes[0] === head) : undefined;
-      if (!list || list.nodes.some((id) => bucketOf.has(id))) continue;
-      const col = columns++;
-      list.nodes.forEach((id, depth) => bucketOf.set(id, { col, depth }));
+  const hang = (pointsTo: string | undefined) => {
+    const head = heapRootOf(pointsTo);
+    const list = head ? structures.lists.find((l) => l.nodes[0] === head) : undefined;
+    if (!list || list.nodes.some((id) => bucketOf.has(id))) return;
+    const col = columns++;
+    list.nodes.forEach((id, depth) => bucketOf.set(id, { col, depth }));
+  };
+  for (const strip of arrays) for (const cell of strip.cells) if (cell.pointer) hang(cell.pointsTo);
+  for (const frame of step.stack) {
+    for (const v of frame.variables) {
+      if (v.kind === "pointer" && /^top/i.test(v.name)) hang(v.pointsTo);
+      if (v.kind === "object" && STACK_NAME.test(v.typeName)) for (const c of v.children ?? []) if (c.kind === "pointer") hang(c.pointsTo);
     }
   }
 

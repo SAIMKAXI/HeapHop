@@ -1,35 +1,40 @@
 {
   "id": "array-stack",
   "title": "A stack in an array",
-  "summary": "One int, top, says where the top of the stack is. Push moves it up, pop moves it down.",
-  "code": "#include <iostream>\nusing namespace std;\n\nclass Stack {\nprivate:\n    int arr[4];\n    int top;\npublic:\n    Stack() {\n        top = -1;\n    }\n    bool isEmpty() {\n        return top < 0;\n    }\n    bool isFull() {\n        return top == 3;\n    }\n    void push(int value) {\n        if (isFull()) {\n            cout << \"Stack overflow: \" << value << \" does not fit\" << endl;\n            return;\n        }\n        arr[++top] = value;\n    }\n    int pop() {\n        if (isEmpty()) {\n            cout << \"Stack is empty\" << endl;\n            return -1;\n        }\n        return arr[top--];\n    }\n};\n\nint main() {\n    Stack s;\n    s.push(10);\n    s.push(20);\n    s.push(30);\n    s.push(40);\n    s.push(50);\n    cout << \"Popped \" << s.pop() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    return 0;\n}\n",
+  "summary": "The array stands upright like a container. numItems counts the items and is also the next free cell.",
+  "code": "#include <iostream>\nusing namespace std;\n\nclass A_Stack {\nprivate:\n    char cArray[10];\n    int numItems = 0;\npublic:\n    bool isEmpty() {\n        return numItems == 0;\n    }\n    bool isFull() {\n        return numItems == 10;\n    }\n    void push(char c) {\n        if (isFull()) {\n            cout << \"Stack is full\" << endl;\n            return;\n        }\n        cArray[numItems] = c;\n        numItems++;\n    }\n    char pop() {\n        if (isEmpty()) {\n            cout << \"Stack is empty\" << endl;\n            return ' ';\n        }\n        return cArray[--numItems];\n    }\n    char top() {\n        return cArray[numItems - 1];\n    }\n};\n\nint main() {\n    A_Stack s;\n    s.push('A');\n    s.push('B');\n    s.push('C');\n    cout << \"Top: \" << s.top() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    s.push('D');\n    cout << \"Popped \" << s.pop() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    cout << \"Popped \" << s.pop() << endl;\n    cout << \"Empty: \" << s.isEmpty() << endl;\n    return 0;\n}\n",
   "checkpoints": [
     {
-      "at": "Stack s;",
-      "text": "The stack is an array of 4 cells and an int `top`. `top` is -1, just left of cell 0: the stack is empty."
+      "at": "A_Stack s;",
+      "text": "The stack is a `char` array of 10 cells and one int, `numItems`. It is 0: nothing is stored yet, so the next push goes into cell 0, at the bottom."
     },
     {
-      "at": "arr[++top] = value;",
+      "at": "numItems++;",
       "occurrence": 1,
-      "text": "`++top` moves `top` to cell 0 first, then 10 is stored there."
+      "text": "`A` was written into cell `numItems` (0), then `numItems` went up to 1. It now points at the empty cell above A."
     },
     {
-      "at": "arr[++top] = value;",
+      "at": "numItems++;",
+      "occurrence": 3,
+      "text": "A, B and C are stacked with C on top. `numItems` is 3: three items, and cell 3 is the next free one."
+    },
+    {
+      "at": "return cArray[numItems - 1];",
+      "text": "`top()` reads the cell just below `numItems`, which is C. Nothing moves: top only looks."
+    },
+    {
+      "at": "return cArray[--numItems];",
+      "occurrence": 1,
+      "text": "Pop does it in the other order: `--numItems` comes down to 2 first, then the C in cell 2 is returned."
+    },
+    {
+      "at": "numItems++;",
       "occurrence": 4,
-      "text": "Four pushes later the array is full and `top` is 3, the last cell."
+      "text": "D was pushed into cell 2. The old C was still in that cell, but it was no longer part of the stack, so D simply wrote over it."
     },
     {
-      "at": "cout << \"Stack overflow: \" << value << \" does not fit\" << endl;",
-      "text": "Pushing 50: `isFull()` is true, so the push stops here. A fixed-size array can overflow; a linked stack only stops when memory runs out."
-    },
-    {
-      "at": "return arr[top--];",
-      "occurrence": 1,
-      "text": "Pop returns the value at `top` (40) and then moves `top` down. The 40 is still in the cell, but it is no longer part of the stack: the next push will overwrite it."
-    },
-    {
-      "at": "return 0;",
-      "text": "Popped 40, then 30: last in, first out. Push and pop each touch one cell and one int, so both are O(1)."
+      "at": "cout << \"Empty: \" << s.isEmpty() << endl;",
+      "text": "Popped C, D, B, A: always the newest item first. `numItems` is back at 0, so the stack is empty. Push and pop each touch one cell and one int, so both are O(1)."
     }
   ]
 }

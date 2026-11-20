@@ -34,9 +34,15 @@ const ROW_LABEL_W = 22;
 const MAX_GRID = 12;
 const VERTEX_D = 34;
 const SIZE_NAMES = ["size", "count", "heapSize", "length", "n"];
+/** An array used as a stack stands upright, as lectures draw it: index 0 at the bottom. */
+export const STACK_NAME = /stack/i;
+const STACK_INDEX = /^(top|topIndex|numItems|sp)$/i;
+/** Queue tags that lectures write under the cells (front stays above). */
+const BELOW = /^(rear|back|tail)$/i;
+const UPRIGHT_W = 96;
 
 interface Candidate { cell: MemoryItem; active: boolean; /** The name the array goes by where this variable lives. */ via: string }
-interface Found { item: MemoryItem; title: string; owner: string; candidates: Candidate[]; heapHint: boolean; graphHint: boolean }
+interface Found { item: MemoryItem; title: string; owner: string; candidates: Candidate[]; heapHint: boolean; graphHint: boolean; stackHint: boolean }
 
 const scalars = (items: MemoryItem[] | undefined) => (items ?? []).filter((c) => c.kind === "scalar");
 const isRow = (a: MemoryItem) => a.kind === "array" && (a.children ?? []).every((c) => c.kind === "scalar" || c.kind === "pointer");
@@ -62,7 +68,7 @@ function collect(step: Step): Found[] {
   step.stack.forEach((frame, fi) => {
     for (const v of frame.variables) {
       if (v.kind === "array" && drawable(v)) {
-        found.push({ item: v, title: v.name, owner: frame.name, candidates: named(scalars(frame.variables), fi === top, v.name), heapHint: HEAP_NAME.test(v.name), graphHint: GRAPH_NAME.test(v.name) });
+        found.push({ item: v, title: v.name, owner: frame.name, candidates: named(scalars(frame.variables), fi === top, v.name), heapHint: HEAP_NAME.test(v.name), graphHint: GRAPH_NAME.test(v.name), stackHint: STACK_NAME.test(v.name) });
       } else if (v.kind === "object") {
         const method = thisOf.get(v.id);
         const fields = scalars(v.children);
@@ -74,6 +80,7 @@ function collect(step: Step): Found[] {
               item: field, title: `${v.name}.${field.name}`, owner: frame.name, candidates: near(field.name),
               heapHint: HEAP_NAME.test(field.name) || HEAP_NAME.test(v.typeName) || HEAP_NAME.test(v.name),
               graphHint: GRAPH_NAME.test(field.name) || GRAPH_NAME.test(v.typeName),
+              stackHint: STACK_NAME.test(field.name) || STACK_NAME.test(v.typeName),
             });
           } else if (field.kind === "pointer" && field.pointsTo) {
             point(field.pointsTo, near(field.name)); // a member pointer to an array made with new[]
@@ -90,6 +97,7 @@ function collect(step: Step): Found[] {
       item: h, title: "", owner: "heap", candidates: [],
       heapHint: owners.some((o) => HEAP_NAME.test(o.name) || HEAP_NAME.test(o.typeName)),
       graphHint: owners.some((o) => GRAPH_NAME.test(o.name) || GRAPH_NAME.test(o.typeName)),
+      stackHint: owners.some((o) => STACK_NAME.test(o.name) || STACK_NAME.test(o.typeName)),
     });
   }
   for (const f of found) f.candidates.push(...(pointing.get(f.item.id) ?? []));
@@ -144,15 +152,51 @@ function markersFor(f: Found, key: (via: string) => string, length: number, inde
     const index = Number(cell.value);
     if (!Number.isInteger(index) || index < -1 || index > length) continue;
     seen.add(cell.id);
+    // A reference parameter (int& back) and the variable it refers to carry one name and one value: one tag.
+    const twin = out.find((m) => m.label === cell.name && m.index === index);
+    if (twin) { twin.active ||= active; continue; }
     out.push({ id: cell.id, label: cell.name, index, active, axis, x: 0, y: 0, width: markerWidth(cell.name), height: MARK_H });
   }
   return out;
+}
+
+/** An array stack: a column of cells inside an open-topped container, tags to the right of their cell. */
+function uprightStrip(f: Found, y: number, markers: ArrayMarker[], read: Set<string>): ArrayStrip {
+  const elems = f.item.children ?? [];
+  const length = elems.length;
+  const cellW = Math.max(UPRIGHT_W, Math.round(16 + 8.5 * Math.max(0, ...elems.map((c) => cellText(c).length))));
+  // Show the used part plus a little headroom; a long array hides the rest above.
+  const far = Math.max(0, ...markers.map((m) => m.index));
+  const used = elems.findLastIndex((c) => c.value !== "?") + 1;
+  const shown = Math.min(length, Math.max(4, far + 2, used + 1), MAX_CELLS);
+  const left = ROW_LABEL_W;
+  // Room above the column for its open-top walls, and for "+N more cells above".
+  const cellsY = y + TITLE_H + (shown < length ? 28 : 14);
+  const bottom = cellsY + shown * CELL_H;
+  const rowY = (index: number) => bottom - (index + 1) * CELL_H;
+  const cells: ArrayCell[] = elems.slice(0, shown).map((c, k) => ({
+    cellId: c.id, index: k, x: left, y: rowY(k), width: cellW, height: CELL_H,
+    text: cellText(c), pointer: c.kind === "pointer", pointsTo: c.pointsTo, changed: !!c.changed, read: read.has(c.id),
+  }));
+  const offset = new Map<number, number>();
+  for (const m of markers) {
+    const dx = offset.get(m.index) ?? 0;
+    offset.set(m.index, dx + m.width + MARK_GAP);
+    m.x = left + cellW + 10 + dx;
+    m.y = rowY(m.index) + (CELL_H - MARK_H) / 2;
+  }
+  const tags = Math.max(0, ...offset.values());
+  return {
+    id: f.item.id, title: f.title, owner: f.owner, length, x: 0, y, width: left + cellW + 10 + tags, height: bottom - y + (markers.some((m) => m.index < 0) ? CELL_H : 8),
+    cellsY, cells, skippedBefore: 0, hiddenAfter: length - shown, markers, upright: true,
+  };
 }
 
 function rowStrip(f: Found, y: number, indexes: Map<string, Set<string>>, read: Set<string>): ArrayStrip {
   const elems = f.item.children ?? [];
   const length = elems.length;
   const markers = markersFor(f, (via) => via, length, indexes);
+  if (f.stackHint || markers.some((m) => STACK_INDEX.test(m.label))) return uprightStrip(f, y, markers, read);
   // Cells widen for long values (1000000 as "infinity", strings).
   const cellW = Math.max(CELL_W, Math.round(12 + 8.5 * Math.max(0, ...elems.map((c) => cellText(c).length))));
 
@@ -163,25 +207,31 @@ function rowStrip(f: Found, y: number, indexes: Map<string, Set<string>>, read: 
   const leftPad = lo > 0 || markers.some((m) => m.index === -1) ? cellW : 0;
   const slots = hi - lo + (hi < length || markers.some((m) => m.index === length) ? 1 : 0);
 
-  // Markers stack upwards above their cell.
-  const perIndex = new Map<number, number>();
-  for (const m of markers) perIndex.set(m.index, (perIndex.get(m.index) ?? 0) + 1);
-  const markRows = Math.max(0, ...perIndex.values());
+  // Markers stack upwards above their cell; rear / back / tail hang below it, as lectures draw queues.
+  const rowsAt = (below: boolean) => {
+    const per = new Map<number, number>();
+    for (const m of markers) if (BELOW.test(m.label) === below) per.set(m.index, (per.get(m.index) ?? 0) + 1);
+    return Math.max(0, ...per.values());
+  };
+  const markRows = rowsAt(false);
+  const belowRows = rowsAt(true);
   const cellsY = y + TITLE_H + markRows * (MARK_H + MARK_GAP);
   const xOf = (index: number) => leftPad + (index - lo) * cellW;
-  const used = new Map<number, number>();
+  const used = new Map<string, number>();
   for (const m of markers) {
-    const row = used.get(m.index) ?? 0;
-    used.set(m.index, row + 1);
+    const below = BELOW.test(m.label);
+    const key = `${below}:${m.index}`;
+    const row = used.get(key) ?? 0;
+    used.set(key, row + 1);
     m.x = xOf(m.index) + (cellW - m.width) / 2;
-    m.y = cellsY - (row + 1) * (MARK_H + MARK_GAP);
+    m.y = below ? cellsY + CELL_H + INDEX_H + row * (MARK_H + MARK_GAP) : cellsY - (row + 1) * (MARK_H + MARK_GAP);
   }
   const cells: ArrayCell[] = elems.slice(lo, hi).map((c, k) => ({
     cellId: c.id, index: lo + k, x: xOf(lo + k), y: cellsY, width: cellW, height: CELL_H,
     text: cellText(c), pointer: c.kind === "pointer", pointsTo: c.pointsTo, changed: !!c.changed, read: read.has(c.id),
   }));
 
-  let height = TITLE_H + markRows * (MARK_H + MARK_GAP) + CELL_H + INDEX_H;
+  let height = TITLE_H + (markRows + belowRows) * (MARK_H + MARK_GAP) + CELL_H + INDEX_H;
   let width = leftPad + slots * cellW;
   let heap: HeapView | undefined;
   if (f.heapHint && length > 0) {
