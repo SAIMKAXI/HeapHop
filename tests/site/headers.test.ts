@@ -5,6 +5,16 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { policyFor, secure } from "../../scripts/secure-build.mjs";
 
+test("Vercel serves the hardened ./out folder as plain static files", () => {
+  // With the Next.js preset, Vercel builds its own copy of the site before
+  // secure-build.mjs runs, and the CSP never reaches visitors.
+  const config = JSON.parse(readFileSync("vercel.json", "utf8"));
+  assert.equal(config.framework, null);
+  assert.equal(config.outputDirectory, "out");
+  assert.equal(config.buildCommand, "npm run build");
+  assert.equal(config.cleanUrls, true);
+});
+
 test("vercel.json sends the hardening headers on every path", () => {
   const config = JSON.parse(readFileSync("vercel.json", "utf8"));
   const all = config.headers.find((h: { source: string }) => h.source === "/(.*)");

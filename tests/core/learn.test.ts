@@ -162,3 +162,11 @@ test("11.2 every Learn topic has at least two lessons, and lesson ids are unique
   }
   assert.equal(new Set(LESSONS.map((l) => l.id)).size, LESSONS.length);
 });
+
+test("the lesson list shows the same title and summary as each lesson file", async () => {
+  for (const entry of LESSONS) {
+    const lesson = await entry.load();
+    assert.equal(entry.title, lesson.title, `${entry.id} title`);
+    assert.equal(entry.summary, lesson.summary, `${entry.id} summary`);
+  }
+});
