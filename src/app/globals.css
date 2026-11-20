@@ -213,6 +213,12 @@ html:not(.light) .hh-born .hh-shape { animation: hh-born 1.4s ease-out; }
 /* Low zoom: boxes and arrows only. */
 .hh-canvas[data-lod="low"] .hh-detail { display: none; }
 /* Byte on the landing page: a slow hover over flickering rocket jets, and a shadow that shrinks as it rises. */
+/* The landing video sits on the page background; its edges fade out so no square shows. */
+.hh-byte-video {
+  --edge: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+  -webkit-mask-image: var(--edge); -webkit-mask-composite: source-in; mask-image: var(--edge); mask-composite: intersect;
+}
+.light .hh-dark-only, .dark .hh-light-only { display: none; }
 .hh-hover { animation: hh-hover 3.4s ease-in-out infinite; }
 .hh-hover-shadow { animation: hh-hover-shadow 3.4s ease-in-out infinite; }
 .hh-flicker { transform-box: fill-box; transform-origin: 50% 0; animation: hh-flicker 160ms ease-in-out infinite alternate; }

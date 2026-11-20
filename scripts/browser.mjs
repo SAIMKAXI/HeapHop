@@ -29,6 +29,7 @@ const CHROME_CANDIDATES = [
 const TYPES = {
   ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
   ".woff2": "font/woff2", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".txt": "text/plain",
+  ".mp4": "video/mp4", ".webp": "image/webp", ".png": "image/png",
 };
 
 export function chromePath() {

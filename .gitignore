@@ -41,3 +41,4 @@ yarn-error.log*
 next-env.d.ts
 tsconfig.tsbuildinfo
 dist/
+scripts/byte-video/byte-video-out/
