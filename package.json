@@ -5,21 +5,24 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/secure-build.mjs",
+    "build": "next build",
     "start": "npx serve out",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "boundaries": "depcruise src --config .dependency-cruiser.cjs",
     "test": "tsx --test \"tests/**/*.test.ts\"",
-    "check": "npm run typecheck && npm run lint && npm run boundaries && npm test && npm run build && npm run webview:check && npm run e2e",
+    "check": "npm run audit && npm run typecheck && npm run lint && npm run boundaries && npm test && npm run build && npm run webview:check && npm run e2e",
     "bench": "tsx scripts/bench.ts",
     "fixtures": "tsx scripts/fixtures-report.ts",
     "build:standalone": "node scripts/build-standalone.mjs",
     "webview:check": "node scripts/webview-check.mjs",
     "e2e": "node --test --test-concurrency=1 \"tests/e2e/*.test.mjs\"",
-    "perf": "node scripts/perf.mjs"
+    "perf": "node scripts/perf.mjs",
+    "audit": "npm audit --audit-level=moderate"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.2",
     "clsx": "^2.1.1",
     "geist": "^1.9.2",
     "lucide-react": "^1.74.0",

@@ -13,7 +13,21 @@ function inline(text: string): ReactNode[] {
   });
 }
 
-const cells = (row: string) => row.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+/** A table row's cells. A pipe inside `code` (like `&& || !`) is text, not a column break. */
+export function cells(row: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let inCode = false;
+  for (const ch of row.trim().replace(/^\||\|$/g, "")) {
+    if (ch === "`") inCode = !inCode;
+    if (ch === "|" && !inCode) {
+      out.push(cur.trim());
+      cur = "";
+    } else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
 
 export function Markdown({ source }: { source: string }) {
   const blocks: ReactNode[] = [];

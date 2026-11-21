@@ -7,7 +7,7 @@ import { ThemeToggle } from "@/ui/theme-toggle";
 import { cn } from "@/ui/utils";
 import { Logo } from "./logo";
 import { NAV_LINKS, type SitePage } from "./links";
-import { useOnWebsite } from "./website";
+import { useOnWebsite, useSession } from "./website";
 
 interface AppHeaderProps {
   /** The page being shown, marked in the navigation. */
@@ -17,8 +17,12 @@ interface AppHeaderProps {
   backLabel?: string;
 }
 
+const pill = "rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-card-border/40 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent";
+const firstName = (name: string) => name.split(" ")[0].slice(0, 20);
+
 export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProps) {
   const onWebsite = useOnWebsite();
+  const session = useSession();
   const name = <span className="flex items-center gap-2 text-lg font-bold"><Logo />HeapHop</span>;
   return (
     <header className="flex items-center justify-between gap-3 border-b border-card-border bg-header px-4 py-2.5 sm:px-6">
@@ -54,6 +58,21 @@ export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProp
             ))}
           </nav>
         )}
+        {onWebsite && (session ? (
+          <div className="flex items-center gap-1" data-account-menu>
+            {session.admin && <a href="/admin" className={pill} data-admin-link>Admin</a>}
+            <a href="/account" className={pill} title="Your account" data-account-link>{firstName(session.name)}</a>
+            {/* A plain form post: the server checks the Origin and the cookie is SameSite. */}
+            <form method="post" action="/auth/logout">
+              <button type="submit" className={pill} data-logout>Log out</button>
+            </form>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1">
+            <a href="/login" className={pill} data-login-link>Log in</a>
+            <a href="/signup" className="rounded-full bg-accent px-3.5 py-1.5 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent" data-signup-link>Sign up</a>
+          </div>
+        ))}
         <ThemeToggle />
       </div>
     </header>

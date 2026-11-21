@@ -10,12 +10,22 @@
  *   src/runtime  runProgram(code): runs the interpreter in a Web Worker
  *   src/ui       React components
  *   src/app      Next.js shell (website only)
+ *   src/server   accounts: Supabase clients, sessions, server actions (website only)
  *   src/standalone  the same interface as one script, for the VS Code webview
  */
 const FRAMEWORK = "^(react|react-dom|next)(/|$)|node_modules/(react|react-dom|next|lucide-react)/";
 
 module.exports = {
   forbidden: [
+    {
+      name: "server-code-stays-in-the-app",
+      comment:
+        "src/server holds the Supabase clients, sessions and server actions. Only the Next.js app " +
+        "(src/app) and the proxy may use it; the shared interface, the engine and the VS Code build never do.",
+      severity: "error",
+      from: { path: "^src/(ui|core|layout|runtime|standalone)/" },
+      to: { path: "^src/server/" },
+    },
     {
       name: "core-is-pure",
       comment: "src/core must stay plain TypeScript: no React, no Next, no other HeapHop layer.",

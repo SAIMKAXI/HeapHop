@@ -1,30 +1,79 @@
-// One browser and one static server for a test file, serving the built site in out/.
+// One browser, one Next.js server and one fake Supabase for a test file.
 // Run `npm run build` first; `npm run e2e` does both.
 import { after, before } from "node:test";
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { createServer } from "node:net";
 import { join } from "node:path";
-import { clickRun, launchBrowser, serveStatic, setEditorCode } from "../../scripts/browser.mjs";
+import { clickRun, launchBrowser, setEditorCode } from "../../scripts/browser.mjs";
+import { startFakeSupabase } from "./fake-supabase.mjs";
 
-const OUT = join(import.meta.dirname, "..", "..", "out");
+const ROOT = join(import.meta.dirname, "..", "..");
 const FIXTURES = join(import.meta.dirname, "..", "fixtures");
 
 export const fixture = (name) => readFileSync(join(FIXTURES, name), "utf8");
 
+export const STUDENT = { email: "student@heaphop.test", password: "Student-Pass-42", fullName: "Test Student", university: "Air University" };
+export const ADMIN = { email: "admin@heaphop.test", password: "Admin-Pass-4242", fullName: "Dev Admin", university: "Air University", role: "admin" };
+
+const freePort = () => new Promise((resolve) => {
+  const s = createServer();
+  s.listen(0, "127.0.0.1", () => { const { port } = s.address(); s.close(() => resolve(port)); });
+});
+
+/** Starts `next start` against the fake Supabase. The origin is http://localhost so Secure cookies work. */
+export async function startSite(supabase) {
+  assert.ok(existsSync(join(ROOT, ".next", "BUILD_ID")), ".next/ is missing: run `npm run build` first");
+  const port = await freePort();
+  const child = spawn(join(ROOT, "node_modules", ".bin", "next"), ["start", "-p", String(port), "-H", "localhost"], {
+    cwd: ROOT,
+    env: { ...process.env, SUPABASE_URL: supabase.origin, SUPABASE_PUBLISHABLE_KEY: "test-publishable-key", RATE_LIMIT_SECRET: "x".repeat(40), NODE_ENV: "production" },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  child.output = "";
+  child.stdout.on("data", (d) => (child.output += d));
+  child.stderr.on("data", (d) => (child.output += d));
+  const origin = `http://localhost:${port}`;
+  for (let i = 0; i < 100; i++) {
+    try {
+      if ((await fetch(origin + "/faq")).ok) return { origin, child, close: () => new Promise((r) => { child.once("exit", r); child.kill(); }) };
+    } catch {}
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  child.kill();
+  throw new Error(`next start did not come up:\n${child.output}`);
+}
+
+/** Logs the browser in through the real login form. */
+export async function logIn(browser, origin, who = STUDENT) {
+  const page = await browser.newPage();
+  await page.goto(origin + "/login", { waitUntil: "load" });
+  await page.type("#f-email", who.email);
+  await page.type("#f-password", who.password);
+  await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click("[data-login-form] button[type=submit]")]);
+  await page.close();
+}
+
 /**
  * Sets up the browser for the calling test file and returns helpers bound to it.
  * Every page records page errors and console errors; `newPage` fails the test on any.
+ * The browser is logged in as a student unless `loggedIn` is false.
  */
-export function setupBrowser() {
+export function setupBrowser({ loggedIn = true } = {}) {
   const ctx = {};
   before(async () => {
-    assert.ok(existsSync(join(OUT, "index.html")), "out/ is missing: run `npm run build` first");
-    ctx.server = await serveStatic(OUT);
+    ctx.supabase = await startFakeSupabase();
+    await ctx.supabase.addUser(STUDENT);
+    await ctx.supabase.addUser(ADMIN);
+    ctx.server = await startSite(ctx.supabase);
     ctx.browser = await launchBrowser();
+    if (loggedIn) await logIn(ctx.browser, ctx.server.origin);
   });
   after(async () => {
     await ctx.browser?.close();
     await ctx.server?.close();
+    await ctx.supabase?.close();
   });
 
   return {
@@ -44,6 +93,9 @@ export function setupBrowser() {
       return page;
     },
     origin: () => ctx.server.origin,
+    supabase: () => ctx.supabase,
+    browser: () => ctx.browser,
+    serverOutput: () => ctx.server.child.output,
   };
 }
 

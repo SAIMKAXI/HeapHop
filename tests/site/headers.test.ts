@@ -1,18 +1,13 @@
-// 8.8 The security headers the host sends, and the CSP the build writes into every page.
+// 8.8 / 8.10 The security headers the host sends on every path. The per-request CSP with a nonce
+// is written by src/proxy.ts and tested in tests/server and tests/e2e.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { policyFor, secure } from "../../scripts/secure-build.mjs";
 
-test("Vercel serves the hardened ./out folder as plain static files", () => {
-  // With the Next.js preset, Vercel builds its own copy of the site before
-  // secure-build.mjs runs, and the CSP never reaches visitors.
+test("Vercel builds the site as a Next.js app (accounts need the server), not a static folder", () => {
   const config = JSON.parse(readFileSync("vercel.json", "utf8"));
-  assert.equal(config.framework, null);
-  assert.equal(config.outputDirectory, "out");
-  assert.equal(config.buildCommand, "npm run build");
-  assert.equal(config.cleanUrls, true);
+  for (const key of ["framework", "outputDirectory", "cleanUrls"]) assert.equal(config[key], undefined, key);
+  assert.doesNotMatch(readFileSync("next.config.ts", "utf8"), /output:\s*"export"/);
 });
 
 test("vercel.json sends the hardening headers on every path", () => {
@@ -28,15 +23,8 @@ test("vercel.json sends the hardening headers on every path", () => {
   assert.ok(get("Referrer-Policy"));
 });
 
-test("the build's policy allows this site's files and the page's own inline scripts by hash, nothing else", () => {
-  const html = "<html><head><title>x</title></head><body><script>a()</script><script src=\"/app.js\"></script><script id=\"d\">b()</script></body></html>";
-  const out: string = secure(html);
-  const policy = out.match(/content="([^"]+)"/)![1];
-  const hash = (s: string) => `'sha256-${createHash("sha256").update(s).digest("base64")}'`;
-  assert.ok(out.startsWith("<html><head><meta http-equiv=\"Content-Security-Policy\""), "the policy comes before any script");
-  assert.ok(policy.includes(hash("a()")) && policy.includes(hash("b()")));
-  assert.doesNotMatch(policy, /'unsafe-inline'[^;]*;\s*style|script-src[^;]*unsafe/);
-  assert.match(policy, /object-src 'none'/);
-  assert.equal(secure(out), out, "running twice changes nothing");
-  assert.equal(policyFor([]).includes("script-src 'self';"), true);
+test("no Supabase address, key or secret is ever exposed to the browser", () => {
+  for (const file of ["next.config.ts", "src/server/supabase.ts", "src/proxy.ts", "src/server/rate-limit.ts"]) {
+    assert.doesNotMatch(readFileSync(file, "utf8"), /process\.env\.NEXT_PUBLIC_/, file);
+  }
 });

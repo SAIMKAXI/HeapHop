@@ -15,35 +15,47 @@ async function watchViolations(page) {
   });
 }
 
-test("every page carries a strict Content-Security-Policy and loads without breaking it", async () => {
-  for (const path of PAGES) {
+test("every page carries a strict Content-Security-Policy with a fresh nonce, and loads without breaking it", async () => {
+  const nonces = new Set();
+  for (const path of [...PAGES, "/login", "/signup", "/account"]) {
     const page = await newPage({ path, ready: "header" });
     await watchViolations(page);
-    await page.reload({ waitUntil: "networkidle0" });
-    const policy = await page.$eval("meta[http-equiv='Content-Security-Policy']", (m) => m.content);
+    const res = await page.reload({ waitUntil: "networkidle0" });
+    const policy = res.headers()["content-security-policy"] ?? "";
     assert.match(policy, /default-src 'self'/, path);
     assert.match(policy, /object-src 'none'/, path);
     assert.match(policy, /base-uri 'none'/, path);
-    assert.doesNotMatch(policy, /script-src[^;]*'unsafe-(inline|eval)'/, `${path}: no unsafe scripts`);
+    assert.match(policy, /frame-ancestors 'none'/, path);
+    assert.match(policy, /connect-src 'self';/, `${path}: the browser only talks to this site`);
+    const script = policy.split(";").find((d) => d.trim().startsWith("script-src"));
+    assert.doesNotMatch(script, /unsafe/, `${path}: no unsafe scripts`);
+    const nonce = script.match(/'nonce-([^']+)'/)?.[1];
+    assert.ok(nonce, path);
+    nonces.add(nonce);
+    assert.equal(await page.$eval("head script:not([src])", (s) => s.nonce), nonce, `${path}: the theme script carries the nonce`);
     assert.deepEqual(await page.evaluate(() => window.__violations), [], path);
     assert.deepEqual(page.errors, [], path);
     await page.close();
   }
+  assert.equal(nonces.size, PAGES.length + 3, "every response gets its own nonce");
 });
 
-test("an injected script is blocked by the policy", async () => {
+test("injected markup cannot run script: inline handlers and scripts without the nonce are blocked", async () => {
+  // What an XSS bug would inject is markup: a <script> tag in the HTML or an onerror="..." handler.
   const page = await newPage({ path: "/", ready: "header" });
   await watchViolations(page);
   await page.reload({ waitUntil: "networkidle0" });
   await page.evaluate(() => {
-    const s = document.createElement("script");
-    s.textContent = "window.__pwned = true";
-    document.body.append(s);
+    const frame = document.createElement("iframe");
+    frame.srcdoc = "<script>parent.__pwned = true</" + "script><a href=\"javascript:parent.__pwned=true\" id=j>x</a>";
+    document.body.append(frame);
     const img = document.createElement("img");
     img.setAttribute("src", "x");
     img.setAttribute("onerror", "window.__pwned = true");
     document.body.append(img);
   });
+  await new Promise((r) => setTimeout(r, 500));
+  await page.evaluate(() => document.querySelector("iframe")?.contentDocument?.getElementById("j")?.click());
   await new Promise((r) => setTimeout(r, 300));
   assert.equal(await page.evaluate(() => window.__pwned), undefined, "the injected code did not run");
   assert.ok((await page.evaluate(() => window.__violations)).some((v) => v.startsWith("script-src")), "the browser reported the block");

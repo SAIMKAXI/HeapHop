@@ -36,10 +36,10 @@ export async function buildStandalone() {
   });
 
   // 3. Styles from the Next build. Font files are not shipped here, so drop @font-face.
-  const cssDir = join(root, "out", "_next", "static");
-  if (!existsSync(cssDir)) throw new Error("out/ is missing. Run `npm run build` before the standalone build.");
+  const cssDir = join(root, ".next", "static");
+  if (!existsSync(cssDir)) throw new Error(".next/ is missing. Run `npm run build` before the standalone build.");
   const cssFiles = readdirSync(cssDir, { recursive: true }).filter((f) => String(f).endsWith(".css"));
-  if (cssFiles.length === 0) throw new Error("No stylesheet found in out/_next/static.");
+  if (cssFiles.length === 0) throw new Error("No stylesheet found in .next/static.");
   const css = cssFiles.map((f) => readFileSync(join(cssDir, String(f)), "utf8")).join("\n").replace(/@font-face\s*\{[^}]*\}/g, "");
   writeFileSync(join(outDir, "main.css"), css);
 
