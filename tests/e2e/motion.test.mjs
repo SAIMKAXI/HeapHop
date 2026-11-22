@@ -19,7 +19,8 @@ test("the landing strip rolls C++ words in the code font, pauses on focus, and r
   assert.equal(titles.length, 6);
   for (const t of titles) assert.ok(!copies[0].includes(t), `the strip does not repeat "${t}"`);
   assert.match(await page.$eval(".hh-marquee-track", (t) => getComputedStyle(t).fontFamily), /mono/i);
-  assert.ok(await page.$eval(".hh-marquee-track", (t) => parseFloat(getComputedStyle(t).fontSize)) <= 30, "no bigger than a section heading");
+  assert.ok(await page.$eval(".hh-marquee-track", (t) => parseFloat(getComputedStyle(t).fontSize)) <= 20, "small, below the heading");
+  assert.ok(await page.$eval(".hh-marquee-track", (t) => { const m = getComputedStyle(t).color.match(/[\d.]+(?=\))/); return m && Number(m[0]) <= 0.5; }), "faded");
   assert.equal(await page.$("[data-marquee-toggle]"), null, "no pause button");
   assert.match(await page.$eval("[data-marquee]", (m) => m.getAttribute("aria-label")), /head->next/);
   assert.deepEqual(await page.$$eval("h2", (h) => h.map((x) => x.textContent).filter((t) => t.includes("finally"))), ["Pointers, finally visible."]);
