@@ -1,4 +1,4 @@
-// Motion on the read-only pages: the rolling headline on the landing page, content that
+// Motion on the read-only pages: the rolling C++ words on the landing page, content that
 // fades in as it scrolls into view, and both switched off for visitors who ask for less motion.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -6,27 +6,32 @@ import { setupBrowser, textOf } from "./harness.mjs";
 
 const { newPage } = setupBrowser();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const FEATURE_TITLES = ["Rewind anything.", "Read it in plain English.", "Catch the crash.", "Trees that look like trees.", "Click to investigate.", "Your code never leaves your browser."];
+const WORDS = ["new", "head->next", "delete", "nullptr", "stack", "heap", "cur = cur->next", "leak"];
 const trackX = (page) => page.$eval(".hh-marquee-track", (t) => new DOMMatrix(getComputedStyle(t).transform).m41);
 
-test("the landing headline rolls the feature titles past, pauses on request, and is read once", async () => {
+test("the landing strip rolls C++ words in the code font, pauses on focus, and repeats nothing", async () => {
   const page = await newPage({ path: "/", ready: "[data-marquee]" });
   const copies = await page.$$eval(".hh-marquee-track > span", (s) => s.map((x) => x.textContent));
   assert.equal(copies.length, 2, "two copies so the loop has no seam");
   assert.equal(copies[0], copies[1]);
-  for (const w of ["Pointers, finally visible.", ...FEATURE_TITLES]) assert.ok(copies[0].includes(w), w);
-  assert.equal(await page.$eval("[data-marquee]", (m) => m.getAttribute("aria-hidden")), "true");
+  for (const w of WORDS) assert.ok(copies[0].includes(w), w);
+  const titles = await page.$$eval("main li span.text-2xl", (s) => s.map((x) => x.textContent));
+  assert.equal(titles.length, 6);
+  for (const t of titles) assert.ok(!copies[0].includes(t), `the strip does not repeat "${t}"`);
+  assert.match(await page.$eval(".hh-marquee-track", (t) => getComputedStyle(t).fontFamily), /mono/i);
+  assert.ok(await page.$eval(".hh-marquee-track", (t) => parseFloat(getComputedStyle(t).fontSize)) <= 30, "no bigger than a section heading");
+  assert.equal(await page.$("[data-marquee-toggle]"), null, "no pause button");
+  assert.match(await page.$eval("[data-marquee]", (m) => m.getAttribute("aria-label")), /head->next/);
   assert.deepEqual(await page.$$eval("h2", (h) => h.map((x) => x.textContent).filter((t) => t.includes("finally"))), ["Pointers, finally visible."]);
 
+  await page.mouse.move(5, 5);
   const a = await trackX(page);
   await sleep(600);
   assert.ok((await trackX(page)) < a, "the strip moves left");
-  await page.click("[data-marquee-toggle]");
-  await page.mouse.move(5, 5); // away from the strip, so hover is not what pauses it
+  await page.focus("[data-marquee]");
   const b = await trackX(page);
   await sleep(600);
-  assert.equal(await trackX(page), b, "the button pauses it");
-  assert.equal(await page.$eval("[data-marquee-toggle]", (x) => x.getAttribute("aria-label")), "Play the rolling headline");
+  assert.equal(await trackX(page), b, "keyboard focus pauses it");
 
   const main = await textOf(page, "main");
   assert.ok(!main.includes("chosen from real first-course lab programs"), "the supported-C++ line is gone");
@@ -53,16 +58,14 @@ test("content below the fold waits faded and arrives as it scrolls into view", a
   assert.deepEqual([...page.errors, ...learn.errors], []);
 });
 
-test("with reduced motion nothing is hidden and the headline stands still", async () => {
+test("with reduced motion nothing is hidden and the strip stands still", async () => {
   const page = await newPage({ path: "/", ready: "[data-marquee]" });
   await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
   await page.reload({ waitUntil: "load" });
   await page.waitForSelector("[data-marquee]");
   assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-reveal")), false);
-  assert.equal(await page.$eval("[data-marquee]", (m) => getComputedStyle(m).display), "none");
+  assert.equal(await page.$eval(".hh-marquee-track", (t) => getComputedStyle(t).animationName), "none");
   assert.equal(await page.$eval("[data-reveal]", (el) => getComputedStyle(el).opacity), "1");
-  const heading = await page.$$eval("h2", (h) => h.filter((x) => x.textContent === "Pointers, finally visible.").map((x) => x.getBoundingClientRect().width));
-  assert.ok(heading[0] > 100, "the plain heading is shown instead");
   await page.goto(page.url().replace(/\/$/, "/faq"), { waitUntil: "load" });
   assert.deepEqual(await page.$$eval("[data-faq]", (d) => [...new Set(d.map((x) => getComputedStyle(x).opacity))]), ["1"]);
 });

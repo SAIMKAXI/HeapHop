@@ -241,15 +241,15 @@ html:not(.light) .hh-born .hh-shape { animation: hh-born 1.4s ease-out; }
 @media print {
   :root[data-reveal] :is([data-reveal], [data-reveal-children] > *) { opacity: 1 !important; transform: none !important; }
 }
-/* The rolling headline on the landing page: two identical copies side by side, moved left
+/* The rolling C++ words on the landing page (ui/landing/code-ticker.tsx): two identical copies side by side, moved left
    by one copy's width and started again, so the seam never shows. */
 .hh-marquee {
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
   mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
 }
-.hh-marquee-track { display: flex; width: max-content; animation: hh-marquee 48s linear infinite; }
-.hh-marquee:hover .hh-marquee-track, .hh-marquee[data-paused] .hh-marquee-track { animation-play-state: paused; }
+.hh-marquee-track { font-family: var(--font-geist-mono), ui-monospace, monospace; display: flex; width: max-content; animation: hh-marquee 40s linear infinite; }
+.hh-marquee:hover .hh-marquee-track, .hh-marquee:focus .hh-marquee-track { animation-play-state: paused; }
 @keyframes hh-marquee { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .hh-marquee-track { animation: none; } }
 .hh-arrow, .hh-chip, .hh-pointer-row { cursor: pointer; }

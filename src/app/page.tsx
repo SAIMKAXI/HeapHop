@@ -1,10 +1,10 @@
 // The landing page: the slogan with Byte beside it, a live demo, the two ways in (Learn, Editor),
-// and the features under a rolling headline. Lower sections fade in as they scroll into view.
+// and the features under a strip of rolling C++ words. Lower sections fade in as they scroll into view.
 import type { ReactNode } from "react";
 import { ArrowRight, CodeXml, GraduationCap, ListTree, MessageSquareText, MousePointerClick, ShieldCheck, TriangleAlert, Undo2 } from "lucide-react";
 import { PageFrame } from "@/ui/site/page-frame";
 import { ByteHero } from "@/ui/landing/byte-hero";
-import { HeadlineMarquee } from "@/ui/landing/headline-marquee";
+import { CodeTicker } from "@/ui/landing/code-ticker";
 import { LiveDemoPlayer } from "./live-demo-player";
 
 // One punchy line each, with a short sentence to back it up.
@@ -73,7 +73,8 @@ export default function LandingPage() {
       </section>
 
       <section className="py-14">
-        <HeadlineMarquee headline="Pointers, finally visible." items={FEATURES.map((f) => f.title)} />
+        <h2 data-reveal className="mx-auto max-w-6xl px-5 text-3xl font-black tracking-tight sm:text-4xl">Pointers, finally visible.</h2>
+        <div data-reveal className="mt-8"><CodeTicker /></div>
         <ul data-reveal-children className="mx-auto mt-8 grid max-w-6xl gap-x-10 gap-y-10 px-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
             <li key={f.title}>
