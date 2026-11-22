@@ -25,7 +25,7 @@ async function submitLogin(page, who, next) {
   await page.type("#f-password", who.password);
   // Either the server sends us on to another page, or the form shows a message.
   await page.click("[data-login-form] button[type=submit]");
-  await page.waitForFunction(() => location.pathname !== "/login" || document.querySelector("[data-banner='error']"), { timeout: 15000 });
+  await page.waitForFunction(() => location.pathname !== "/login" || document.querySelector("[data-banner='error'], [data-disabled-notice]"), { timeout: 15000 });
   await new Promise((r) => setTimeout(r, 150));
 }
 
@@ -203,9 +203,38 @@ test("the admin sees users and counts and can disable an account; the disabled u
   await admin.waitForFunction((email) => document.querySelector(`[data-user-row="${email}"]`)?.textContent.includes("Disabled"), {}, victim.email);
 
   await student.goto(origin() + "/editor", { waitUntil: "load" });
-  assert.equal(path(student), "/login?disabled=1", "the open session is ended");
+  assert.match(path(student), /^\/login\?disabled=1&ref=HH-[0-9A-F]{4}-[0-9A-F]{4}$/, "the open session is ended");
+  assert.ok(await student.$("[data-disabled-notice]"), "and the student is told why");
+
+  // A wrong password says only what it always says: nobody learns the account is disabled.
+  await submitLogin(student, { ...victim, password: "Wrong-Password-9" });
+  assert.match(await student.$eval("[data-banner='error']", (e) => e.textContent), /Email or password is wrong/);
+  assert.equal(await student.$("[data-disabled-notice]"), null);
+
+  // The right password: a clear notice, a reference code, and a pre-written review request.
   await submitLogin(student, victim);
-  assert.match(await student.$eval("[data-banner='error']", (e) => e.textContent), /disabled/);
+  assert.equal(new URL(student.url()).pathname, "/login", "still signed out");
+  assert.match(await student.$eval("[data-disabled-notice]", (e) => e.textContent), /Your account has been disabled.*believe this is a mistake/s);
+  const reference = await student.$eval("[data-reference]", (e) => e.textContent);
+  assert.match(reference, /^HH-[0-9A-F]{4}-[0-9A-F]{4}$/);
+  const review = new URL(await student.$eval("[data-review-request]", (a) => a.href));
+  assert.equal(review.origin + review.pathname, "https://github.com/SAIMKAXI/HeapHop/issues/new");
+  assert.ok(review.searchParams.get("title").includes(reference) && review.searchParams.get("body").includes(`Reference code: ${reference}`));
+  assert.ok(!review.href.toLowerCase().includes(encodeURIComponent(victim.email).toLowerCase()) && !review.href.includes(victim.email), "the email is never in the public request");
+  assert.equal(await student.$eval("[data-review-request]", (a) => a.target), "_blank");
+  const cookies = await student.cookies();
+  assert.ok(!cookies.some((c) => c.name.includes("auth-token") && c.value), "no session was left behind");
+
+  // The admin sees the same code next to the account, to match the request.
+  await admin.reload({ waitUntil: "load" });
+  assert.equal(await admin.$eval(`[data-user-row="${victim.email}"] [data-user-reference]`, (e) => e.textContent), reference);
+
+  // Enabled again: the student can sign in at once, and the code is gone from the list.
+  await admin.click(`[data-user-row="${victim.email}"] button`);
+  await admin.waitForFunction((email) => document.querySelector(`[data-user-row="${email}"]`)?.textContent.includes("Active"), {}, victim.email);
+  assert.equal(await admin.$(`[data-user-row="${victim.email}"] [data-user-reference]`), null);
+  await submitLogin(student, victim);
+  assert.equal(new URL(student.url()).pathname, "/learn");
   await student.close();
   await admin.close();
 });

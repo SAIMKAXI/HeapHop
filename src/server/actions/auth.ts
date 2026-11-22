@@ -5,6 +5,7 @@
 // Errors are logged by code only: never an email, a password or a token.
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { referenceFor, reviewIssueUrl } from "../reference";
 import { allow, clientIp } from "../rate-limit";
 import { serverSupabase } from "../supabase";
 import { cleanEmail, isTotpCode, passwordProblem, safeNext, validateSignup, type FieldErrors } from "../validate";
@@ -18,6 +19,8 @@ export interface FormState {
   fields?: FieldErrors;
   /** What the visitor typed (never the password), to put back in the form. */
   values?: Record<string, string>;
+  /** Set when the account is disabled (shown only after the right password). */
+  disabled?: { reference: string | null; reviewUrl: string };
 }
 
 const TOO_MANY = "Too many attempts. Wait a few minutes and try again.";
@@ -63,6 +66,8 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
   return { ok: true, message: `If ${input.email} can be used, we've sent a link to it. Open it to finish signing up.` };
 }
 
+const DISABLED = "Your account has been disabled.";
+
 export async function logIn(_prev: FormState, form: FormData): Promise<FormState> {
   const email = cleanEmail(form.get("email"));
   const password = form.get("password");
@@ -78,14 +83,18 @@ export async function logIn(_prev: FormState, form: FormData): Promise<FormState
     if (error || !data.user) {
       logCode("login", error);
       if (error?.code === "email_not_confirmed") return { error: "Confirm your email first: open the link we sent you.", values };
-      if (error?.code === "user_banned") return { error: "This account has been disabled. Contact your instructor.", values };
+      // Accounts are no longer banned inside Supabase (see admin_set_disabled), so a "banned" answer
+      // can't prove the password was right: say nothing more than for a wrong password.
       if (error?.status === 429) return { error: TOO_MANY, values };
       return { error: "Email or password is wrong.", values };
     }
+    // The password was right. A disabled account is signed straight out and told why, with a way
+    // to ask for a review; nobody without the password ever learns the account is disabled.
     const { data: profile } = await supabase.from("profiles").select("disabled").eq("id", data.user.id).maybeSingle();
     if (!profile || profile.disabled) {
       await supabase.auth.signOut();
-      return { error: "This account has been disabled. Contact your instructor.", values };
+      const reference = await referenceFor(data.user.email ?? email.value);
+      return { error: DISABLED, values, disabled: { reference, reviewUrl: reviewIssueUrl(reference) } };
     }
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     mfa = aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2";

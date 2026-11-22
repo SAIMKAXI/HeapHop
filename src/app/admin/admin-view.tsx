@@ -7,7 +7,7 @@ import { Banner } from "@/ui/auth/form-bits";
 import { UniversityPicker } from "@/ui/auth/university-picker";
 import type { University } from "@/ui/auth/university-search";
 
-export interface AdminUser { id: string; full_name: string; email: string; university: string; role: string; disabled: boolean; created_at: string }
+export interface AdminUser { id: string; full_name: string; email: string; university: string; role: string; disabled: boolean; created_at: string; reference?: string | null }
 export interface AdminStats { users: number; disabled: number; last_7_days: number; signups_by_day: { day: string; count: number }[]; by_university: { university: string; count: number; listed?: boolean }[]; to_review: { spelling: string; count: number }[] }
 
 const card = "rounded-xl border-2 border-card-border bg-card p-5";
@@ -101,7 +101,10 @@ export function AdminView({ me, users, stats, universities }: { me: string; user
                   <td className="pr-3">{u.email}</td>
                   <td className="pr-3">{u.university}</td>
                   <td className="pr-3 whitespace-nowrap">{new Date(u.created_at).toLocaleDateString()}</td>
-                  <td className={`pr-3 ${u.disabled ? "text-danger" : "text-success"}`}>{u.disabled ? "Disabled" : "Active"}</td>
+                  <td className={`pr-3 ${u.disabled ? "text-danger" : "text-success"}`}>
+                    {u.disabled ? "Disabled" : "Active"}
+                    {u.reference && <span className="ml-2 font-mono text-xs text-muted-foreground" title="The reference code this student sees, for review requests" data-user-reference>{u.reference}</span>}
+                  </td>
                   <td>
                     {u.id !== me && (
                       <form action={action}>

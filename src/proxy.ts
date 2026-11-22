@@ -7,6 +7,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { contentSecurityPolicy, newNonce, SESSION_COOKIE } from "@/server/policy";
+import { referenceFor } from "@/server/reference";
 import { isProtected } from "@/server/validate";
 
 export async function proxy(request: NextRequest) {
@@ -67,7 +68,9 @@ export async function proxy(request: NextRequest) {
     ]);
     if (!profile || profile.disabled) {
       await supabase.auth.signOut();
-      return redirectTo("/login?disabled=1");
+      const email = data?.claims?.email;
+      const ref = await referenceFor(typeof email === "string" ? email : null);
+      return redirectTo(`/login?disabled=1${ref ? `&ref=${ref}` : ""}`);
     }
     if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") return redirectTo(`/login/mfa?next=${encodeURIComponent(here)}`);
     if (isAdminPath && profile.role !== "admin") return notFound();

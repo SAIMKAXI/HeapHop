@@ -276,7 +276,8 @@ export function startFakeSupabase() {
       const row = profiles.get(json.target);
       if (!row) return send(404, { code: "P0002", message: "no such user" });
       row.disabled = json.value;
-      users.get(json.target).banned = json.value;
+      // Like the real function: no Auth ban; disabling deletes the account's sessions.
+      if (json.value) for (const [token, r] of refresh) if (r.id === json.target) refresh.delete(token);
       return send(204);
     }
     if (p === "/rest/v1/rpc/admin_stats") {
