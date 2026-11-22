@@ -5,6 +5,8 @@
 /** Characters that never belong in a name: markup, template and shell syntax, control codes. */
 const UNSAFE = /[<>{}[\]`$\\\u0000-\u001f\u007f]/;
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+/** Characters no address we accept may hold: markup, quotes, backslash, spaces, control codes (the database refuses them too). */
+const EMAIL_UNSAFE = /[<>"'`\\\u0000-\u0020\u007f]/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const LIMITS = { name: [2, 80], university: [2, 120], email: 254, password: [10, 72] } as const;
@@ -30,7 +32,7 @@ export function cleanUniversity(raw: unknown) { return text(raw, LIMITS.universi
 export function cleanEmail(raw: unknown): { value: string; error?: string } {
   const value = typeof raw === "string" ? raw.trim().toLowerCase() : "";
   if (!value) return { value, error: "Enter your email." };
-  if (value.length > LIMITS.email || !EMAIL.test(value)) return { value, error: "Enter a valid email address." };
+  if (value.length > LIMITS.email || !EMAIL.test(value) || EMAIL_UNSAFE.test(value)) return { value, error: "Enter a valid email address." };
   return { value };
 }
 

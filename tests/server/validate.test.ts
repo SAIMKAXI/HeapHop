@@ -20,6 +20,13 @@ test("names and universities refuse markup and control characters, but keep real
   assert.ok(cleanUniversity("<img src=x onerror=alert(1)>").error);
 });
 
+test("emails refuse markup, quotes, backslashes and control characters, but keep normal addresses", () => {
+  for (const bad of ['"<b>x</b>"@x.com', "a<script>@x.com", "o'neil@x.com", "a`b@x.com", "a\\b@x.com", "a\u0000b@x.com", 'a"b@x.com', "a@x<y.com"]) {
+    assert.ok(cleanEmail(bad).error, bad);
+  }
+  for (const ok of ["m.saim@gmail.com", "first.last+tag@air.edu.pk", "a_b-c@sub.domain.org"]) assert.equal(cleanEmail(ok).error, undefined, ok);
+});
+
 test("emails must be a plausible address of sane length", () => {
   assert.ok(cleanEmail("a@b").error);
   assert.ok(cleanEmail(`${"a".repeat(250)}@x.com`).error);
