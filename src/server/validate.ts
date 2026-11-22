@@ -10,7 +10,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const LIMITS = { name: [2, 80], university: [2, 120], email: 254, password: [10, 72] } as const;
 
 /** Pages that need an account. Everything else stays open. */
-export const PROTECTED = ["/learn", "/editor", "/account", "/admin"] as const;
+export const PROTECTED = ["/learn", "/editor", "/account", "/admin", "/reset-password"] as const;
 
 export type FieldErrors = Partial<Record<"fullName" | "email" | "university" | "password" | "confirm" | "current" | "code", string>>;
 

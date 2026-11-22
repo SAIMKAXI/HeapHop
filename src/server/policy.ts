@@ -4,6 +4,9 @@
 /** Session cookies: never readable by page scripts, only sent over HTTPS, not sent by other sites' forms. */
 export const SESSION_COOKIE = { httpOnly: true, secure: true, sameSite: "lax", path: "/" } as const;
 
+/** Where /auth/callback sends the visitor after a password-reset link (set only by requestReset). */
+export const AFTER_AUTH_COOKIE = "hh_after_auth";
+
 /**
  * The policy for one response. Scripts run only from this site, and an inline script only with
  * this response's nonce ('strict-dynamic' lets those scripts load their own chunks). The browser

@@ -4,8 +4,8 @@ export type SitePage = "home" | "learn" | "editor" | "faq" | "about" | "privacy"
 export const NAV_LINKS: { page: SitePage; href: string; label: string }[] = [
   { page: "learn", href: "/learn", label: "Learn" },
   { page: "editor", href: "/editor", label: "Editor" },
-  { page: "faq", href: "/faq", label: "FAQ" },
   { page: "about", href: "/about", label: "About" },
+  { page: "faq", href: "/faq", label: "FAQ" },
 ];
 
 export const FOOTER_LINKS = [

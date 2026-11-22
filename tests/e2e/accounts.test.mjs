@@ -26,14 +26,24 @@ async function submitLogin(page, who, next) {
   // Either the server sends us on to another page, or the form shows a message.
   await page.click("[data-login-form] button[type=submit]");
   await page.waitForFunction(() => location.pathname !== "/login" || document.querySelector("[data-banner='error']"), { timeout: 15000 });
-  await page.waitForNetworkIdle({ idleTime: 150 }).catch(() => {});
+  await new Promise((r) => setTimeout(r, 150));
 }
 
 const path = (page) => new URL(page.url()).pathname + new URL(page.url()).search;
 
-test("without an account, Learn, the editor, the account and admin pages send you to log in; the rest stay open", async () => {
+/** Opens the profile icon's menu in the header. */
+async function openMenu(page) {
+  await page.click("[data-profile-button]");
+  await page.waitForSelector("[role=menu]");
+}
+async function logOut(page) {
+  await openMenu(page);
+  await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click("[role=menu] [data-logout]")]);
+}
+
+test("without an account, Learn, the editor and the account page send you to log in; the rest stay open", async () => {
   const page = await freshPage();
-  for (const p of ["/learn", "/editor", "/account", "/admin", "/learn?lesson=bubble-sort"]) {
+  for (const p of ["/learn", "/editor", "/account", "/learn?lesson=bubble-sort"]) {
     await page.goto(origin() + p, { waitUntil: "load" });
     assert.equal(new URL(page.url()).pathname, "/login", p);
     assert.equal(new URL(page.url()).searchParams.get("next"), p, p);
@@ -75,7 +85,9 @@ test("sign-up checks every field on the server, then asks you to confirm your em
   await env.supabase().confirm(who.email);
   await submitLogin(page, who, "/editor");
   assert.equal(new URL(page.url()).pathname, "/editor");
-  assert.match(await page.$eval("[data-account-link]", (e) => e.textContent), /Ayesha/);
+  assert.ok(await page.$("[data-profile-button]"), "signed in: the profile icon shows");
+  assert.doesNotMatch(await page.$eval("header", (h) => h.textContent), /Ayesha|Siddiqa|new\.student/, "the header never shows the name or email");
+  assert.doesNotMatch(await page.content(), /Ayesha|Siddiqa/, "the name isn't even sent to the page on /editor");
   assert.deepEqual(page.errors, []);
   await page.close();
 });
@@ -129,7 +141,7 @@ test("log out works from the header, and a log-out request from another site is 
   assert.equal(forged.status, 403);
   const page = await freshPage();
   await submitLogin(page, STUDENT);
-  await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click("[data-logout]")]);
+  await logOut(page);
   assert.equal(new URL(page.url()).pathname, "/");
   await page.goto(origin() + "/learn", { waitUntil: "load" });
   assert.equal(new URL(page.url()).pathname, "/login");
@@ -153,7 +165,7 @@ test("MFA: set it up with an authenticator code, then every login asks for a fre
   await page.click("[data-account-mfa] button[type=submit]");
   await page.waitForFunction(() => document.querySelector("[data-account-mfa] [data-banner='ok']")?.textContent.includes("MFA is on"));
 
-  await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click("[data-logout]")]);
+  await logOut(page);
   await submitLogin(page, who, "/editor");
   assert.equal(new URL(page.url()).pathname, "/login/mfa", "the password alone is not enough");
   await page.goto(origin() + "/editor", { waitUntil: "load" });
@@ -170,13 +182,19 @@ test("the admin sees users and counts and can disable an account; the disabled u
   const student = await freshPage();
   await submitLogin(student, victim);
   assert.equal(new URL(student.url()).pathname, "/learn");
-  await student.goto(origin() + "/admin", { waitUntil: "load" });
-  assert.equal(new URL(student.url()).pathname, "/learn", "students can't open the admin page");
+  const denied = await student.goto(origin() + "/admin", { waitUntil: "load" });
+  assert.equal(denied.status(), 404, "students get a plain 404 at /admin");
+  assert.doesNotMatch(await student.content(), /data-admin-users|Users per university/);
+  await openMenu(student);
+  assert.equal(await student.$("[data-admin-link]"), null, "no Admin entry in a student's menu");
+  await student.keyboard.press("Escape");
 
   const admin = await freshPage();
   await submitLogin(admin, ADMIN, "/admin");
   assert.equal(new URL(admin.url()).pathname, "/admin");
-  assert.ok(await admin.$("[data-admin-link]"));
+  await openMenu(admin);
+  assert.ok(await admin.$("[data-admin-link]"), "the admin's menu has Admin");
+  await admin.keyboard.press("Escape");
   const stats = await admin.$eval("[data-admin-stats]", (e) => e.textContent);
   assert.match(stats, /Users\d+/);
   assert.ok(await admin.$(`[data-user-row="${victim.email}"]`));
@@ -197,4 +215,115 @@ test("the server logs never contain a password, an email or a token", async () =
   for (const secret of [STUDENT.password, ADMIN.password, STUDENT.email, "access_token", "refresh_token", "eyJ"]) {
     assert.ok(!out.includes(secret), `server output contains ${secret}`);
   }
+});
+
+test("the admin page answers 404 to visitors who aren't logged in, too", async () => {
+  const page = await freshPage();
+  const res = await page.goto(origin() + "/admin", { waitUntil: "load" });
+  assert.equal(res.status(), 404);
+  assert.equal(new URL(page.url()).pathname, "/admin", "no redirect hints that a login would help");
+  await page.close();
+});
+
+test("the header: Learn, Editor, About, FAQ, then the profile icon with Account settings and Log out, and a small theme switch", async () => {
+  const page = await freshPage();
+  await submitLogin(page, STUDENT, "/learn");
+  const links = await page.$$eval("header nav[aria-label=Site] a", (as) => as.map((a) => a.textContent));
+  assert.deepEqual(links, ["Learn", "Editor", "About", "FAQ"]);
+  const order = await page.$eval("header", (h) => [...h.querySelectorAll("nav[aria-label=Site], [data-profile-button], [data-theme-toggle]")]
+    .map((e) => ("profileButton" in e.dataset ? "profile" : "themeToggle" in e.dataset ? "theme" : "nav")));
+  assert.deepEqual(order, ["nav", "profile", "theme"]);
+  const toggle = await page.$eval("[data-theme-toggle]", (b) => b.getBoundingClientRect().height);
+  const icon = await page.$eval("[data-profile-button]", (b) => b.getBoundingClientRect().height);
+  assert.ok(toggle < icon, `the theme switch (${toggle}px) is smaller than the profile icon (${icon}px)`);
+  assert.equal(await page.$("[role=menu]"), null, "the menu starts closed");
+  await openMenu(page);
+  assert.deepEqual(await page.$$eval("[role=menuitem]", (m) => m.map((i) => i.textContent)), ["Account settings", "Log out"]);
+  await page.keyboard.press("Escape");
+  assert.equal(await page.$("[role=menu]"), null, "Escape closes it");
+  await openMenu(page);
+  await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click("[data-account-link]")]);
+  assert.equal(new URL(page.url()).pathname, "/account");
+  assert.ok(await page.$("[data-account-mfa] [data-mfa-start]"), "MFA is optional: off until you choose to set it up");
+  await page.close();
+});
+
+test("forgot password: one plain answer for any email, then the emailed link lets you choose a new password", async () => {
+  const who = { email: "forgetful@heaphop.test", password: "Old-Heap-Pass-1", fullName: "Forgetful Student", university: "UET" };
+  await env.supabase().addUser(who);
+  const page = await freshPage("/login");
+  await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click("[data-forgot-link]")]);
+  assert.equal(new URL(page.url()).pathname, "/forgot-password");
+  const ask = async (email) => {
+    await page.goto(origin() + "/forgot-password", { waitUntil: "load" });
+    await page.type("#f-email", email);
+    await page.click("[data-forgot-form] button[type=submit]");
+    await page.waitForSelector("[data-banner]");
+    return page.$eval("[data-banner]", (b, e) => b.textContent.replace(e, "EMAIL"), email);
+  };
+  const unknown = await ask("nobody.here@heaphop.test");
+  const known = await ask(who.email);
+  assert.equal(known, unknown, "the answer doesn't reveal who has an account");
+  assert.match(known, /sent it a link/);
+  assert.equal(await env.supabase().linkCode("nobody.here@heaphop.test"), null);
+
+  const code = await env.supabase().linkCode(who.email);
+  assert.ok(code, "a reset link was sent to the real account");
+  await page.goto(`${origin()}/auth/callback?code=${code}`, { waitUntil: "load" });
+  assert.equal(new URL(page.url()).pathname, "/reset-password");
+  await page.type("#f-password", "weak");
+  await page.type("#f-confirm", "weak");
+  await page.click("[data-reset-form] button[type=submit]");
+  await page.waitForSelector("[data-field-error='password']");
+  const fresh = "New-Heap-Pass-2";
+  await page.$eval("#f-password", (i) => (i.value = ""));
+  await page.$eval("#f-confirm", (i) => (i.value = ""));
+  await page.type("#f-password", fresh);
+  await page.type("#f-confirm", fresh);
+  await page.click("[data-reset-form] button[type=submit]");
+  await page.waitForSelector("[data-banner='ok']");
+
+  await logOut(page);
+  await submitLogin(page, who);
+  assert.equal(await page.$eval("[data-banner='error']", (e) => e.textContent), "Email or password is wrong.", "the old password no longer works");
+  await submitLogin(page, { ...who, password: fresh });
+  assert.equal(new URL(page.url()).pathname, "/learn");
+
+  const reused = await fetch(`${origin()}/auth/callback?code=${code}`, { redirect: "manual" });
+  assert.match(reused.headers.get("location") ?? "", /\/login\?confirmed=1/, "a used link can't sign anyone in again");
+  await page.close();
+});
+
+test("a reset link opened in another browser does not sign that browser in (PKCE)", async () => {
+  const who = { email: "pkce.check@heaphop.test", password: "Pkce-Heap-Pass-3", fullName: "Pkce Check", university: "UET" };
+  await env.supabase().addUser(who);
+  const asker = await freshPage("/forgot-password");
+  await asker.type("#f-email", who.email);
+  await asker.click("[data-forgot-form] button[type=submit]");
+  await asker.waitForSelector("[data-banner='ok']");
+  const code = await env.supabase().linkCode(who.email);
+  const stranger = await freshPage();
+  await stranger.goto(`${origin()}/auth/callback?code=${code}`, { waitUntil: "load" });
+  assert.equal(new URL(stranger.url()).pathname, "/login");
+  await stranger.goto(origin() + "/reset-password", { waitUntil: "load" });
+  assert.equal(new URL(stranger.url()).pathname, "/login");
+  await asker.close();
+  await stranger.close();
+});
+
+test("the login page shows the live 3D list beside the form, and sign-up shows Byte, without a single error", async () => {
+  const page = await freshPage("/login");
+  await page.setViewport({ width: 1400, height: 900 });
+  await page.reload({ waitUntil: "networkidle0" });
+  assert.ok(await page.$("[data-auth-aside] canvas[data-heap-scene]"), "the 3D panel is beside the login form");
+  assert.ok(await page.$("[data-login-form]"));
+  await new Promise((r) => setTimeout(r, 1500));
+  assert.deepEqual(page.errors, [], "no errors, even where WebGL is unavailable");
+  await page.goto(origin() + "/signup", { waitUntil: "networkidle0" });
+  assert.ok(await page.$("[data-auth-aside] [data-byte-hero]"), "Byte is beside the sign-up form");
+  assert.equal(await page.$("canvas[data-heap-scene]"), null);
+  await page.setViewport({ width: 600, height: 900 });
+  assert.equal(await page.$eval("[data-auth-aside]", (a) => getComputedStyle(a).display), "none", "phones get just the form");
+  assert.deepEqual(page.errors, []);
+  await page.close();
 });

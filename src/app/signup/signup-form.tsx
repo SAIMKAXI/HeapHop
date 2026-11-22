@@ -2,6 +2,7 @@
 import { useActionState } from "react";
 import { signUp, type FormState } from "@/server/actions/auth";
 import { AuthCard, Banner, Field, Submit } from "@/ui/auth/form-bits";
+import { SignupAside } from "@/ui/auth/signup-aside";
 import { LIMITS } from "@/server/validate";
 
 export function SignupForm() {
@@ -16,7 +17,7 @@ export function SignupForm() {
   }
   const v = state.values ?? {};
   return (
-    <AuthCard title="Create your account" intro={<>Already have one? <a href="/login" className="font-semibold text-accent hover:underline">Log in</a></>}>
+    <AuthCard aside={<SignupAside />} title="Create your account" intro={<>Already have one? <a href="/login" className="font-semibold text-accent hover:underline">Log in</a></>}>
       <form action={action} noValidate data-signup-form>
         {state.error && <Banner kind="error">{state.error}</Banner>}
         <Field label="Full name" name="fullName" autoComplete="name" maxLength={LIMITS.name[1]} defaultValue={v.fullName} error={state.fields?.fullName} />

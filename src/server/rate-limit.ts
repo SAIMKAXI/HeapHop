@@ -11,6 +11,8 @@ export const RULES = {
   loginEmail: { max: 8, seconds: 600 },
   mfaUser: { max: 10, seconds: 600 },
   passwordUser: { max: 5, seconds: 600 },
+  resetIp: { max: 5, seconds: 3600 },
+  resetEmail: { max: 3, seconds: 3600 },
 } as const;
 
 export function bucketKey(secret: string, rule: string, who: string): string {

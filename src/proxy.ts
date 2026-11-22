@@ -51,9 +51,16 @@ export async function proxy(request: NextRequest) {
     return finish(res);
   };
   const here = path + request.nextUrl.search;
+  const isAdminPath = path === "/admin" || path.startsWith("/admin/");
+  // The admin page does not admit it exists to anyone who isn't an admin: they get a plain 404.
+  const notFound = () => {
+    const res = NextResponse.rewrite(new URL("/__not-found", request.url), { status: 404, request: { headers: forwarded } });
+    for (const c of response.cookies.getAll()) res.cookies.set(c);
+    return finish(res);
+  };
 
   if (isProtected(path)) {
-    if (!sub) return redirectTo(`/login?next=${encodeURIComponent(here)}`);
+    if (!sub) return isAdminPath ? notFound() : redirectTo(`/login?next=${encodeURIComponent(here)}`);
     const [{ data: profile }, { data: aal }] = await Promise.all([
       supabase.from("profiles").select("role, disabled").eq("id", sub).maybeSingle(),
       supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
@@ -63,7 +70,7 @@ export async function proxy(request: NextRequest) {
       return redirectTo("/login?disabled=1");
     }
     if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") return redirectTo(`/login/mfa?next=${encodeURIComponent(here)}`);
-    if (path.startsWith("/admin") && profile.role !== "admin") return redirectTo("/learn");
+    if (isAdminPath && profile.role !== "admin") return notFound();
   } else if (sub && (path === "/login" || path === "/signup")) {
     return redirectTo("/learn");
   }

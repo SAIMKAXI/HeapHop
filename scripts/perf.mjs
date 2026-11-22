@@ -5,12 +5,12 @@
 //   npm run build && npm run perf -- --headed  a visible window, using the real graphics card
 //
 // Run it on the laptop the demo will use; the headless numbers are only a lower bound.
-import { join } from "node:path";
 import puppeteer from "puppeteer-core";
-import { chromePath, clickRun, serveStatic, setEditorCode } from "./browser.mjs";
+import { chromePath, clickRun, setEditorCode } from "./browser.mjs";
+import { logIn, startSite, STUDENT } from "../tests/e2e/harness.mjs";
+import { startFakeSupabase } from "../tests/e2e/fake-supabase.mjs";
 
 const headed = process.argv.includes("--headed");
-const root = join(import.meta.dirname, "..");
 
 const listProgram = (n) => `struct Node { int data; Node* next; };
 int main() {
@@ -67,13 +67,18 @@ async function panZoom(page) {
 const pct = (sorted, p) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))];
 const ms = (v) => `${v.toFixed(1)} ms`;
 
-const server = await serveStatic(join(root, "out"));
+// The editor needs an account, so this runs the real Next.js server (from `npm run build`)
+// against the same local stand-in for Supabase the browser tests use, and logs in first.
+const supabase = await startFakeSupabase();
+await supabase.addUser(STUDENT);
+const server = await startSite(supabase);
 const browser = await puppeteer.launch({
   executablePath: chromePath(),
   headless: !headed,
   args: headed ? [] : ["--no-sandbox"],
   defaultViewport: { width: 1440, height: 900 },
 });
+await logIn(browser, server.origin);
 const page = await browser.newPage();
 await page.goto(`${server.origin}/editor`, { waitUntil: "load" });
 await page.waitForSelector("textarea[data-code-input]");
@@ -114,3 +119,4 @@ console.log("\nA step update is ready on the next frame, so about 16 ms is the f
 
 await browser.close();
 await server.close();
+await supabase.close();

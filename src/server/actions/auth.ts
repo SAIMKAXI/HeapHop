@@ -3,11 +3,13 @@
 // every server action call comes from this site's own pages (Origin must match Host), and the
 // session cookie is SameSite, so another site cannot submit these forms for a visitor (CSRF).
 // Errors are logged by code only: never an email, a password or a token.
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { allow, clientIp } from "../rate-limit";
 import { serverSupabase } from "../supabase";
-import { cleanEmail, isTotpCode, safeNext, validateSignup, type FieldErrors } from "../validate";
+import { cleanEmail, isTotpCode, passwordProblem, safeNext, validateSignup, type FieldErrors } from "../validate";
+import { AFTER_AUTH_COOKIE, SESSION_COOKIE } from "../policy";
+import { requireViewer } from "../session";
 
 export interface FormState {
   ok?: boolean;
@@ -128,4 +130,43 @@ export async function logOut(): Promise<void> {
     // Signing out of a session that is already gone is fine.
   }
   redirect("/");
+}
+
+
+export async function requestReset(_prev: FormState, form: FormData): Promise<FormState> {
+  const email = cleanEmail(form.get("email"));
+  if (email.error) return { fields: { email: email.error }, values: { email: email.value } };
+  const sent = { ok: true, message: `If ${email.value} has a HeapHop account, we've sent it a link to choose a new password. Open it on this device.` };
+  try {
+    if (!(await allow("resetIp", await clientIp())) || !(await allow("resetEmail", email.value))) return { error: TOO_MANY, values: { email: email.value } };
+    (await cookies()).set(AFTER_AUTH_COOKIE, "/reset-password", { ...SESSION_COOKIE, maxAge: 60 * 30 });
+    const supabase = await serverSupabase();
+    const { error } = await supabase.auth.resetPasswordForEmail(email.value, { redirectTo: `${await siteOrigin()}/auth/callback` });
+    if (error) {
+      logCode("reset", error);
+      if (error.status === 429) return { error: "We can't send more emails right now. Try again in an hour.", values: { email: email.value } };
+    }
+  } catch (e) {
+    console.warn(`[auth] reset: ${(e as Error).name}`);
+    return { error: BROKEN, values: { email: email.value } };
+  }
+  // The same answer whether or not the email has an account.
+  return sent;
+}
+
+export async function setNewPassword(_prev: FormState, form: FormData): Promise<FormState> {
+  const viewer = await requireViewer("/reset-password");
+  const password = form.get("password");
+  const problem = passwordProblem(password, viewer.email);
+  if (problem) return { fields: { password: problem } };
+  if (form.get("confirm") !== password) return { fields: { confirm: "The two passwords don't match." } };
+  if (!(await allow("passwordUser", viewer.id))) return { error: TOO_MANY };
+  const supabase = await serverSupabase();
+  const { error } = await supabase.auth.updateUser({ password: password as string });
+  if (error) {
+    logCode("new-password", error);
+    if (error.code === "same_password") return { fields: { password: "Choose a password you haven't used here." } };
+    return { error: BROKEN };
+  }
+  return { ok: true, message: "Your password has been changed." };
 }

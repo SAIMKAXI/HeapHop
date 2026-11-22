@@ -2,11 +2,11 @@
 
 // True on the website, where the other pages exist. The VS Code webview shows the
 // editor on its own, so there its header has no links. On the website the server also
-// says who is signed in, for the header (name and role only: nothing secret).
+// says whether someone is signed in and if they are an admin (nothing personal).
 import { createContext, useContext, type ReactNode } from "react";
 
+/** Only what the header needs. The name and email are never sent to the page for this. */
 export interface SessionInfo {
-  name: string;
   admin: boolean;
 }
 

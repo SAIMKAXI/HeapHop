@@ -19,7 +19,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // Every page is rendered per request: the CSP nonce changes each time, and the header shows who is signed in.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const viewer = await getViewer();
-  const session = viewer && viewer.mfaDone ? { name: viewer.fullName, admin: viewer.role === "admin" } : null;
+  const session = viewer && viewer.mfaDone ? { admin: viewer.role === "admin" } : null;
   return (
     // The saved theme is applied by the script before the first paint, so the class on
     // <html> may differ from the pre-rendered one.

@@ -2,17 +2,37 @@
 import type { ReactNode } from "react";
 import { AppHeader } from "@/ui/site/app-header";
 
-export function AuthCard({ title, intro, children, wide = false }: { title: string; intro?: ReactNode; children: ReactNode; wide?: boolean }) {
+/** The account pages' frame. With `aside`, wide screens show it beside the form (Byte, a 3D scene). */
+export function AuthCard({ title, intro, children, wide = false, aside }: { title: string; intro?: ReactNode; children: ReactNode; wide?: boolean; aside?: ReactNode }) {
+  const card = (
+    <div className={`w-full ${wide ? "max-w-3xl" : "max-w-md"} rounded-2xl border-2 border-card-border bg-card p-6 sm:p-8`}>
+      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+      {intro && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{intro}</p>}
+      <div className="mt-6">{children}</div>
+    </div>
+  );
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <AppHeader />
       <main className="flex flex-1 items-start justify-center px-5 py-10 sm:py-16">
-        <div className={`w-full ${wide ? "max-w-3xl" : "max-w-md"} rounded-2xl border-2 border-card-border bg-card p-6 sm:p-8`}>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          {intro && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{intro}</p>}
-          <div className="mt-6">{children}</div>
-        </div>
+        {aside ? (
+          <div className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_1fr]">
+            <div className="hidden lg:block" data-auth-aside>{aside}</div>
+            <div className="flex justify-center lg:justify-end">{card}</div>
+          </div>
+        ) : card}
       </main>
+    </div>
+  );
+}
+
+/** The words that go with an aside visual. */
+export function AsideText({ kicker, title, children }: { kicker: string; title: string; children: ReactNode }) {
+  return (
+    <div className="mb-6 max-w-lg">
+      <p className="font-mono text-xs uppercase tracking-widest text-accent">{kicker}</p>
+      <h2 className="mt-2 text-4xl font-bold leading-tight tracking-tight">{title}</h2>
+      <p className="mt-3 leading-relaxed text-muted-foreground">{children}</p>
     </div>
   );
 }

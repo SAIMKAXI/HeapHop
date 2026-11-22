@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/ui/theme-toggle";
 import { cn } from "@/ui/utils";
 import { Logo } from "./logo";
 import { NAV_LINKS, type SitePage } from "./links";
+import { ProfileMenu } from "./profile-menu";
 import { useOnWebsite, useSession } from "./website";
 
 interface AppHeaderProps {
@@ -18,7 +19,6 @@ interface AppHeaderProps {
 }
 
 const pill = "rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-card-border/40 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent";
-const firstName = (name: string) => name.split(" ")[0].slice(0, 20);
 
 export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProps) {
   const onWebsite = useOnWebsite();
@@ -40,7 +40,7 @@ export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProp
         )}
         {onWebsite ? <a href="/" data-home-link className="rounded focus-visible:outline-2 focus-visible:outline-accent">{name}</a> : name}
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {onWebsite && (
           <nav aria-label="Site" className="hidden items-center gap-1 sm:flex">
             {NAV_LINKS.map((l) => (
@@ -59,14 +59,7 @@ export function AppHeader({ current, onBack, backLabel = "Back" }: AppHeaderProp
           </nav>
         )}
         {onWebsite && (session ? (
-          <div className="flex items-center gap-1" data-account-menu>
-            {session.admin && <a href="/admin" className={pill} data-admin-link>Admin</a>}
-            <a href="/account" className={pill} title="Your account" data-account-link>{firstName(session.name)}</a>
-            {/* A plain form post: the server checks the Origin and the cookie is SameSite. */}
-            <form method="post" action="/auth/logout">
-              <button type="submit" className={pill} data-logout>Log out</button>
-            </form>
-          </div>
+          <ProfileMenu admin={session.admin} />
         ) : (
           <div className="flex items-center gap-1">
             <a href="/login" className={pill} data-login-link>Log in</a>

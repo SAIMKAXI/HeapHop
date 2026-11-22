@@ -42,6 +42,7 @@ export function startFakeSupabase() {
   const profiles = new Map(); // id -> profile
   const refresh = new Map(); // refresh token -> { id, aal }
   const limits = new Map();
+  const codes = new Map(); // one-time code from an email link -> { id, challenge, email }
   const log = [];
 
   const userJson = (u) => ({
@@ -92,8 +93,25 @@ export function startFakeSupabase() {
       return send(200, {});
     }
 
+    if (p === "/__test/link") {
+      const hit = [...codes.entries()].reverse().find(([, v]) => v.email === url.searchParams.get("email"));
+      return send(200, { code: hit?.[0] ?? null });
+    }
+
     // ---- auth
     if (p === "/auth/v1/.well-known/jwks.json") return send(200, { keys: [] });
+    if (p === "/auth/v1/recover" && req.method === "POST") {
+      const u = [...users.values()].find((x) => x.email === String(json.email).toLowerCase());
+      if (u) codes.set(randomBytes(12).toString("hex"), { id: u.id, challenge: json.code_challenge, email: u.email });
+      return send(200, {}); // same answer either way
+    }
+    if (p === "/auth/v1/token" && url.searchParams.get("grant_type") === "pkce") {
+      const c = codes.get(json.auth_code);
+      codes.delete(json.auth_code);
+      const ok = c && createHash("sha256").update(json.code_verifier ?? "").digest("base64url") === c.challenge;
+      if (!ok) return fail(400, "flow_state_not_found", "invalid flow state, no valid flow state found");
+      return send(200, session(users.get(c.id)));
+    }
     if (p === "/auth/v1/signup" && req.method === "POST") {
       const existing = [...users.values()].find((x) => x.email === String(json.email).toLowerCase());
       if (existing) return send(200, { ...userJson(existing), identities: [] }); // no enumeration
@@ -210,6 +228,7 @@ export function startFakeSupabase() {
         addUser: (u) => fetch(`${origin}/__test/users`, { method: "POST", body: JSON.stringify(u) }).then((r) => r.json()),
         state: () => fetch(`${origin}/__test/state`).then((r) => r.json()),
         confirm: (email) => fetch(`${origin}/__test/confirm`, { method: "POST", body: JSON.stringify({ email }) }),
+        linkCode: (email) => fetch(`${origin}/__test/link?email=${encodeURIComponent(email)}`).then((r) => r.json()).then((j) => j.code),
         resetLimits: () => fetch(`${origin}/__test/reset`, { method: "POST" }),
         close: () => new Promise((r) => server.close(r)),
       });
