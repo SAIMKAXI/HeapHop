@@ -35,7 +35,7 @@ const card = "group flex flex-col rounded-xl border-2 border-card-border bg-card
 
 export function LearnHome() {
   return (
-    <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
+    <div data-reveal-children className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
       <h1 className="text-3xl font-bold tracking-tight">Learn</h1>
       <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
         Each lesson runs a real C++ program and stops at the moments that matter. Some stops ask you to predict where a
@@ -43,10 +43,10 @@ export function LearnHome() {
       </p>
 
       {TOPICS.map(({ topic, title, intro, icon }) => (
-        <section key={topic} data-topic={topic} className="mt-12">
+        <section key={topic} data-topic={topic} data-reveal-children className="mt-12">
           <h2 className="flex items-center gap-2 text-xl font-bold"><span className="text-accent">{icon}</span>{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{intro}</p>
-          <ol className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ol data-reveal-children className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {LESSONS.filter((l) => l.topic === topic).map((l, i) => (
               <li key={l.id} className="flex">
                 <PickLink pick={{ kind: "lesson", id: l.id }} className={`${card} flex-1`}>
@@ -63,13 +63,13 @@ export function LearnHome() {
         </section>
       ))}
 
-      <section className="mt-16">
+      <section data-reveal-children className="mt-16">
         <h2 className="flex items-center gap-2 text-xl font-bold"><Play size={18} className="text-accent" aria-hidden />Watch a program</h2>
         <p className="mt-1 text-sm text-muted-foreground">Ready-made programs to step through at your own pace, without questions.</p>
         {EXAMPLE_GROUPS.map((group) => (
-          <div key={group} className="mt-8">
+          <div key={group} data-reveal-children className="mt-8">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted">{GROUP_TITLES[group]}</h3>
-            <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul data-reveal-children className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {EXAMPLES.filter((e) => e.group === group).map((e) => (
                 <li key={e.id} className="flex">
                   <PickLink pick={{ kind: "example", id: e.id }} className={`${card} flex-1 p-4`}>

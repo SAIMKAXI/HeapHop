@@ -229,6 +229,29 @@ html:not(.light) .hh-born .hh-shape { animation: hh-born 1.4s ease-out; }
   .hh-node, .hh-chip { transition: none; }
   .hh-fade, .hh-flash, .hh-hover, .hh-hover-shadow, .hh-flicker { animation: none; }
 }
+/* Scroll reveal (src/ui/site/scroll-reveal.tsx): items wait faded and a little low until
+   they scroll into view. Only while <html data-reveal> is set, which is never the case for
+   reduced motion or without JavaScript. */
+:root[data-reveal] :is([data-reveal], [data-reveal-children] > :not([data-reveal-children])) {
+  transition: opacity 650ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms), transform 650ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms);
+}
+:root[data-reveal] :is([data-reveal], [data-reveal-children] > :not([data-reveal-children])):not([data-shown]) {
+  opacity: 0; transform: translateY(18px);
+}
+@media print {
+  :root[data-reveal] :is([data-reveal], [data-reveal-children] > *) { opacity: 1 !important; transform: none !important; }
+}
+/* The rolling headline on the landing page: two identical copies side by side, moved left
+   by one copy's width and started again, so the seam never shows. */
+.hh-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+.hh-marquee-track { display: flex; width: max-content; animation: hh-marquee 48s linear infinite; }
+.hh-marquee:hover .hh-marquee-track, .hh-marquee[data-paused] .hh-marquee-track { animation-play-state: paused; }
+@keyframes hh-marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .hh-marquee-track { animation: none; } }
 .hh-arrow, .hh-chip, .hh-pointer-row { cursor: pointer; }
 .hh-arrow:hover > path:first-child { stroke-width: 3.5; }
 .hh-pointer-row:hover text:last-of-type { text-decoration: underline; }

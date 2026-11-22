@@ -1,8 +1,10 @@
-// The landing page: the slogan with Byte beside it, a live demo, and the two ways in (Learn, Editor).
+// The landing page: the slogan with Byte beside it, a live demo, the two ways in (Learn, Editor),
+// and the features under a rolling headline. Lower sections fade in as they scroll into view.
 import type { ReactNode } from "react";
 import { ArrowRight, CodeXml, GraduationCap, ListTree, MessageSquareText, MousePointerClick, ShieldCheck, TriangleAlert, Undo2 } from "lucide-react";
 import { PageFrame } from "@/ui/site/page-frame";
 import { ByteHero } from "@/ui/landing/byte-hero";
+import { HeadlineMarquee } from "@/ui/landing/headline-marquee";
 import { LiveDemoPlayer } from "./live-demo-player";
 
 // One punchy line each, with a short sentence to back it up.
@@ -12,7 +14,7 @@ const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
   { icon: <TriangleAlert size={22} />, title: "Catch the crash.", text: "Null pointers, use after delete and leaks stop at their line, with the reason." },
   { icon: <ListTree size={22} />, title: "Trees that look like trees.", text: "Lists in a row, binary trees with real branches, head and cur on their nodes." },
   { icon: <MousePointerClick size={22} />, title: "Click to investigate.", text: "Any node, pointer or line of code shows its history. Jump to any moment in it." },
-  { icon: <ShieldCheck size={22} />, title: "Nothing leaves your browser.", text: "No account, no install, no upload." },
+  { icon: <ShieldCheck size={22} />, title: "Your code never leaves your browser.", text: "Programs run on your device. No install, no upload." },
 ];
 
 const WAYS = [
@@ -54,8 +56,8 @@ export default function LandingPage() {
 
       <section className="border-y-2 border-card-border bg-card/50">
         <div className="mx-auto max-w-6xl px-5 py-14">
-          <h2 className="text-2xl font-bold tracking-tight">Two ways to use HeapHop</h2>
-          <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <h2 data-reveal className="text-2xl font-bold tracking-tight">Two ways to use HeapHop</h2>
+          <div data-reveal-children className="mt-6 grid gap-5 md:grid-cols-2">
             {WAYS.map((w) => (
               <a key={w.href} href={w.href} className="group flex flex-col rounded-2xl border-2 border-card-border bg-card p-6 transition-colors hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent" aria-hidden>{w.icon}</span>
@@ -70,9 +72,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-14">
-        <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Pointers, finally visible.</h2>
-        <ul className="mt-10 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="py-14">
+        <HeadlineMarquee headline="Pointers, finally visible." items={FEATURES.map((f) => f.title)} />
+        <ul data-reveal-children className="mx-auto mt-8 grid max-w-6xl gap-x-10 gap-y-10 px-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
             <li key={f.title}>
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent" aria-hidden>{f.icon}</span>
@@ -81,10 +83,6 @@ export default function LandingPage() {
             </li>
           ))}
         </ul>
-        <p className="mt-10 text-sm text-muted-foreground">
-          HeapHop runs a part of C++ chosen from real first-course lab programs.{" "}
-          <a href="/supported" className="font-semibold text-accent underline-offset-4 hover:underline">See what C++ is supported</a>.
-        </p>
       </section>
     </PageFrame>
   );

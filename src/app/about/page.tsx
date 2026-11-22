@@ -36,7 +36,7 @@ export default function AboutPage() {
 
       <h2 className={h2}>The team</h2>
       <p className={p}>Cyber Security undergraduate students at Air University, Islamabad.</p>
-      <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+      <ul data-reveal-children className="mt-6 grid gap-4 sm:grid-cols-2">
         {TEAM.map(({ name, kind, background, shirt }) => (
           <li key={name} data-team-member className="flex items-center gap-4 rounded-xl border-2 border-card-border bg-card p-4">
             <Avatar kind={kind} background={background} shirt={shirt} />

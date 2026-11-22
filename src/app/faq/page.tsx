@@ -64,7 +64,7 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
 export default function FaqPage() {
   return (
     <PageFrame current="faq" title="Frequently asked questions">
-      <div className="divide-y-2 divide-card-border border-y-2 border-card-border">
+      <div data-reveal-children className="divide-y-2 divide-card-border border-y-2 border-card-border">
         {QUESTIONS.map(({ q, a }) => (
           <details key={q} data-faq className="group py-1">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded py-4 font-semibold focus-visible:outline-2 focus-visible:outline-accent">
