@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { signUp, type FormState } from "@/server/actions/auth";
+import { PasswordField } from "@/ui/auth/password-field";
 import { AuthCard, Banner, Field, Submit } from "@/ui/auth/form-bits";
 import { SignupAside } from "@/ui/auth/signup-aside";
 import { UniversityPicker } from "@/ui/auth/university-picker";
@@ -25,9 +26,9 @@ export function SignupForm({ universities }: { universities: University[] }) {
         <Field label="Full name" name="fullName" autoComplete="name" maxLength={LIMITS.name[1]} defaultValue={v.fullName} error={state.fields?.fullName} />
         <Field label="Email" name="email" type="email" inputMode="email" autoComplete="email" maxLength={LIMITS.email} defaultValue={v.email} error={state.fields?.email} />
         <UniversityPicker universities={universities} label="University or college" name="university" maxLength={LIMITS.university[1]} defaultValue={v.university} error={state.fields?.university} />
-        <Field label="Password" name="password" type="password" autoComplete="new-password" maxLength={72} error={state.fields?.password}
+        <PasswordField label="Password" name="password" autoComplete="new-password" maxLength={72} error={state.fields?.password}
           hint="At least 10 characters, mixing three of: lowercase, uppercase, numbers, symbols." />
-        <Field label="Confirm password" name="confirm" type="password" autoComplete="new-password" maxLength={72} error={state.fields?.confirm} />
+        <PasswordField label="Confirm password" name="confirm" autoComplete="new-password" maxLength={72} error={state.fields?.confirm} />
         <Submit pending={pending}>Create account</Submit>
       </form>
     </AuthCard>
