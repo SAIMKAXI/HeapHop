@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { PageFrame } from "@/ui/site/page-frame";
+import { PageScene } from "@/ui/three/page-scene";
 
 export const metadata: Metadata = { title: "FAQ", description: "Questions about HeapHop: what it runs, where your code goes, and what the pictures mean." };
 
@@ -64,13 +65,18 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
 
 export default function FaqPage() {
   return (
-    <PageFrame current="faq" title="Frequently asked questions">
-      <div data-reveal-children className="divide-y-2 divide-card-border border-y-2 border-card-border">
+    <PageFrame
+      current="faq"
+      title="Frequently asked questions"
+      intro="What HeapHop runs, where your code goes, and what the pictures mean. Click a question to open it."
+      scene={<PageScene name="faq" />}
+    >
+      <div data-reveal-children className="gap-5 sm:columns-2" data-faq-list>
         {QUESTIONS.map(({ q, a }) => (
-          <details key={q} data-faq className="group py-1">
+          <details key={q} data-faq className="group mb-5 break-inside-avoid rounded-2xl border-2 border-card-border bg-card px-5 transition-colors open:border-accent/50 hover:border-accent/40">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded py-4 font-semibold focus-visible:outline-2 focus-visible:outline-accent">
               {q}
-              <span className="text-xl leading-none text-muted transition-transform group-open:rotate-45" aria-hidden>+</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-lg leading-none text-accent transition-transform group-open:rotate-45" aria-hidden>+</span>
             </summary>
             <div className="pb-5 leading-relaxed text-muted-foreground">{a}</div>
           </details>

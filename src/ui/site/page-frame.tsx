@@ -1,6 +1,8 @@
 // The frame of every page that is read rather than used: header, content, footer.
-// With a title, the content is set as a single readable column under that heading, and each
-// block of it fades in as it scrolls into view (see scroll-reveal.tsx).
+// With a title, the content is set as a single readable column under that heading. With a
+// title and a scene, the page gets a full-width header (title on the left, a live 3D picture on
+// the right) and the content below uses the full width. Either way each block fades in as it
+// scrolls into view (see scroll-reveal.tsx).
 import type { ReactNode } from "react";
 import { AppHeader } from "./app-header";
 import { Logo } from "./logo";
@@ -12,15 +14,31 @@ interface PageFrameProps {
   title?: string;
   /** One paragraph under the title. */
   intro?: ReactNode;
+  /** A live picture for the right of a full-width header (with a title). */
+  scene?: ReactNode;
   children: ReactNode;
 }
 
-export function PageFrame({ current, title, intro, children }: PageFrameProps) {
+export function PageFrame({ current, title, intro, scene, children }: PageFrameProps) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <AppHeader current={current} />
       <main className="flex-1">
-        {title ? (
+        {title && scene ? (
+          <>
+            <header data-page-hero className="border-b-2 border-card-border bg-[radial-gradient(ellipse_at_80%_40%,color-mix(in_srgb,var(--accent)_12%,transparent),transparent_60%)]">
+              <div className="mx-auto grid max-w-6xl items-center gap-6 px-5 py-10 sm:py-12 lg:grid-cols-[1fr_minmax(0,32rem)]">
+                <div data-reveal-children>
+                  <h1 className="text-4xl font-black tracking-tight sm:text-5xl">{title}</h1>
+                  {intro && <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">{intro}</p>}
+                  <span className="mt-6 block h-1 w-16 rounded-full bg-accent" aria-hidden />
+                </div>
+                <div className="h-56 sm:h-72 lg:h-80" data-page-scene-box>{scene}</div>
+              </div>
+            </header>
+            <div className="mx-auto max-w-6xl px-5 py-10 sm:py-12">{children}</div>
+          </>
+        ) : title ? (
           <article data-reveal-children className="mx-auto max-w-3xl px-5 py-10 sm:py-14">
             <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
             {intro && <p className="mt-3 text-base leading-relaxed text-muted-foreground">{intro}</p>}

@@ -48,7 +48,7 @@ test("About lists the five team members, FAQ answers open, Privacy says the code
   await page.goto(origin() + "/privacy");
   const privacy = await textOf(page, "main");
   assert.match(privacy, /never\s+uploaded/);
-  for (const must of [/Full name/, /Email address/, /University or college/, /one-way hash/, /Sign-in cookies/, /Supabase/, /Mumbai/, /Vercel/, /Deleting your account/, /do not write your email address/i]) assert.match(privacy, must);
+  for (const must of [/What we store/, /one-way hash/, /Who can see it/, /Cookies/, /Supabase/, /Mumbai/, /Vercel/, /Deleting your account/, /do not write your email address/i]) assert.match(privacy, must);
   for (const stale of [/no accounts/i, /no cookies/i, /no personal information/i]) assert.doesNotMatch(privacy, stale);
   await page.goto(origin() + "/about");
   assert.doesNotMatch(await textOf(page, "main"), /no accounts|does not collect any data/i);

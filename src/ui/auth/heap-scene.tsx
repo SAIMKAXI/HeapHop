@@ -6,6 +6,7 @@
 // it draws one still frame. If WebGL isn't available, nothing is drawn and the form is unaffected.
 import { useEffect, useRef } from "react";
 import { curAt } from "./heap-scene-timing";
+import { hasWebGL } from "@/ui/three/stage";
 
 const VALUES = [12, 7, 42, 3, 19];
 const GAP = 3.1;
@@ -20,7 +21,7 @@ export function HeapScene() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !hasWebGL()) return;
     let disposed = false;
     let cleanup = () => {};
 
