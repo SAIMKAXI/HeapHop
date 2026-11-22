@@ -78,7 +78,7 @@ test("sign-up checks every field on the server, then asks you to confirm your em
   await page.waitForSelector("[data-banner='ok']");
   assert.match(await page.$eval("[data-banner='ok']", (e) => e.textContent), /sent a link/);
   const state = await env.supabase().state();
-  assert.deepEqual(state.profiles.find((p) => p.email === who.email), { ...state.profiles.find((p) => p.email === who.email), full_name: "Ayesha Siddiqa", university: "NUST", role: "student" });
+  assert.deepEqual(state.profiles.find((p) => p.email === who.email), { ...state.profiles.find((p) => p.email === who.email), full_name: "Ayesha Siddiqa", university: "National University of Sciences & Technology", role: "student" }, "the short form is saved as the listed name");
 
   await submitLogin(page, who);
   assert.match(await page.$eval("[data-banner='error']", (e) => e.textContent), /Confirm your email/);

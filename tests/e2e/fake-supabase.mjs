@@ -1,10 +1,20 @@
 // A small stand-in for Supabase's Auth and REST APIs, for the browser tests. It speaks the same
 // HTTP as the real service for the calls HeapHop makes (sign-up, password login, refresh, user,
-// logout, TOTP MFA, profiles, the rate-limit and admin functions), so the tests exercise the real
+// logout, TOTP MFA, profiles, the university list, the rate-limit and admin functions), so the tests exercise the real
 // server code. The database rules themselves (RLS, grants, checks) are tested against the real
 // project with SQL; here they are imitated just enough.
 import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
+
+// ---- universities: the same list and matching rules as the real database (migration
+// 20261122085049_universities.sql; src/ui/auth/university-search.ts explains the keys).
+const HEC = JSON.parse(readFileSync(new URL("./universities.json", import.meta.url), "utf8"));
+const SPELLINGS = new Set(["uni", "univ", "univeristy", "universty", "unversity", "universiti", "universitiy"]);
+const FILLER = new Set(["university", "the", "of", "and"]);
+const tokens = (t) => String(t ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().replaceAll("&", " and ").split(/[^a-z0-9]+/).filter(Boolean).map((w) => (SPELLINGS.has(w) ? "university" : w));
+export const uniKey = (t) => tokens(t).join("");
+export const uniShortKey = (t) => tokens(t).filter((w) => !FILLER.has(w)).join("");
 
 const SECRET = "fake-supabase-jwt-secret-for-tests-only";
 const b64url = (b) => Buffer.from(b).toString("base64url");
@@ -44,6 +54,36 @@ export function startFakeSupabase() {
   const limits = new Map();
   const codes = new Map(); // one-time code from an email link -> { id, challenge, email }
   const log = [];
+  const universities = HEC.map((u, i) => ({ id: i + 1, name: u.name, aliases: u.aliases }));
+  const adminKeys = new Map(); // key -> university id (spellings the admin merged or added)
+  let keys = new Map();
+  const rebuildKeys = () => {
+    const best = new Map();
+    const add = (k, id, prio) => {
+      if (!k) return;
+      const b = best.get(k);
+      if (!b || prio < b.prio) best.set(k, { prio, ids: new Set([id]) });
+      else if (prio === b.prio) b.ids.add(id);
+    };
+    for (const u of universities) {
+      add(uniKey(u.name), u.id, 1);
+      for (const a of u.aliases) add(uniKey(a), u.id, 1);
+      add(uniShortKey(u.name), u.id, 2);
+      for (const a of u.aliases) add(uniShortKey(a), u.id, 2);
+      if (u.name.includes(",")) { const c = u.name.replace(/,[^,]*$/, ""); add(uniKey(c), u.id, 2); add(uniShortKey(c), u.id, 2); }
+    }
+    keys = new Map([...best].filter(([, b]) => b.ids.size === 1).map(([k, b]) => [k, [...b.ids][0]]));
+    for (const [k, id] of adminKeys) keys.set(k, id);
+  };
+  rebuildKeys();
+  const resolve = (row) => {
+    const id = keys.get(uniKey(row.university)) ?? keys.get(uniShortKey(row.university));
+    const u = id && universities.find((x) => x.id === id);
+    row.university_id = u ? u.id : null;
+    if (u) row.university = u.name;
+    return row;
+  };
+  const rematch = () => { for (const r of profiles.values()) if (r.university_id == null) resolve(r); };
 
   const userJson = (u) => ({
     id: u.id, aud: "authenticated", role: "authenticated", email: u.email,
@@ -64,7 +104,7 @@ export function startFakeSupabase() {
     const id = randomUUID();
     const u = { id, email: email.toLowerCase(), password, meta: { full_name: fullName, university }, confirmed, factors: [], created_at: new Date().toISOString() };
     users.set(id, u);
-    profiles.set(id, { id, full_name: fullName, university, email: u.email, role, disabled: false, created_at: u.created_at });
+    profiles.set(id, resolve({ id, full_name: fullName, university, email: u.email, role, disabled: false, created_at: u.created_at }));
     return u;
   };
 
@@ -176,6 +216,12 @@ export function startFakeSupabase() {
           const bad = Object.keys(json).filter((k) => !["full_name", "university"].includes(k));
           if (bad.length) return send(401, { code: "42501", message: "permission denied for table profiles" });
           Object.assign(row, json);
+          if ("university" in json) resolve(row);
+          if ((req.headers.prefer ?? "").includes("return=representation")) {
+            const cols = (url.searchParams.get("select") ?? "*").split(",").map((c) => c.trim());
+            const out = cols[0] === "*" ? row : Object.fromEntries(cols.map((c) => [c, row[c]]));
+            return send(200, (req.headers.accept ?? "").includes("vnd.pgrst.object") ? out : [out]);
+          }
         }
         return send(204);
       }
@@ -188,6 +234,33 @@ export function startFakeSupabase() {
         return rows.length === 1 ? send(200, rows[0]) : send(406, { code: "PGRST116", details: `The result contains ${rows.length} rows`, message: "JSON object requested, multiple (or no) rows returned" });
       }
       return send(200, rows);
+    }
+    if (p === "/rest/v1/universities" && req.method === "GET") {
+      const cols = (url.searchParams.get("select") ?? "id,name,aliases").split(",").map((c) => c.trim());
+      const rows = [...universities].sort((a, b) => a.name.localeCompare(b.name)).map((u) => Object.fromEntries(cols.map((c) => [c, u[c]])));
+      return send(200, rows);
+    }
+    if (p === "/rest/v1/rpc/admin_merge_university") {
+      if (!isAdmin) return send(403, { code: "42501", message: "not allowed" });
+      const k = uniKey(json.spelling);
+      if (!k) return send(400, { code: "22023", message: "bad spelling" });
+      if (!universities.some((u) => u.id === json.target)) return send(404, { code: "P0002", message: "no such university" });
+      adminKeys.set(k, json.target);
+      rebuildKeys();
+      for (const r of profiles.values()) if (r.university_id == null && uniKey(r.university) === k) resolve(r);
+      return send(204);
+    }
+    if (p === "/rest/v1/rpc/admin_add_university") {
+      if (!isAdmin) return send(403, { code: "42501", message: "not allowed" });
+      const name = String(json.name ?? "").replace(/\s+/g, " ").trim();
+      if (name.length < 2 || name.length > 120) return send(400, { code: "22023", message: "bad university name" });
+      if (universities.some((u) => uniKey(u.name) === uniKey(name))) return send(409, { code: "23505", message: "that university is already listed" });
+      const id = Math.max(...universities.map((u) => u.id)) + 1;
+      universities.push({ id, name, aliases: [] });
+      if (uniKey(json.spelling)) adminKeys.set(uniKey(json.spelling), id);
+      rebuildKeys();
+      rematch();
+      return send(200, id);
     }
     if (p === "/rest/v1/rpc/rate_limit_hit") {
       const { p_key: key, p_max: max, p_window_seconds: win } = json;
@@ -209,12 +282,24 @@ export function startFakeSupabase() {
     if (p === "/rest/v1/rpc/admin_stats") {
       if (!isAdmin) return send(403, { code: "42501", message: "not allowed" });
       const all = [...profiles.values()];
-      const by = {};
-      for (const r of all) by[r.university] = (by[r.university] ?? 0) + 1;
+      const by = new Map();
+      const review = new Map();
+      for (const r of all) {
+        const g = r.university_id != null ? `id:${r.university_id}` : `k:${uniKey(r.university)}`;
+        const e = by.get(g) ?? { university: r.university, count: 0, listed: r.university_id != null };
+        e.count += 1;
+        by.set(g, e);
+        if (r.university_id == null) {
+          const v = review.get(uniKey(r.university)) ?? { spelling: r.university, count: 0 };
+          v.count += 1;
+          review.set(uniKey(r.university), v);
+        }
+      }
       return send(200, {
         users: all.length, disabled: all.filter((r) => r.disabled).length, last_7_days: all.length,
         signups_by_day: [{ day: new Date().toISOString().slice(0, 10), count: all.length }],
-        by_university: Object.entries(by).map(([university, count]) => ({ university, count })),
+        by_university: [...by.values()].sort((a, b) => b.count - a.count || a.university.localeCompare(b.university)),
+        to_review: [...review.values()].sort((a, b) => b.count - a.count || a.spelling.localeCompare(b.spelling)),
       });
     }
     return fail(404, "not_found", `fake supabase has no ${req.method} ${p}`);

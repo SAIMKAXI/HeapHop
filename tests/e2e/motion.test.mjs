@@ -29,6 +29,7 @@ test("the landing strip rolls C++ words in the code font, pauses on focus, and r
   await sleep(600);
   assert.ok((await trackX(page)) < a, "the strip moves left");
   await page.focus("[data-marquee]");
+  await sleep(150); // let the pause take effect before measuring
   const b = await trackX(page);
   await sleep(600);
   assert.equal(await trackX(page), b, "keyboard focus pauses it");

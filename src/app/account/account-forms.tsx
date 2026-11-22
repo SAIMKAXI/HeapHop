@@ -4,11 +4,13 @@ import type { FormState } from "@/server/actions/auth";
 import { changePassword, confirmMfa, removeMfa, startMfa, updateProfile, type MfaSetup } from "@/server/actions/account";
 import { AuthCard, Banner, Field, Submit } from "@/ui/auth/form-bits";
 import { LIMITS } from "@/server/validate";
+import { UniversityPicker } from "@/ui/auth/university-picker";
+import type { University } from "@/ui/auth/university-search";
 
 const h2 = "mt-8 border-t border-card-border pt-6 text-lg font-bold first:mt-0 first:border-0 first:pt-0";
 
-export function AccountForms({ email, fullName, university, admin, mfaFactorId }: {
-  email: string; fullName: string; university: string; admin: boolean; mfaFactorId: string | null;
+export function AccountForms({ email, fullName, university, universities, admin, mfaFactorId }: {
+  email: string; fullName: string; university: string; universities: University[]; admin: boolean; mfaFactorId: string | null;
 }) {
   const [profile, saveProfile, savingProfile] = useActionState<FormState, FormData>(updateProfile, {});
   const [pw, savePw, savingPw] = useActionState<FormState, FormData>(changePassword, {});
@@ -25,7 +27,7 @@ export function AccountForms({ email, fullName, university, admin, mfaFactorId }
           {profile.error && <Banner kind="error">{profile.error}</Banner>}
           {profile.ok && <Banner kind="ok">{profile.message}</Banner>}
           <Field label="Full name" name="fullName" maxLength={LIMITS.name[1]} defaultValue={profile.values?.fullName ?? fullName} error={profile.fields?.fullName} />
-          <Field label="University or college" name="university" maxLength={LIMITS.university[1]} defaultValue={profile.values?.university ?? university} error={profile.fields?.university} />
+          <UniversityPicker key={profile.values?.university ?? university} universities={universities} label="University or college" name="university" maxLength={LIMITS.university[1]} defaultValue={profile.values?.university ?? university} error={profile.fields?.university} />
           <Submit pending={savingProfile}>Save profile</Submit>
         </form>
       </section>

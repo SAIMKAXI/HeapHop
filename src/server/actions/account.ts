@@ -18,10 +18,12 @@ export async function updateProfile(_prev: FormState, form: FormData): Promise<F
   const values = { fullName: name.value, university: uni.value };
   if (name.error || uni.error) return { fields: { fullName: name.error, university: uni.error }, values };
   const supabase = await serverSupabase();
-  const { error } = await supabase.from("profiles").update({ full_name: name.value, university: uni.value }).eq("id", viewer.id);
+  // The database replaces a recognised university with its listed name; show that name.
+  const { data, error } = await supabase.from("profiles").update({ full_name: name.value, university: uni.value }).eq("id", viewer.id).select("university").single();
   if (error) return { error: BROKEN, values };
+  const saved = typeof data?.university === "string" ? data.university : uni.value;
   revalidatePath("/account");
-  return { ok: true, message: "Saved.", values };
+  return { ok: true, message: "Saved.", values: { ...values, university: saved } };
 }
 
 export async function changePassword(_prev: FormState, form: FormData): Promise<FormState> {

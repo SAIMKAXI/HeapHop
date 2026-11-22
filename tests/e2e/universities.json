@@ -1,0 +1,1362 @@
+[
+ {
+  "name": "Abasyn University",
+  "aliases": []
+ },
+ {
+  "name": "Abbottabad University of Science and Technology",
+  "aliases": [
+   "AUST"
+  ]
+ },
+ {
+  "name": "Abdul Wali Khan University",
+  "aliases": [
+   "AWKUM",
+   "AWKU",
+   "Abdul Wali Khan University Mardan"
+  ]
+ },
+ {
+  "name": "Adam Institute of Social & Management Science, Karachi",
+  "aliases": [
+   "AISMS"
+  ]
+ },
+ {
+  "name": "Aga Khan University",
+  "aliases": [
+   "AKU"
+  ]
+ },
+ {
+  "name": "Air University",
+  "aliases": [
+   "AU",
+   "Air Uni",
+   "AU Islamabad",
+   "Air University Islamabad"
+  ]
+ },
+ {
+  "name": "Al-Ghazali University",
+  "aliases": []
+ },
+ {
+  "name": "Al-Hamd Islamic University",
+  "aliases": []
+ },
+ {
+  "name": "Al-Karam International Institute, Bhera",
+  "aliases": []
+ },
+ {
+  "name": "Al-Kawthar University, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Al-Khair University",
+  "aliases": []
+ },
+ {
+  "name": "Ali Bin Usman Institute, Multan",
+  "aliases": []
+ },
+ {
+  "name": "Ali Institute of Education",
+  "aliases": []
+ },
+ {
+  "name": "Allama Iqbal Open University",
+  "aliases": [
+   "AIOU"
+  ]
+ },
+ {
+  "name": "Aror University of Art, Architecture, Design and Heritage, Sukkur",
+  "aliases": []
+ },
+ {
+  "name": "Baba Guru Nanak University, Nankana Sahib",
+  "aliases": []
+ },
+ {
+  "name": "Bacha Khan University",
+  "aliases": []
+ },
+ {
+  "name": "Bahauddin Zakariya University",
+  "aliases": [
+   "BZU"
+  ]
+ },
+ {
+  "name": "Bahria University",
+  "aliases": [
+   "Bahria University Islamabad"
+  ]
+ },
+ {
+  "name": "Balochistan University of Engineering & Technology",
+  "aliases": []
+ },
+ {
+  "name": "Balochistan University of Information Technology, Engineering & Management Sciences",
+  "aliases": [
+   "BUITEMS"
+  ]
+ },
+ {
+  "name": "Baqai Medical University",
+  "aliases": []
+ },
+ {
+  "name": "Beaconhouse National University",
+  "aliases": [
+   "BNU"
+  ]
+ },
+ {
+  "name": "Begum Nustrat Bhutto Women University, Sukkur",
+  "aliases": []
+ },
+ {
+  "name": "Benazir Bhutto Shaheed University Lyari",
+  "aliases": []
+ },
+ {
+  "name": "Benazir Bhutto Shaheed University of Technology & Skill Development, Khairpur Mirs",
+  "aliases": []
+ },
+ {
+  "name": "Brains Institute Peshawar",
+  "aliases": []
+ },
+ {
+  "name": "Capital University of Science & Technology",
+  "aliases": [
+   "CUST"
+  ]
+ },
+ {
+  "name": "CECOS University of Information Technology & Emerging Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Cholistan University of Veterinary and Animal Sciences, Bahawalpur",
+  "aliases": []
+ },
+ {
+  "name": "City University of Science and Information Technology",
+  "aliases": []
+ },
+ {
+  "name": "Commecs Institute of Business & Emerging Sciences",
+  "aliases": []
+ },
+ {
+  "name": "COMSATS University, Islamabad",
+  "aliases": [
+   "COMSATS",
+   "CUI",
+   "CIIT",
+   "COMSATS Institute of Information Technology"
+  ]
+ },
+ {
+  "name": "Dadabhoy Institute of Higher Education",
+  "aliases": []
+ },
+ {
+  "name": "Dar-ul-Madina International University, Islamabad",
+  "aliases": []
+ },
+ {
+  "name": "Dawood University of Engineering & Technology",
+  "aliases": []
+ },
+ {
+  "name": "Denning Institute of Technology and Entrepreneurship, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "DHA Suffa University",
+  "aliases": [
+   "DSU"
+  ]
+ },
+ {
+  "name": "DOW University of Health Sciences",
+  "aliases": [
+   "DUHS",
+   "Dow University"
+  ]
+ },
+ {
+  "name": "Emaan Institute of Management & Sciences, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Emerson University, Multan",
+  "aliases": []
+ },
+ {
+  "name": "Faisalabad Medical University, Faisalabad",
+  "aliases": []
+ },
+ {
+  "name": "Fatima Jinnah Medical University, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "Fatima Jinnah Women University, Rawalpindi",
+  "aliases": [
+   "FJWU"
+  ]
+ },
+ {
+  "name": "Federal Urdu University of Arts, Sciences & Technology",
+  "aliases": [
+   "FUUAST",
+   "Urdu University"
+  ]
+ },
+ {
+  "name": "Forman Christian College",
+  "aliases": [
+   "FCC",
+   "FC College",
+   "Forman Christian College University"
+  ]
+ },
+ {
+  "name": "Foundation University",
+  "aliases": [
+   "FUI",
+   "Foundation University Islamabad"
+  ]
+ },
+ {
+  "name": "Gambat Institute of Medical Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Gandhara University",
+  "aliases": []
+ },
+ {
+  "name": "Ghazi National Institute of Engineering and Sciences, Dera Ghazi Khan",
+  "aliases": []
+ },
+ {
+  "name": "Ghazi University, Dera Ghazi Khan",
+  "aliases": []
+ },
+ {
+  "name": "Ghulam Ishaq Khan Institute of Engineering Sciences & Technology",
+  "aliases": [
+   "GIKI",
+   "GIK",
+   "GIK Institute"
+  ]
+ },
+ {
+  "name": "GIFT University",
+  "aliases": []
+ },
+ {
+  "name": "Gomal University",
+  "aliases": []
+ },
+ {
+  "name": "Government College for Women University, Sialkot",
+  "aliases": []
+ },
+ {
+  "name": "Government College University, Faisalabad",
+  "aliases": [
+   "GCUF",
+   "GCU Faisalabad",
+   "GC University Faisalabad"
+  ]
+ },
+ {
+  "name": "Government College University, Hyderabad",
+  "aliases": []
+ },
+ {
+  "name": "Government College University, Lahore",
+  "aliases": [
+   "GCU Lahore",
+   "GC University Lahore"
+  ]
+ },
+ {
+  "name": "Government College Women University, Faisalabad",
+  "aliases": []
+ },
+ {
+  "name": "Government Sadiq College Women University",
+  "aliases": []
+ },
+ {
+  "name": "Grand Asian University, Sialkot",
+  "aliases": []
+ },
+ {
+  "name": "Greenwich University",
+  "aliases": []
+ },
+ {
+  "name": "Habib University",
+  "aliases": []
+ },
+ {
+  "name": "Hajvery University",
+  "aliases": []
+ },
+ {
+  "name": "Hamdard University",
+  "aliases": []
+ },
+ {
+  "name": "Hands-Institute of Development Studies, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Hazara University",
+  "aliases": []
+ },
+ {
+  "name": "Health Services Academy, Islamabad",
+  "aliases": [
+   "HSA"
+  ]
+ },
+ {
+  "name": "HITEC University",
+  "aliases": []
+ },
+ {
+  "name": "Hyderabad Institute for Technology & Management Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Ibadat International University, Islamabad",
+  "aliases": []
+ },
+ {
+  "name": "Ibn-e-Sina University, Mirpurkhas",
+  "aliases": []
+ },
+ {
+  "name": "ILMA University",
+  "aliases": []
+ },
+ {
+  "name": "Imperial College of Business Studies",
+  "aliases": []
+ },
+ {
+  "name": "Indus University",
+  "aliases": []
+ },
+ {
+  "name": "Indus Valley School of Art & Architecture",
+  "aliases": []
+ },
+ {
+  "name": "Information Technology University of the Punjab",
+  "aliases": [
+   "ITU"
+  ]
+ },
+ {
+  "name": "Institute for Art and Culture",
+  "aliases": []
+ },
+ {
+  "name": "Institute of Business Administration",
+  "aliases": [
+   "IBA",
+   "IBA Karachi"
+  ]
+ },
+ {
+  "name": "Institute of Business Management",
+  "aliases": [
+   "IoBM"
+  ]
+ },
+ {
+  "name": "Institute of Management Science",
+  "aliases": []
+ },
+ {
+  "name": "Institute of Management Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Institute of Space Technology",
+  "aliases": [
+   "IST"
+  ]
+ },
+ {
+  "name": "International Institute of Science, Arts and Technology, Gujranwala",
+  "aliases": []
+ },
+ {
+  "name": "International Islamic University",
+  "aliases": [
+   "IIUI",
+   "IIU",
+   "International Islamic University Islamabad"
+  ]
+ },
+ {
+  "name": "Iqra National University",
+  "aliases": []
+ },
+ {
+  "name": "Iqra University",
+  "aliases": []
+ },
+ {
+  "name": "Islamabad University of Health Sciences and Emerging Technologies, Islamabad",
+  "aliases": [
+   "IUHT"
+  ]
+ },
+ {
+  "name": "Islamia College Peshawar",
+  "aliases": [
+   "ICP"
+  ]
+ },
+ {
+  "name": "Islamia University",
+  "aliases": [
+   "IUB",
+   "Islamia University Bahawalpur",
+   "The Islamia University of Bahawalpur"
+  ]
+ },
+ {
+  "name": "Isra University",
+  "aliases": []
+ },
+ {
+  "name": "Jinnah Sindh Medical University",
+  "aliases": []
+ },
+ {
+  "name": "Jinnah University for Women",
+  "aliases": []
+ },
+ {
+  "name": "Kalam Bibi International Women Institute, Bannu",
+  "aliases": []
+ },
+ {
+  "name": "Karachi Institute of Economics & Technology",
+  "aliases": [
+   "KIET",
+   "PAF KIET"
+  ]
+ },
+ {
+  "name": "Karachi Institute of Technology and Entrepreneurship, Karachi",
+  "aliases": [
+   "KITE"
+  ]
+ },
+ {
+  "name": "Karachi Metropolitan University, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Karachi School of Business and Leadership",
+  "aliases": []
+ },
+ {
+  "name": "Karakurum International University",
+  "aliases": [
+   "KIU"
+  ]
+ },
+ {
+  "name": "KASB Institute of Technology",
+  "aliases": []
+ },
+ {
+  "name": "Khawaja Freed University of Engineering & Information Technology, Rahim Yar Khan",
+  "aliases": []
+ },
+ {
+  "name": "Khushal Khan Khattak University",
+  "aliases": []
+ },
+ {
+  "name": "Khyber Medical University",
+  "aliases": [
+   "KMU"
+  ]
+ },
+ {
+  "name": "King Edward Medical University",
+  "aliases": [
+   "KEMU"
+  ]
+ },
+ {
+  "name": "Kinnaird College for Women",
+  "aliases": []
+ },
+ {
+  "name": "Kohat University of Science and Technology",
+  "aliases": [
+   "KUST"
+  ]
+ },
+ {
+  "name": "Kohsar University, Murree",
+  "aliases": []
+ },
+ {
+  "name": "Lahore College for Women University",
+  "aliases": [
+   "LCWU"
+  ]
+ },
+ {
+  "name": "Lahore Garrison University",
+  "aliases": []
+ },
+ {
+  "name": "Lahore Leads University",
+  "aliases": []
+ },
+ {
+  "name": "Lahore School of Economics",
+  "aliases": []
+ },
+ {
+  "name": "Lahore University of Biological and Applied Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Lahore University of Management Sciences",
+  "aliases": [
+   "LUMS"
+  ]
+ },
+ {
+  "name": "Lasbela University of Agriculture, Water & Marine Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Liaquat University of Medical & Health Sciences",
+  "aliases": [
+   "LUMHS"
+  ]
+ },
+ {
+  "name": "Malir University of Science & Technology, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Mehran University of Engineering & Technology",
+  "aliases": [
+   "MUET",
+   "Mehran University"
+  ]
+ },
+ {
+  "name": "Metropolitan University Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Millennium Institute of Technology and Entrepreneurship, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Minhaj University",
+  "aliases": []
+ },
+ {
+  "name": "Mir Chakar Khan Rind University of Technology, Dera Ghazi Khan",
+  "aliases": []
+ },
+ {
+  "name": "Mir Chakar Khan Rind University, Sibi Balochistan",
+  "aliases": []
+ },
+ {
+  "name": "Mirpur University of Science & Technology",
+  "aliases": [
+   "MUST"
+  ]
+ },
+ {
+  "name": "Mohi-ud-Din Islamic University",
+  "aliases": []
+ },
+ {
+  "name": "Muhammad Ali Jinnah University",
+  "aliases": [
+   "MAJU"
+  ]
+ },
+ {
+  "name": "Muhammad Nawaz Shareef University of Agriculture",
+  "aliases": []
+ },
+ {
+  "name": "Muhammad Nawaz Sharif University of Engineering & Technology",
+  "aliases": []
+ },
+ {
+  "name": "Mukabbir University of Science & Technology, Gujrat",
+  "aliases": []
+ },
+ {
+  "name": "Multan University of Science & Technology, Multan",
+  "aliases": []
+ },
+ {
+  "name": "MY University",
+  "aliases": []
+ },
+ {
+  "name": "Namal University, Mainwali",
+  "aliases": []
+ },
+ {
+  "name": "National College of Arts",
+  "aliases": [
+   "NCA"
+  ]
+ },
+ {
+  "name": "National College of Business Administration & Economics",
+  "aliases": []
+ },
+ {
+  "name": "National Defense University",
+  "aliases": [
+   "NDU"
+  ]
+ },
+ {
+  "name": "National Excellence Institute, Rawalpindi",
+  "aliases": [
+   "NEI"
+  ]
+ },
+ {
+  "name": "National Institute of Technology, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "National Skills University, Islamabad",
+  "aliases": []
+ },
+ {
+  "name": "National Textile University",
+  "aliases": [
+   "NTU"
+  ]
+ },
+ {
+  "name": "National University of Computer & Emerging Sciences",
+  "aliases": [
+   "FAST",
+   "NUCES",
+   "FAST NUCES",
+   "FAST NU",
+   "FAST University"
+  ]
+ },
+ {
+  "name": "National University of Medical Sciences",
+  "aliases": [
+   "NUMS"
+  ]
+ },
+ {
+  "name": "National University of Modern Languages",
+  "aliases": [
+   "NUML"
+  ]
+ },
+ {
+  "name": "National University of Pakistan",
+  "aliases": []
+ },
+ {
+  "name": "National University of Sciences & Technology",
+  "aliases": [
+   "NUST"
+  ]
+ },
+ {
+  "name": "National University of Technology, Islamabad",
+  "aliases": [
+   "NUTECH"
+  ]
+ },
+ {
+  "name": "NED University of Engineering & Technology",
+  "aliases": [
+   "NED",
+   "NEDUET",
+   "NED University"
+  ]
+ },
+ {
+  "name": "Newport Institute of Communications & Economics",
+  "aliases": []
+ },
+ {
+  "name": "NFC Institute of Engineering & Technology",
+  "aliases": []
+ },
+ {
+  "name": "Nippon Institute of Advanced Sciences, Sheikhupura",
+  "aliases": []
+ },
+ {
+  "name": "Nishtar Medical University, Multan",
+  "aliases": []
+ },
+ {
+  "name": "Northern University",
+  "aliases": []
+ },
+ {
+  "name": "Nur International University",
+  "aliases": []
+ },
+ {
+  "name": "PAF Air War College Institute, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Pak-Austria Fachhochschule Institute of Applied Sciences and Technology, Haripur",
+  "aliases": []
+ },
+ {
+  "name": "Pakistan Global Institute, Rawat",
+  "aliases": []
+ },
+ {
+  "name": "Pakistan Institute of Development Economics",
+  "aliases": [
+   "PIDE"
+  ]
+ },
+ {
+  "name": "Pakistan Institute of Engineering & Applied Sciences",
+  "aliases": [
+   "PIEAS"
+  ]
+ },
+ {
+  "name": "Pakistan Institute of Fashion & Design",
+  "aliases": []
+ },
+ {
+  "name": "Pakistan Military Academy",
+  "aliases": []
+ },
+ {
+  "name": "Pakistan Naval Academy",
+  "aliases": []
+ },
+ {
+  "name": "Peoples University of Medical & Health Sciences for Women",
+  "aliases": []
+ },
+ {
+  "name": "Pir Mehr Ali Shah Arid Agriculture University",
+  "aliases": [
+   "PMAS",
+   "UAAR",
+   "Arid University",
+   "Arid Agriculture University Rawalpindi"
+  ]
+ },
+ {
+  "name": "Preston Institute of Management, Science & Technology",
+  "aliases": []
+ },
+ {
+  "name": "Preston University, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Preston University, Kohat",
+  "aliases": []
+ },
+ {
+  "name": "Punjab Tianjin University of Technology, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "Qarshi University",
+  "aliases": []
+ },
+ {
+  "name": "Quaid e Azam Institute of Management Sciences Sargodha",
+  "aliases": []
+ },
+ {
+  "name": "Quaid-e-Awam University of Engineering, Sciences & Technology",
+  "aliases": [
+   "QUEST"
+  ]
+ },
+ {
+  "name": "Quaid-i-Azam University",
+  "aliases": [
+   "QAU",
+   "Quaid e Azam University",
+   "Quaid-e-Azam University",
+   "Quaid i Azam University"
+  ]
+ },
+ {
+  "name": "Qurtaba University of Science & Information Technology",
+  "aliases": []
+ },
+ {
+  "name": "Rashid Latif Khan University, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "Rawalpindi Medical University",
+  "aliases": [
+   "RMU"
+  ]
+ },
+ {
+  "name": "Rawalpindi Women University, Rawalpindi",
+  "aliases": []
+ },
+ {
+  "name": "Riphah International University",
+  "aliases": [
+   "RIU"
+  ]
+ },
+ {
+  "name": "Saifee Burhani University, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "Salim Habib University, Karachi",
+  "aliases": [
+   "SHU",
+   "Barrett Hodgson University",
+   "Barret Hodgson University"
+  ]
+ },
+ {
+  "name": "Sardar Bahadur Khan Women University",
+  "aliases": []
+ },
+ {
+  "name": "Sarhad University of Science & Information Technology",
+  "aliases": []
+ },
+ {
+  "name": "Shah Abdul Latif University",
+  "aliases": [
+   "SALU"
+  ]
+ },
+ {
+  "name": "Shaheed Allah Buksh Soomro University of Arts, Design and Heritages, Jamshoro",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Benazir Bhutto City University",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Benazir Bhutto Dewan University",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Benazir Bhutto University",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Benazir Bhutto University of Veterinary & Animal Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Benazir Bhutto University, Shaheed Benazirabad",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Benazir Bhutto Women University",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Mohtarma Benazir Bhutto Medical University",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Zulfikar Ali Bhutto Institute of Science & Technology",
+  "aliases": [
+   "SZABIST"
+  ]
+ },
+ {
+  "name": "Shaheed Zulfiqar Ali Bhutto Medical University",
+  "aliases": []
+ },
+ {
+  "name": "Shaheed Zulfiqar Ali Bhutto University of Law",
+  "aliases": []
+ },
+ {
+  "name": "Shifa Tameer-e-Millat University",
+  "aliases": [
+   "STMU"
+  ]
+ },
+ {
+  "name": "Shuhada-e-Army Public School University of Technology, Nowshera",
+  "aliases": []
+ },
+ {
+  "name": "Sindh Agriculture University, Tandojam",
+  "aliases": []
+ },
+ {
+  "name": "Sindh Institute of Management & Technology",
+  "aliases": []
+ },
+ {
+  "name": "Sindh Institute of Medical Sciences",
+  "aliases": []
+ },
+ {
+  "name": "Sindh Madresatul Islam University",
+  "aliases": []
+ },
+ {
+  "name": "Sir Syed CASE Institute of Technology, Islamabad",
+  "aliases": [
+   "CASE"
+  ]
+ },
+ {
+  "name": "Sir Syed University of Engineering & Technology",
+  "aliases": [
+   "SSUET"
+  ]
+ },
+ {
+  "name": "Sohail University, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "South Punjab Institute of Science and Technology, Dera Ghazi Khan",
+  "aliases": []
+ },
+ {
+  "name": "Sukkur IBA University",
+  "aliases": [
+   "Sukkur IBA",
+   "IBA Sukkur"
+  ]
+ },
+ {
+  "name": "Textile Institute of Pakistan",
+  "aliases": []
+ },
+ {
+  "name": "Thal University, Bhakkar",
+  "aliases": []
+ },
+ {
+  "name": "The Azad Jammu & Kashmir University of Bhimber",
+  "aliases": []
+ },
+ {
+  "name": "The Bolan University of Medical and Health Sciences, Quetta",
+  "aliases": []
+ },
+ {
+  "name": "The Ganj Shakar University, Pakpattan",
+  "aliases": []
+ },
+ {
+  "name": "The Green International University, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "The Nazeer Hussain University",
+  "aliases": []
+ },
+ {
+  "name": "The Shaikh Ayaz University, Shikarpur Sindh",
+  "aliases": []
+ },
+ {
+  "name": "The Sindh Institute of Physical Medicine and Rehabilitation, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "The Superior University",
+  "aliases": []
+ },
+ {
+  "name": "The University of Agriculture, D. I. Khan",
+  "aliases": []
+ },
+ {
+  "name": "The University of Agriculture, Peshawar",
+  "aliases": []
+ },
+ {
+  "name": "The University of Agriculture, Swat",
+  "aliases": []
+ },
+ {
+  "name": "The University of Faisalabad",
+  "aliases": []
+ },
+ {
+  "name": "The University of Larkano",
+  "aliases": []
+ },
+ {
+  "name": "The University of Mirpurkhas",
+  "aliases": []
+ },
+ {
+  "name": "The University of Veterinary & Animal Sciences, Swat",
+  "aliases": []
+ },
+ {
+  "name": "The Women University",
+  "aliases": []
+ },
+ {
+  "name": "TIMES University, Multan",
+  "aliases": []
+ },
+ {
+  "name": "UIT University, Karachi",
+  "aliases": []
+ },
+ {
+  "name": "University of Agriculture",
+  "aliases": [
+   "UAF",
+   "University of Agriculture Faisalabad",
+   "Agriculture University Faisalabad"
+  ]
+ },
+ {
+  "name": "University of Art and Culture, Jamshoro",
+  "aliases": []
+ },
+ {
+  "name": "University of Azad Jammu & Kashmir",
+  "aliases": [
+   "UAJK",
+   "AJK University"
+  ]
+ },
+ {
+  "name": "University of Balochistan",
+  "aliases": [
+   "UOB"
+  ]
+ },
+ {
+  "name": "University of Baltistan, Skardu",
+  "aliases": []
+ },
+ {
+  "name": "University of Buner",
+  "aliases": []
+ },
+ {
+  "name": "University of Central Punjab",
+  "aliases": [
+   "UCP"
+  ]
+ },
+ {
+  "name": "University of Chakwal, Chakwal",
+  "aliases": []
+ },
+ {
+  "name": "University of Chenab, Gujrat",
+  "aliases": []
+ },
+ {
+  "name": "University of Child Health Sciences, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "University of Chitral",
+  "aliases": []
+ },
+ {
+  "name": "University of Education",
+  "aliases": []
+ },
+ {
+  "name": "University of Engineering & Technology, Lahore",
+  "aliases": [
+   "UET Lahore",
+   "UET Punjab"
+  ]
+ },
+ {
+  "name": "University of Engineering & Technology, Mardan",
+  "aliases": [
+   "UET Mardan"
+  ]
+ },
+ {
+  "name": "University of Engineering & Technology, Peshawar",
+  "aliases": [
+   "UET Peshawar"
+  ]
+ },
+ {
+  "name": "University of Engineering & Technology, Taxila",
+  "aliases": [
+   "UET Taxila"
+  ]
+ },
+ {
+  "name": "University of Engineering and Applied Sciences, Swat",
+  "aliases": []
+ },
+ {
+  "name": "University of FATA",
+  "aliases": []
+ },
+ {
+  "name": "University of Gujrat",
+  "aliases": [
+   "UOG"
+  ]
+ },
+ {
+  "name": "University of Gwadar",
+  "aliases": []
+ },
+ {
+  "name": "University of Haripur",
+  "aliases": []
+ },
+ {
+  "name": "University of Haveli",
+  "aliases": []
+ },
+ {
+  "name": "University of Health Sciences",
+  "aliases": [
+   "UHS"
+  ]
+ },
+ {
+  "name": "University of Home Economics, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "University of Jhang",
+  "aliases": []
+ },
+ {
+  "name": "University of Kamalia",
+  "aliases": []
+ },
+ {
+  "name": "University of Karachi",
+  "aliases": [
+   "KU",
+   "Karachi University"
+  ]
+ },
+ {
+  "name": "University of Kotli",
+  "aliases": []
+ },
+ {
+  "name": "University of Lahore",
+  "aliases": [
+   "UOL"
+  ]
+ },
+ {
+  "name": "University of Lakki Marwat",
+  "aliases": []
+ },
+ {
+  "name": "University of Layyah",
+  "aliases": []
+ },
+ {
+  "name": "University of Loralai",
+  "aliases": []
+ },
+ {
+  "name": "University of Makran, Panjgur",
+  "aliases": []
+ },
+ {
+  "name": "University of Malakand",
+  "aliases": [
+   "UOM"
+  ]
+ },
+ {
+  "name": "University of Management & Technology",
+  "aliases": [
+   "UMT"
+  ]
+ },
+ {
+  "name": "University of Mianwali",
+  "aliases": []
+ },
+ {
+  "name": "University of Modern Sciences, Tando Muhammad Khan",
+  "aliases": []
+ },
+ {
+  "name": "University of Narowal",
+  "aliases": []
+ },
+ {
+  "name": "University of Okara",
+  "aliases": []
+ },
+ {
+  "name": "University of Peshawar",
+  "aliases": [
+   "UOP",
+   "Peshawar University"
+  ]
+ },
+ {
+  "name": "University of Poonch",
+  "aliases": []
+ },
+ {
+  "name": "University of Rasul-Mandi Bahauddin",
+  "aliases": []
+ },
+ {
+  "name": "University of Sahiwal",
+  "aliases": []
+ },
+ {
+  "name": "University of Sargodha",
+  "aliases": [
+   "UOS"
+  ]
+ },
+ {
+  "name": "University of Science & Technology",
+  "aliases": []
+ },
+ {
+  "name": "University of Science and Technology, Lahore",
+  "aliases": []
+ },
+ {
+  "name": "University of Shangla",
+  "aliases": []
+ },
+ {
+  "name": "University of Sialkot, Sialkot",
+  "aliases": []
+ },
+ {
+  "name": "University of Sindh",
+  "aliases": [
+   "Sindh University"
+  ]
+ },
+ {
+  "name": "University of South Asia",
+  "aliases": []
+ },
+ {
+  "name": "University of Southern Punjab",
+  "aliases": []
+ },
+ {
+  "name": "University of Sufism and Modern Sciences, Bhitshah Sindh",
+  "aliases": []
+ },
+ {
+  "name": "University of Swabi",
+  "aliases": []
+ },
+ {
+  "name": "University of Swat",
+  "aliases": []
+ },
+ {
+  "name": "University of the Punjab",
+  "aliases": [
+   "PU",
+   "Punjab University",
+   "PU Lahore",
+   "Punjab University Lahore"
+  ]
+ },
+ {
+  "name": "University of Turbat",
+  "aliases": []
+ },
+ {
+  "name": "University of Veterinary & Animal Sciences",
+  "aliases": [
+   "UVAS"
+  ]
+ },
+ {
+  "name": "University of Wah",
+  "aliases": []
+ },
+ {
+  "name": "Virtual University of Pakistan",
+  "aliases": [
+   "VU",
+   "Virtual University"
+  ]
+ },
+ {
+  "name": "Woman University Swabi",
+  "aliases": []
+ },
+ {
+  "name": "Women University Mardan",
+  "aliases": []
+ },
+ {
+  "name": "Women University of Azad Jammu & Kashmir",
+  "aliases": []
+ },
+ {
+  "name": "Zia-ud-Din University",
+  "aliases": [
+   "Ziauddin University"
+  ]
+ }
+]
