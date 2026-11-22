@@ -219,6 +219,10 @@ html:not(.light) .hh-born .hh-shape { animation: hh-born 1.4s ease-out; }
   -webkit-mask-image: var(--edge); -webkit-mask-composite: source-in; mask-image: var(--edge); mask-composite: intersect;
 }
 .light .hh-dark-only, .dark .hh-light-only { display: none; }
+/* Byte floats during the pause between runs: up and back twice, ending where it started. */
+.hh-byte-float[data-resting] { animation-name: hh-byte-float; animation-timing-function: ease-in-out; animation-iteration-count: 1; }
+@keyframes hh-byte-float { 25%, 75% { transform: translateY(-12px); } 0%, 50%, 100% { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .hh-byte-float[data-resting] { animation: none; } }
 .hh-hover { animation: hh-hover 3.4s ease-in-out infinite; }
 .hh-hover-shadow { animation: hh-hover-shadow 3.4s ease-in-out infinite; }
 .hh-flicker { transform-box: fill-box; transform-origin: 50% 0; animation: hh-flicker 160ms ease-in-out infinite alternate; }

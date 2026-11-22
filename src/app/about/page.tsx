@@ -30,8 +30,9 @@ export default function AboutPage() {
         explains each step in plain words.
       </p>
       <p className={p}>
-        HeapHop is our Data Structures semester project. It runs entirely in the browser, has no accounts, and does not
-        collect any data.
+        HeapHop is our Data Structures semester project. Your programs run entirely in your browser and are never
+        uploaded. A free account keeps only your name, email and university; the{" "}
+        <a href="/privacy" className="font-semibold text-accent underline-offset-4 hover:underline">privacy policy</a> has the details.
       </p>
 
       <h2 className={h2}>The team</h2>

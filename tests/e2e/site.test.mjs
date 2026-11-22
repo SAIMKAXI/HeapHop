@@ -46,22 +46,29 @@ test("About lists the five team members, FAQ answers open, Privacy says the code
   await page.click("[data-faq] summary");
   assert.equal(await page.$eval("[data-faq]", (d) => d.open), true);
   await page.goto(origin() + "/privacy");
-  assert.match(await textOf(page, "main"), /never\s+uploaded/);
+  const privacy = await textOf(page, "main");
+  assert.match(privacy, /never\s+uploaded/);
+  for (const must of [/Full name/, /Email address/, /University or college/, /one-way hash/, /Sign-in cookies/, /Supabase/, /Mumbai/, /Vercel/, /Deleting your account/, /do not write your email address/i]) assert.match(privacy, must);
+  for (const stale of [/no accounts/i, /no cookies/i, /no personal information/i]) assert.doesNotMatch(privacy, stale);
+  await page.goto(origin() + "/about");
+  assert.doesNotMatch(await textOf(page, "main"), /no accounts|does not collect any data/i);
 });
 
-test("Learn: opening a lesson changes the address, Back returns to the list, and a shared link opens the lesson", async () => {
-  const page = await newPage({ path: "/learn", ready: "[data-lesson]" });
+test("Learn: opening a lesson changes the address, Back returns to its topic, and a shared link opens the lesson", async () => {
+  const page = await newPage({ path: "/learn/binary-search-trees", ready: "[data-lesson]" });
   await page.click("[data-lesson='build-a-bst']");
   await page.waitForSelector("[data-lesson-card]");
   assert.equal(new URL(page.url()).search, "?lesson=build-a-bst");
+  assert.match(await textOf(page, "[data-back]"), /Binary search trees/, "Back names the topic");
   await page.goBack();
   await page.waitForSelector("[data-topic='bst']");
+  assert.equal(new URL(page.url()).pathname, "/learn/binary-search-trees");
   assert.equal(new URL(page.url()).search, "");
 
   await page.goto(origin() + "/learn?lesson=search-a-bst");
   await page.waitForSelector("[data-lesson-card]");
   await page.click("[data-back]");
-  await page.waitForSelector("[data-topic='bst']");
+  await page.waitForSelector("[data-topic-grid]");
   assert.equal(new URL(page.url()).pathname, "/learn");
   assert.equal(new URL(page.url()).search, "");
 

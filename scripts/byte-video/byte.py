@@ -6,6 +6,7 @@
 # Needs Blender as a Python module: pip install bpy (not an npm dependency).
 #   python3 byte.py preview [F...]              key frames, 520 px, quick
 #   python3 byte.py frames A B [SAMPLES] [SIZE]  frames A..B as transparent PNGs
+#   python3 byte.py pose [SAMPLES] [SIZE]        Byte assembled and pointing (the Learn page), transparent PNG
 # Output goes to $BYTE_OUT (default ./byte-video-out).
 import bpy, bmesh, math, os, sys
 from mathutils import Vector
@@ -522,5 +523,50 @@ elif MODE == "frames":
         scene.frame_set(f)
         r.filepath = os.path.join(OUT, out, f"f{f:03d}.png")
         bpy.ops.render.render(write_still=True)
+elif MODE == "pose":
+    # Byte assembled (frame 1), right arm raised to point up and to the viewer's left at the
+    # Learn heading, head turned a little the same way, seen from slightly to his left.
+    from mathutils import Matrix, Euler
+    scene.frame_set(1)
+    r.use_motion_blur = False
+    byname = {e.name: (e, home) for e, home, *_ in PARTS}
+    def turn(names, pivot, R):
+        for n in names:
+            e, home = byname[n]
+            e.animation_data_clear()
+            e.location = pivot + R @ (Vector(home) - pivot)
+            e.rotation_euler = R.to_euler()
+    shoulder = W(206 - 54, 252)
+    raise_arm = Matrix.Rotation(math.radians(float(os.environ.get("ARM_UP", "105"))), 3, "Y") @ Matrix.Rotation(math.radians(float(os.environ.get("ARM_FWD", "-35"))), 3, "X")
+    turn(["shoulder-1", "upper-1"], shoulder, raise_arm)
+    # the forearm and claw follow the upper arm, then bend at the (moved) elbow
+    elbow = shoulder + raise_arm @ (W(206 - 78, 304) - shoulder)
+    B = Matrix.Rotation(math.radians(float(os.environ.get("ARM_BEND", "8"))), 3, "Y")
+    for n in ("fore-1", "claw-1"):
+        e, home = byname[n]
+        e.animation_data_clear()
+        moved = shoulder + raise_arm @ (Vector(home) - shoulder)
+        e.location = elbow + B @ (moved - elbow)
+        e.rotation_euler = (B @ raise_arm).to_euler()
+    head_turn = Matrix.Rotation(math.radians(-14), 3, "Z") @ Matrix.Rotation(math.radians(6), 3, "Y")
+    turn([n for n in byname if n.startswith(("head", "ear", "antenna", "visor", "eyes", "leds"))], W(206, 225), head_turn)
+    for e in JETS:
+        e.animation_data_clear()
+        e.scale = (0.001, 0.001, 0.001)
+    cam.animation_data_clear()
+    cam_data.animation_data_clear()
+    pos, look, lens, roll = camera_at(1)
+    yaw, elev, dist, tz = math.radians(16), math.radians(6), 7.6, 2.05
+    look = Vector((0.15, 0, tz))
+    cam.location = look + Vector((math.sin(yaw) * math.cos(elev), -math.cos(yaw) * math.cos(elev), math.sin(elev))) * dist
+    cam.rotation_mode = "QUATERNION"
+    cam.rotation_quaternion = (look - cam.location).to_track_quat("-Z", "Y")
+    cam_data.lens = 50
+    focus.animation_data_clear()
+    focus.location = look
+    r.resolution_x = r.resolution_y = int(ARGS[1]) if len(ARGS) > 1 else 900
+    scene.cycles.samples = int(ARGS[0]) if ARGS else 48
+    r.filepath = os.path.join(OUT, f"pose-{r.resolution_x}.png")
+    bpy.ops.render.render(write_still=True)
 elif MODE == "save":
     bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(os.path.join(OUT, "byte.blend")))

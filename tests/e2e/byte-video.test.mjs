@@ -52,12 +52,17 @@ test("the videos and stills are served from the site itself and stay small", asy
   }
 });
 
-test("after each run Byte stands still for 3 seconds, then the clip plays again", async () => {
+test("after each run Byte floats gently for 3 seconds, then the clip plays again", async () => {
   const page = await newPage({ path: "/", ready: "[data-byte-video]" });
   await page.waitForFunction(() => document.querySelector("[data-byte-video]").ended, { timeout: 15000 });
-  await new Promise((r) => setTimeout(r, 2000));
+  await new Promise((r) => setTimeout(r, 700));
+  const lift = await page.$eval(".hh-byte-float", (f) => ({ resting: f.hasAttribute("data-resting"), y: new DOMMatrix(getComputedStyle(f).transform).m42 }));
+  assert.ok(lift.resting, "marked as resting during the pause");
+  assert.ok(lift.y < -4, `Byte floats up during the pause (y=${lift.y})`);
+  await new Promise((r) => setTimeout(r, 1300));
   assert.ok(await page.$eval("[data-byte-video]", (v) => v.ended || v.paused), "still resting 2 s after the end");
   await page.waitForFunction(() => { const v = document.querySelector("[data-byte-video]"); return !v.paused && v.currentTime > 0.2; }, { timeout: 5000 });
+  assert.equal(await page.$eval(".hh-byte-float", (f) => f.hasAttribute("data-resting")), false, "the float stops when the clip plays again");
   assert.equal(await page.$eval("[data-byte-hero] figcaption", (c) => c.textContent), "Byte · takes itself apart so you can see inside");
   assert.deepEqual(page.errors, []);
   await page.close();

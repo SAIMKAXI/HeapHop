@@ -1,87 +1,88 @@
-"use client";
+// The Learn page: a hero with Byte pointing at the heading, the nine topics as a 3x3 grid of
+// cards (each opens its topic page, /learn/<slug>), and a row for the Editor and the references.
+import { ArrowRight, BookOpen, SquareTerminal } from "lucide-react";
+import { EXAMPLES } from "@content/examples";
+import { LESSONS } from "@content/lessons";
+import { TopicArt, TopicIcon } from "./topic-art";
+import { TOPICS, examplesOf, lessonsOf } from "./topics";
 
-// The list of everything in Learn: guided lessons by topic, then ready-made programs to
-// step through. Each entry is a real link, so it can be opened in a new tab or shared.
-import type { MouseEvent, ReactNode } from "react";
-import { ArrowDownWideNarrow, ArrowLeftRight, ArrowRight, ArrowRightToLine, Layers, Link2, ListTree, Network, Play, Scale, Triangle } from "lucide-react";
-import { EXAMPLES, GROUP_TITLES, type Example } from "@content/examples";
-import { LESSONS, type LessonTopic } from "@content/lessons";
-import { hrefOf, openPick, type Pick } from "./address";
-
-const TOPICS: { topic: LessonTopic; title: string; intro: string; icon: ReactNode }[] = [
-  { topic: "sorting", title: "Sorting and complexity", intro: "Count the steps an algorithm takes, then watch four sorts rearrange the same cells.", icon: <ArrowDownWideNarrow size={18} aria-hidden /> },
-  { topic: "lists", title: "Linked lists", intro: "Nodes, next pointers, and why the order of two lines matters.", icon: <Link2 size={18} aria-hidden /> },
-  { topic: "doubly", title: "Doubly and circular lists", intro: "Two arrows per node, and lists that loop back to the start.", icon: <ArrowLeftRight size={18} aria-hidden /> },
-  { topic: "stacks", title: "Stacks", intro: "Last in, first out: push and pop at the top, and the call stack behind recursion.", icon: <Layers size={18} aria-hidden /> },
-  { topic: "queues", title: "Queues", intro: "First in, first out: add at the back, remove from the front.", icon: <ArrowRightToLine size={18} aria-hidden /> },
-  { topic: "bst", title: "Binary search trees", intro: "Smaller to the left, larger to the right: searching, traversing and deleting.", icon: <ListTree size={18} aria-hidden /> },
-  { topic: "avl", title: "AVL trees", intro: "Balance factors and the rotations that keep a search tree short.", icon: <Scale size={18} aria-hidden /> },
-  { topic: "heaps", title: "Heaps and priority queues", intro: "A complete tree kept in an array, with the largest value always on top.", icon: <Triangle size={18} aria-hidden /> },
-  { topic: "graphs", title: "Graphs", intro: "Matrices and adjacency lists, searching wide and deep, shortest paths and spanning trees.", icon: <Network size={18} aria-hidden /> },
-];
-const EXAMPLE_GROUPS: Example["group"][] = ["lists", "mistakes", "pointers"];
-
-/** A link that opens a lesson or example in place; with a modifier key it acts like any link. */
-function PickLink({ pick, className, children }: { pick: Pick; className: string; children: ReactNode }) {
-  const onClick = (e: MouseEvent) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    openPick(pick);
-  };
-  return <a href={hrefOf(pick)} onClick={onClick} {...{ [`data-${pick.kind}`]: pick.id }} className={className}>{children}</a>;
-}
-
-const card = "group flex flex-col rounded-xl border-2 border-card-border bg-card p-5 transition-colors hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+export const learnCard = "group relative flex flex-col overflow-hidden rounded-2xl border-2 border-card-border bg-card p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/70 hover:shadow-[0_0_28px_-8px_var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+export const iconTile = "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent";
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 
 export function LearnHome() {
   return (
-    <div data-reveal-children className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
-      <h1 className="text-3xl font-bold tracking-tight">Learn</h1>
-      <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
-        Each lesson runs a real C++ program and stops at the moments that matter. Some stops ask you to predict where a
-        pointer will go before the line runs. Use the arrow keys or the timeline to move back and forth at any time.
-      </p>
-
-      {TOPICS.map(({ topic, title, intro, icon }) => (
-        <section key={topic} data-topic={topic} data-reveal-children className="mt-12">
-          <h2 className="flex items-center gap-2 text-xl font-bold"><span className="text-accent">{icon}</span>{title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{intro}</p>
-          <ol data-reveal-children className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {LESSONS.filter((l) => l.topic === topic).map((l, i) => (
-              <li key={l.id} className="flex">
-                <PickLink pick={{ kind: "lesson", id: l.id }} className={`${card} flex-1`}>
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-xs font-bold text-accent">{i + 1}</span>
-                  <span className="mt-3 font-semibold">{l.title}</span>
-                  <span className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{l.summary}</span>
-                  <span className="mt-4 flex items-center gap-1 text-sm font-semibold text-accent">
-                    Start lesson <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
-                  </span>
-                </PickLink>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ))}
-
-      <section data-reveal-children className="mt-16">
-        <h2 className="flex items-center gap-2 text-xl font-bold"><Play size={18} className="text-accent" aria-hidden />Watch a program</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Ready-made programs to step through at your own pace, without questions.</p>
-        {EXAMPLE_GROUPS.map((group) => (
-          <div key={group} data-reveal-children className="mt-8">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted">{GROUP_TITLES[group]}</h3>
-            <ul data-reveal-children className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {EXAMPLES.filter((e) => e.group === group).map((e) => (
-                <li key={e.id} className="flex">
-                  <PickLink pick={{ kind: "example", id: e.id }} className={`${card} flex-1 p-4`}>
-                    <span className="text-sm font-semibold">{e.title}</span>
-                    <span className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{e.description}</span>
-                  </PickLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+    <div className="mx-auto max-w-6xl px-5 py-10 sm:py-12">
+      <section data-learn-hero className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
+        <div data-reveal-children>
+          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Learn C++ <span className="text-accent">visually.</span></h1>
+          <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            Pick a topic, run real programs, and watch memory change one line at a time. Lessons stop at the moments that
+            matter and ask you to predict what happens next.
+          </p>
+          <span className="mt-5 block h-1 w-16 rounded-full bg-accent" aria-hidden />
+          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground" data-learn-stats>
+            <span><b className="text-foreground">{LESSONS.length}</b> lessons</span>
+            <span><b className="text-foreground">{TOPICS.length}</b> topics</span>
+            <span><b className="text-foreground">{EXAMPLES.length}</b> example programs</span>
+          </p>
+        </div>
+        <div className="relative mx-auto hidden h-64 w-56 sm:block lg:h-72 lg:w-64" aria-hidden data-reveal>
+          <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--accent)_22%,transparent),transparent_65%)]" />
+          {/* eslint-disable-next-line @next/next/no-img-element -- a fixed, pre-sized image */}
+          <img src="/media/byte-point.webp" alt="" width={463} height={790} data-byte-point className="relative h-full w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.35)]" />
+        </div>
       </section>
+
+      <h2 className="sr-only">Topics</h2>
+      <ul data-reveal-children className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-topic-grid>
+        {TOPICS.map((t) => {
+          const lessons = lessonsOf(t).length;
+          const programs = examplesOf(t).reduce((n, g) => n + g.examples.length, 0);
+          return (
+            <li key={t.slug} className="flex">
+              <a href={`/learn/${t.slug}`} data-topic-card={t.topic} className={`${learnCard} flex-1`}>
+                <div className="flex items-start justify-between gap-3">
+                  <span className={iconTile}><TopicIcon topic={t.topic} /></span>
+                  <TopicArt topic={t.topic} className="h-14 w-24 shrink-0 opacity-90 transition-opacity group-hover:opacity-100" />
+                </div>
+                <span className="mt-4 text-lg font-bold">{t.title}</span>
+                <span className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{t.short}</span>
+                <span className="mt-5 flex items-center justify-between gap-3 text-sm">
+                  <span className="text-muted">{plural(lessons, "lesson")}{programs ? ` · ${plural(programs, "program")}` : ""}</span>
+                  <span className="flex items-center gap-1 font-semibold text-accent">
+                    Explore topic <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
+                  </span>
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div data-reveal-children className="mt-5 grid gap-5 md:grid-cols-2">
+        <section className={`${learnCard} sm:flex-row sm:items-center sm:gap-5 hover:translate-y-0`} data-learn-practice>
+          <span className={iconTile}><SquareTerminal size={20} aria-hidden /></span>
+          <div className="mt-3 flex-1 sm:mt-0">
+            <h2 className="text-lg font-bold">Practice &amp; build</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Write your own C++ and step through it the same way.</p>
+          </div>
+          <a href="/editor" className="mt-4 inline-flex items-center gap-1.5 self-start rounded-full border-2 border-accent/60 px-4 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-accent hover:text-background sm:mt-0 sm:self-center">
+            Open the Editor <ArrowRight size={14} aria-hidden />
+          </a>
+        </section>
+        <section className={`${learnCard} sm:flex-row sm:items-center sm:gap-5 hover:translate-y-0`} data-learn-references>
+          <span className={iconTile}><BookOpen size={20} aria-hidden /></span>
+          <div className="mt-3 flex-1 sm:mt-0">
+            <h2 className="text-lg font-bold">Quick references</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Which C++ HeapHop runs, and answers to common questions.</p>
+          </div>
+          <span className="mt-4 flex gap-2 sm:mt-0">
+            <a href="/supported" className="rounded-full border-2 border-card-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-accent hover:text-accent">Supported C++</a>
+            <a href="/faq" className="rounded-full border-2 border-card-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-accent hover:text-accent">FAQ</a>
+          </span>
+        </section>
+      </div>
     </div>
   );
 }

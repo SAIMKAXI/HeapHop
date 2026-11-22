@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { PageFrame } from "@/ui/site/page-frame";
 
 export const metadata: Metadata = { title: "FAQ", description: "Questions about HeapHop: what it runs, where your code goes, and what the pictures mean." };
@@ -13,11 +14,11 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Should I start with Learn or with the Editor?",
-    a: <>If the topic is new to you, start with <a href="/learn" className={link}>Learn</a>: the lessons pause at the important moments and ask you questions. If you already have a program, such as a lab task, open the <a href="/editor" className={link}>Editor</a>, paste it and press Run.</>,
+    a: <>If the topic is new to you, start with <Link href="/learn" className={link}>Learn</Link>: the lessons pause at the important moments and ask you questions. If you already have a program, such as a lab task, open the <a href="/editor" className={link}>Editor</a>, paste it and press Run.</>,
   },
   {
     q: "Do I need to install anything or make an account?",
-    a: "No. HeapHop runs in the browser, on a computer or a phone. There are no accounts.",
+    a: <>Nothing to install: HeapHop runs in the browser, on a computer or a phone. Learn and the Editor need a free account, which keeps only your name, email and university. See the <a href="/privacy" className={link}>privacy policy</a>.</>,
   },
   {
     q: "Is my code sent to a server?",

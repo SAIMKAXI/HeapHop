@@ -1,6 +1,7 @@
 "use client";
 
-// The Learn section: the list of lessons and examples, or the one the address names.
+// The Learn section: the topic grid (/learn) or one topic's page (/learn/<slug>), or the lesson
+// or example the address names (?lesson= / ?example=), which opens in place on either.
 import { useEffect, useState } from "react";
 import type { Trace } from "@/core/types";
 import type { Lesson } from "@/core/learn";
@@ -11,6 +12,8 @@ import { PageFrame } from "@/ui/site/page-frame";
 import { Visualizer } from "@/ui/visualizer/visualizer";
 import { backToList, hrefOf, usePick, type Pick } from "./address";
 import { LearnHome } from "./learn-home";
+import { TopicPage } from "./topic-page";
+import { topicBySlug } from "./topics";
 
 async function programOf(pick: Pick): Promise<{ code: string; input: string; lesson?: Lesson }> {
   if (pick.kind === "example") {
@@ -26,8 +29,9 @@ async function programOf(pick: Pick): Promise<{ code: string; input: string; les
 
 type Shown = { href: string } & ({ trace: Trace; lesson?: Lesson } | { error: string });
 
-export function LearnShell({ run }: { run: RunFn }) {
+export function LearnShell({ run, topic: slug }: { run: RunFn; topic?: string }) {
   const pick = usePick();
+  const topic = slug ? topicBySlug(slug) : undefined;
   const [shown, setShown] = useState<Shown | null>(null);
 
   useEffect(() => {
@@ -47,9 +51,9 @@ export function LearnShell({ run }: { run: RunFn }) {
     return () => { current = false; };
   }, [pick, run]);
 
-  if (!pick) return <PageFrame current="learn"><LearnHome /></PageFrame>;
+  if (!pick) return <PageFrame current="learn">{topic ? <TopicPage topic={topic} /> : <LearnHome />}</PageFrame>;
   if (shown?.href === hrefOf(pick) && "trace" in shown) {
-    return <Visualizer key={shown.href} trace={shown.trace} lesson={shown.lesson} current="learn" backLabel="Learn" onBack={backToList} />;
+    return <Visualizer key={shown.href} trace={shown.trace} lesson={shown.lesson} current="learn" backLabel={topic?.title ?? "Learn"} onBack={backToList} />;
   }
   const failed = shown?.href === hrefOf(pick) && "error" in shown ? shown.error : null;
   return (

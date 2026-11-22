@@ -5,6 +5,7 @@
 // Colours come from the site's theme and follow the light / dark switch. With reduced motion
 // it draws one still frame. If WebGL isn't available, nothing is drawn and the form is unaffected.
 import { useEffect, useRef } from "react";
+import { curAt } from "./heap-scene-timing";
 
 const VALUES = [12, 7, 42, 3, 19];
 const GAP = 3.1;
@@ -178,28 +179,24 @@ export function HeapScene() {
       window.addEventListener("pointermove", onMove);
 
       const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const HOP = 1.3; // seconds per node
       const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
       let raf = 0;
       const t0 = performance.now();
       const frame = (now: number) => {
-        const t = still ? 2.1 : Math.max(0, now - t0) / 1000; // the first frame can be timed just before t0
+        const t = still ? 2.8 : Math.max(0, now - t0) / 1000; // still: cur resting on the third node; the first frame can be timed just before t0
         list.rotation.y = Math.sin(t * 0.25) * 0.22;
         list.rotation.x = 0.12 + Math.sin(t * 0.18) * 0.05;
         nodes.forEach(({ node }, i) => { node.position.y = Math.sin(t * 1.1 + i * 0.8) * 0.18; node.position.z = Math.cos(t * 0.7 + i) * 0.25; });
-        // cur hops along the list, pausing on each node, then starts again at head
-        const span = VALUES.length * HOP;
-        const k = (t % span) / HOP;
-        const at = Math.floor(k);
-        const move = Math.min(1, (k - at) / 0.45);
-        const from = nodes[at].node.position;
-        const to = nodes[(at + 1) % nodes.length].node.position;
-        const p = at === nodes.length - 1 ? 0 : ease(move);
-        cur.position.set(from.x + (to.x - from.x) * p - 0.42, 1.25 + from.y + Math.sin(p * Math.PI) * 0.6, from.z);
-        const onNode = at === nodes.length - 1 || move >= 1 ? at : -1;
+        // cur rests on each node from head (that node glows), then hops to the next
+        const c = curAt(t, nodes.length);
+        const from = nodes[c.from].node.position;
+        const to = nodes[c.to].node.position;
+        const p = ease(c.progress);
+        cur.position.set(from.x + (to.x - from.x) * p - 0.42, 1.25 + from.y + (to.y - from.y) * p + Math.sin(p * Math.PI) * 0.6, from.z + (to.z - from.z) * p);
+        if (canvas.dataset.curNode !== String(c.glowing)) canvas.dataset.curNode = String(c.glowing);
         nodes.forEach(({ data, node }, i) => {
-          data.material = i === onNode ? hotMat : dataMat;
-          const s = i === onNode ? 1.06 : 1;
+          data.material = i === c.glowing ? hotMat : dataMat;
+          const s = i === c.glowing ? 1.06 : 1;
           node.scale.setScalar(node.scale.x + (s - node.scale.x) * 0.2);
         });
         glow.position.set(cur.position.x, cur.position.y - 0.6, 1.5);

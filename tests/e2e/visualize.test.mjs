@@ -212,9 +212,11 @@ test("going back to the editor keeps the code that was run", async () => {
 });
 
 test("every example in Learn runs and opens the visualizer", async () => {
-  const page = await newPage({ path: "/learn", ready: "[data-example]" });
+  let total = 0;
+  for (const topic of ["linked-lists", "doubly-linked-lists"]) {
+  const page = await newPage({ path: `/learn/${topic}`, ready: "[data-example]" });
   const ids = await page.$$eval("[data-example]", (e) => e.map((x) => x.dataset.example));
-  assert.ok(ids.length >= 16);
+  total += ids.length;
   for (const id of ids) {
     await page.click(`[data-example='${id}']`);
     await page.waitForSelector(".hh-canvas, [data-run-error]");
@@ -223,4 +225,6 @@ test("every example in Learn runs and opens the visualizer", async () => {
     await page.waitForSelector("[data-example]");
   }
   assert.deepEqual(page.errors, []);
+  }
+  assert.equal(total, 25, "all 25 example programs are on a topic page");
 });

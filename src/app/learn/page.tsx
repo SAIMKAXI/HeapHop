@@ -1,8 +1,5 @@
-"use client";
-
-import { runProgram } from "@/runtime";
-import { LearnShell } from "@/ui/learn/learn-shell";
+import { LearnClient } from "./learn-client";
 
 export default function LearnPage() {
-  return <LearnShell run={runProgram} />;
+  return <LearnClient />;
 }

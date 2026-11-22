@@ -51,10 +51,10 @@ test("content below the fold waits faded and arrives as it scrolls into view", a
   await page.waitForFunction((s) => document.querySelector(s).hasAttribute("data-shown"), {}, last);
   await page.waitForFunction((s) => getComputedStyle(document.querySelector(s)).opacity === "1", {}, last);
 
-  // Learn: the lesson cards in view arrive one after another.
-  const learn = await newPage({ path: "/learn", ready: "[data-lesson]" });
-  await learn.waitForFunction(() => document.querySelector("[data-topic] li")?.hasAttribute("data-shown"));
-  const delays = await learn.$$eval("[data-topic]:first-of-type li", (li) => li.map((x) => x.style.getPropertyValue("--reveal-delay")));
+  // Learn: the topic cards in view arrive one after another.
+  const learn = await newPage({ path: "/learn", ready: "[data-topic-card]" });
+  await learn.waitForFunction(() => document.querySelector("[data-topic-grid] li")?.hasAttribute("data-shown"));
+  const delays = await learn.$$eval("[data-topic-grid] li[data-shown]", (li) => li.map((x) => x.style.getPropertyValue("--reveal-delay")));
   assert.ok(new Set(delays).size > 1, `cards are staggered: ${delays}`);
   assert.deepEqual([...page.errors, ...learn.errors], []);
 });

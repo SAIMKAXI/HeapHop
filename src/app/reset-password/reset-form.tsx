@@ -1,5 +1,6 @@
 "use client";
 import { useActionState } from "react";
+import Link from "next/link";
 import { setNewPassword, type FormState } from "@/server/actions/auth";
 import { AuthCard, Banner, Field, Submit } from "@/ui/auth/form-bits";
 
@@ -10,7 +11,7 @@ export function ResetForm() {
       {state.ok ? (
         <>
           <Banner kind="ok">{state.message}</Banner>
-          <a href="/learn" className="font-semibold text-accent hover:underline" data-continue>Continue to Learn →</a>
+          <Link href="/learn" className="font-semibold text-accent hover:underline" data-continue>Continue to Learn →</Link>
         </>
       ) : (
         <form action={action} noValidate data-reset-form>

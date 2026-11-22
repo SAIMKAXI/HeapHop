@@ -5,10 +5,11 @@
 // Made with scripts/byte-video (Blender). There is one video per theme, each on that
 // theme's background, so it works in every browser without a transparent video format.
 //
-// Before hydration both still frames are in the page and CSS shows the one for the theme,
+// During the pause Byte bobs gently (two slow floats that start and end at rest, so the
+// clip picks up without a jump). Before hydration both still frames are in the page and CSS shows the one for the theme,
 // so nothing flashes. After hydration only the current theme's video is loaded. Visitors
 // who ask for reduced motion keep the still frame.
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLightTheme } from "@/ui/theme";
 
 export const BYTE_VIDEO = {
@@ -37,13 +38,16 @@ export function ByteHero() {
   const still = useReducedMotion();
   const theme = light ? "light" : "dark";
   const video = useRef<HTMLVideoElement>(null);
+  const [resting, setResting] = useState(false);
   useEffect(() => {
     const v = video.current;
     if (!v) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const rest = () => {
-      // The last frame is Byte assembled, so it simply stays on screen during the pause.
+      // The last frame is Byte assembled, so it stays on screen, floating, during the pause.
+      setResting(true);
       timer = setTimeout(() => {
+        setResting(false);
         v.currentTime = 0;
         void v.play().catch(() => {});
       }, BYTE_PAUSE_MS);
@@ -52,11 +56,13 @@ export function ByteHero() {
     return () => {
       v.removeEventListener("ended", rest);
       clearTimeout(timer);
+      setResting(false);
     };
   }, [theme, still]);
   return (
     <figure data-byte-hero className="flex flex-col items-center">
       <div className="hh-byte-video relative aspect-square w-72 sm:w-80 lg:w-[26rem]" aria-hidden>
+        <div className="hh-byte-float absolute inset-0" data-resting={resting || undefined} style={{ animationDuration: `${BYTE_PAUSE_MS}ms` }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- a static export: no image optimiser */}
         <img src={BYTE_VIDEO.dark.still} alt="" width={900} height={900} data-byte-still="dark" className="hh-dark-only absolute inset-0 h-full w-full" />
         {/* eslint-disable-next-line @next/next/no-img-element -- a static export: no image optimiser */}
@@ -76,6 +82,7 @@ export function ByteHero() {
             className="absolute inset-0 h-full w-full"
           />
         )}
+        </div>
       </div>
       <figcaption className="mt-3 rounded-full border border-card-border bg-card px-4 py-1.5 text-sm text-muted-foreground">
         <span className="font-bold text-accent">Byte</span> · takes itself apart so you can see inside

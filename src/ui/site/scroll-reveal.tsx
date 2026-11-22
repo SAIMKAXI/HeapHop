@@ -6,8 +6,8 @@
 //   data-reveal           this element is revealed on its own
 //   data-reveal-children  each child is revealed on its own (a child that is itself a
 //                         data-reveal-children group is not, its children are instead)
-// Items that come into view together are staggered a little, so a row of cards arrives
-// one card after another.
+// Items that come into view together are staggered a little, counted per group of
+// siblings, so a row of cards arrives one card after another whatever else arrives with it.
 //
 // The hiding is done by CSS, and only while <html data-reveal> is set. The inline script
 // in the root layout sets it before the first paint (so nothing flashes), but only when the
@@ -27,11 +27,13 @@ export function ScrollReveal() {
     const seen = new WeakSet<Element>();
 
     const io = new IntersectionObserver((entries) => {
-      let n = 0;
+      const perGroup = new Map<Element | null, number>();
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const el = entry.target as HTMLElement;
-        el.style.setProperty("--reveal-delay", `${Math.min(n++, MAX_STAGGER) * STAGGER_MS}ms`);
+        const n = perGroup.get(el.parentElement) ?? 0;
+        perGroup.set(el.parentElement, n + 1);
+        el.style.setProperty("--reveal-delay", `${Math.min(n, MAX_STAGGER) * STAGGER_MS}ms`);
         el.setAttribute("data-shown", "");
         io.unobserve(el);
       }

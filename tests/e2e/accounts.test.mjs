@@ -319,6 +319,18 @@ test("the login page shows the live 3D list beside the form, and sign-up shows B
   assert.ok(await page.$("[data-login-form]"));
   await new Promise((r) => setTimeout(r, 1500));
   assert.deepEqual(page.errors, [], "no errors, even where WebGL is unavailable");
+  if (await page.$eval("canvas[data-heap-scene]", (c) => c.dataset.ready === "true")) {
+    // cur rests on each node from head, and the glowing node is always the one cur is on
+    const seen = await page.evaluate(() => new Promise((done) => {
+      const c = document.querySelector("canvas[data-heap-scene]");
+      const order = [];
+      const t = setInterval(() => { const n = c.dataset.curNode; if (n && n !== "-1" && order.at(-1) !== n) order.push(n); }, 40);
+      setTimeout(() => { clearInterval(t); done(order); }, 7500);
+    }));
+    const start = seen.indexOf("0");
+    assert.ok(start >= 0, `cur rests on head: ${seen}`);
+    assert.deepEqual(seen.slice(start, start + 5), ["0", "1", "2", "3", "4"], `cur visits every node in order: ${seen}`);
+  }
   await page.goto(origin() + "/signup", { waitUntil: "networkidle0" });
   assert.ok(await page.$("[data-auth-aside] [data-byte-hero]"), "Byte is beside the sign-up form");
   assert.equal(await page.$("canvas[data-heap-scene]"), null);

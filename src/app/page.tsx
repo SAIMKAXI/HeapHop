@@ -1,6 +1,7 @@
 // The landing page: the slogan with Byte beside it, a live demo, the two ways in (Learn, Editor),
 // and the features under a strip of rolling C++ words. Lower sections fade in as they scroll into view.
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { ArrowRight, CodeXml, GraduationCap, ListTree, MessageSquareText, MousePointerClick, ShieldCheck, TriangleAlert, Undo2 } from "lucide-react";
 import { PageFrame } from "@/ui/site/page-frame";
 import { ByteHero } from "@/ui/landing/byte-hero";
@@ -41,9 +42,9 @@ export default function LandingPage() {
               Step forward, step back, and watch every pointer move.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
-              <a href="/learn" data-cta="learn" className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-on-accent shadow-lg shadow-accent/20 transition-colors hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+              <Link href="/learn" data-cta="learn" className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-on-accent shadow-lg shadow-accent/20 transition-colors hover:bg-accent/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                 Start learning <ArrowRight size={16} aria-hidden />
-              </a>
+              </Link>
               <a href="/editor" data-cta="editor" className="flex items-center gap-2 rounded-full border border-card-border bg-card px-6 py-3 text-sm font-bold transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                 Open the editor
               </a>
