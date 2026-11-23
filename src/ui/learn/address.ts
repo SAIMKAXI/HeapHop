@@ -34,9 +34,11 @@ export function usePick(): Pick | null {
 
 export const hrefOf = (pick: Pick) => `?${pick.kind}=${encodeURIComponent(pick.id)}`;
 
-/** Opens a lesson or example as a new history entry. */
+/** Opens a lesson or example as a new history entry (one step deeper in Learn, see nav-history.ts). */
 export function openPick(pick: Pick) {
-  history.pushState({ heaphop: true }, "", hrefOf(pick));
+  const hh = history.state?.hh;
+  const deeper = hh && typeof hh.depth === "number" ? { hh: { depth: hh.depth + 1, home: !!hh.home } } : {};
+  history.pushState({ heaphop: true, ...deeper }, "", hrefOf(pick));
   dispatchEvent(new Event(NAVIGATED));
 }
 
@@ -44,7 +46,7 @@ export function openPick(pick: Pick) {
 export function backToList() {
   if (history.state?.heaphop) history.back();
   else {
-    history.replaceState(null, "", location.pathname);
+    history.replaceState(history.state?.hh ? { hh: history.state.hh } : null, "", location.pathname);
     dispatchEvent(new Event(NAVIGATED));
   }
 }

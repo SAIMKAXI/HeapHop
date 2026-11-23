@@ -6,8 +6,8 @@
 // Pages and the database check again; this is the first gate, not the only one.
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { contentSecurityPolicy, newNonce, SESSION_COOKIE } from "@/server/policy";
-import { referenceFor } from "@/server/reference";
+import { contentSecurityPolicy, DISABLED_COOKIE, DISABLED_HEADER, newNonce, SESSION_COOKIE } from "@/server/policy";
+import { isReference, referenceFor } from "@/server/reference";
 import { isProtected } from "@/server/validate";
 
 export async function proxy(request: NextRequest) {
@@ -17,13 +17,18 @@ export async function proxy(request: NextRequest) {
   const forwarded = new Headers(request.headers);
   forwarded.set("x-nonce", nonce);
   forwarded.set("content-security-policy", csp);
+  const path = request.nextUrl.pathname;
+  // Only this proxy may tell the login page an account was just disabled (see DISABLED_COOKIE).
+  forwarded.delete(DISABLED_HEADER);
+  const disabledNote = path === "/login" ? request.cookies.get(DISABLED_COOKIE)?.value : undefined;
+  if (disabledNote !== undefined) forwarded.set(DISABLED_HEADER, isReference(disabledNote) ? disabledNote : "none");
 
   let response = NextResponse.next({ request: { headers: forwarded } });
-  const path = request.nextUrl.pathname;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_PUBLISHABLE_KEY;
   const finish = (res: NextResponse) => {
     res.headers.set("content-security-policy", csp);
+    if (disabledNote !== undefined) res.cookies.set(DISABLED_COOKIE, "", { ...SESSION_COOKIE, path: "/login", maxAge: 0 });
     if (isProtected(path) || path.startsWith("/login") || path.startsWith("/signup")) res.headers.set("cache-control", "private, no-store");
     return res;
   };
@@ -70,7 +75,10 @@ export async function proxy(request: NextRequest) {
       await supabase.auth.signOut();
       const email = data?.claims?.email;
       const ref = await referenceFor(typeof email === "string" ? email : null);
-      return redirectTo(`/login?disabled=1${ref ? `&ref=${ref}` : ""}`);
+      const res = NextResponse.redirect(new URL("/login", request.url));
+      for (const c of response.cookies.getAll()) res.cookies.set(c);
+      res.cookies.set(DISABLED_COOKIE, ref ?? "none", { ...SESSION_COOKIE, path: "/login", maxAge: 300 });
+      return finish(res);
     }
     if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") return redirectTo(`/login/mfa?next=${encodeURIComponent(here)}`);
     if (isAdminPath && profile.role !== "admin") return notFound();

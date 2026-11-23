@@ -54,7 +54,7 @@ test("the site never turns data into HTML or code", () => {
     if (/innerHTML|outerHTML|insertAdjacentHTML|document\.write|\beval\(|new Function\(/.test(code)) assert.fail(`${p}: raw HTML or code from a string`);
     for (const r of code.matchAll(/dangerouslySetInnerHTML=\{\{\s*__html:\s*([^}]+?)\s*\}\}/g)) {
       assert.equal(p, "src/app/layout.tsx", `${p}: dangerouslySetInnerHTML`);
-      assert.equal(r[1], "SAVED_THEME_SCRIPT + REVEAL_READY_SCRIPT", "only the two fixed inline scripts");
+      assert.equal(r[1], "SAVED_THEME_SCRIPT + REVEAL_READY_SCRIPT + NAV_START_SCRIPT", "only the three fixed inline scripts");
     }
     if (/dangerouslySetInnerHTML/.test(code) && p !== "src/app/layout.tsx") assert.fail(`${p}: dangerouslySetInnerHTML`);
   }

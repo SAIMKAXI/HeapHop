@@ -4,7 +4,7 @@
 // session cookie is SameSite, so another site cannot submit these forms for a visitor (CSRF).
 // Errors are logged by code only: never an email, a password or a token.
 import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { referenceFor, reviewIssueUrl } from "../reference";
 import { allow, clientIp } from "../rate-limit";
 import { serverSupabase } from "../supabase";
@@ -102,7 +102,8 @@ export async function logIn(_prev: FormState, form: FormData): Promise<FormState
     console.warn(`[auth] login: ${(e as Error).name}`);
     return { error: BROKEN, values };
   }
-  redirect(mfa ? `/login/mfa?next=${encodeURIComponent(next)}` : next);
+  // Replace the login page in history, so Back from the next page doesn't return to the form.
+  redirect(mfa ? `/login/mfa?next=${encodeURIComponent(next)}` : next, RedirectType.replace);
 }
 
 export async function verifyMfa(_prev: FormState, form: FormData): Promise<FormState> {
@@ -117,7 +118,7 @@ export async function verifyMfa(_prev: FormState, form: FormData): Promise<FormS
     if (!(await allow("mfaUser", sub))) return { error: TOO_MANY };
     const { data: factors } = await supabase.auth.mfa.listFactors();
     const factor = factors?.totp.find((f) => f.status === "verified");
-    if (!factor) redirect(next);
+    if (!factor) redirect(next, RedirectType.replace);
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
     if (error) {
       logCode("mfa", error);
@@ -128,7 +129,7 @@ export async function verifyMfa(_prev: FormState, form: FormData): Promise<FormS
     console.warn(`[auth] mfa: ${(e as Error).name}`);
     return { error: BROKEN };
   }
-  redirect(next);
+  redirect(next, RedirectType.replace);
 }
 
 export async function logOut(): Promise<void> {

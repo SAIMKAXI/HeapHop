@@ -5,6 +5,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { SAVED_THEME_SCRIPT } from "@/ui/theme-script";
 import { REVEAL_READY_SCRIPT } from "@/ui/site/reveal-script";
+import { NAV_START_SCRIPT } from "@/ui/site/nav-history";
 import { WebsiteProvider } from "@/ui/site/website";
 import "./globals.css";
 
@@ -26,7 +27,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     // first paint, so the attributes on <html> may differ from the pre-rendered ones.
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SAVED_THEME_SCRIPT + REVEAL_READY_SCRIPT }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SAVED_THEME_SCRIPT + REVEAL_READY_SCRIPT + NAV_START_SCRIPT }} />
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <WebsiteProvider session={session}>{children}</WebsiteProvider>

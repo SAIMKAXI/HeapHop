@@ -203,8 +203,11 @@ test("the admin sees users and counts and can disable an account; the disabled u
   await admin.waitForFunction((email) => document.querySelector(`[data-user-row="${email}"]`)?.textContent.includes("Disabled"), {}, victim.email);
 
   await student.goto(origin() + "/editor", { waitUntil: "load" });
-  assert.match(path(student), /^\/login\?disabled=1&ref=HH-[0-9A-F]{4}-[0-9A-F]{4}$/, "the open session is ended");
+  assert.equal(path(student), "/login", "the open session is ended");
   assert.ok(await student.$("[data-disabled-notice]"), "and the student is told why");
+  assert.match(await student.$eval("[data-reference]", (e) => e.textContent), /^HH-[0-9A-F]{4}-[0-9A-F]{4}$/);
+  await student.reload({ waitUntil: "load" });
+  assert.equal(await student.$("[data-disabled-notice]"), null, "only once: the signal is used up");
 
   // A wrong password says only what it always says: nobody learns the account is disabled.
   await submitLogin(student, { ...victim, password: "Wrong-Password-9" });

@@ -37,3 +37,12 @@ export function newNonce(): string {
   crypto.getRandomValues(bytes);
   return btoa(String.fromCharCode(...bytes));
 }
+
+/**
+ * "This account was just disabled": the proxy sets this short-lived cookie when it signs a
+ * disabled account out, and on the next /login request turns it into DISABLED_HEADER for the
+ * page (deleting the cookie). Visitors can't send the header themselves (the proxy strips it),
+ * so a link can't make the login page claim an account is disabled.
+ */
+export const DISABLED_COOKIE = "hh_disabled";
+export const DISABLED_HEADER = "x-hh-disabled";

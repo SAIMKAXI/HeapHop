@@ -4,6 +4,7 @@
 // editor on its own, so there its header has no links. On the website the server also
 // says whether someone is signed in and if they are an admin (nothing personal).
 import { createContext, useContext, type ReactNode } from "react";
+import { NavHistory } from "./nav-history-client";
 
 /** Only what the header needs. The name and email are never sent to the page for this. */
 export interface SessionInfo {
@@ -16,7 +17,10 @@ const Session = createContext<SessionInfo | null>(null);
 export function WebsiteProvider({ children, session = null }: { children: ReactNode; session?: SessionInfo | null }) {
   return (
     <OnWebsite value>
-      <Session value={session}>{children}</Session>
+      <Session value={session}>
+        <NavHistory />
+        {children}
+      </Session>
     </OnWebsite>
   );
 }
