@@ -162,6 +162,10 @@ class Parser {
     if (this.isListAt(0)) throw unsupported("A list of lists", id.line, "Use a list of pointers, or an array of lists.");
     const t = this.peek();
     if (t.type === "keyword" && t.value === "auto") throw parseError("auto cannot be the element type of a list.", t.line);
+    const elemName = t.type === "ident" && t.value === "std" && this.is("::", 1) ? this.peek(2) : t;
+    if (elemName.type === "ident" && !this.typeNames.has(elemName.value) && this.is("<", elemName === t ? 1 : 3)) {
+      throw unsupported(`A list of ${elemName.value}<...>`, t.line, elemName.value === "pair" ? "Use a struct with two fields instead, for example struct Edge { int u; int v; };" : "Use a list of a struct or class of your own.");
+    }
     const elemBase = this.parseBaseType();
     let ptrs = 0;
     while (this.match("*")) ptrs++;

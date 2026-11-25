@@ -93,6 +93,15 @@ export class TraceModel {
         for (const id of touched) this.objects.get(id)?.history.push(entry);
       }
     });
+
+    // std::list nodes: "node #3" reads better than "list<int>::node #3". The element type is
+    // added only when the program uses two kinds of list ("int node #3", "string node #1").
+    const LIST_NODE = /^list<(.+)>::node$/;
+    const listKinds = new Set([...this.objects.values()].map((o) => o.typeName).filter((t) => LIST_NODE.test(t)));
+    for (const rec of this.objects.values()) {
+      const m = LIST_NODE.exec(rec.typeName);
+      if (m) rec.displayName = listKinds.size > 1 ? `${m[1]} node #${rec.number}` : `node #${rec.number}`;
+    }
   }
 
   get length(): number {

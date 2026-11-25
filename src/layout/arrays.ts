@@ -50,6 +50,18 @@ const isMatrix = (a: MemoryItem) => a.kind === "array" && (a.children ?? []).len
 const drawable = (a: MemoryItem) => isRow(a) || isMatrix(a);
 const named = (cells: MemoryItem[], active: boolean, via: string): Candidate[] => cells.map((cell) => ({ cell, active, via }));
 
+/** A std::list object (head, tail, size), as the VS Code extension's engine records one. */
+const isStdList = (c: MemoryItem) => c.kind === "object" && /^list<.*>$/.test(c.typeName) && !!c.children?.some((x) => x.name === "head" && x.kind === "pointer");
+/**
+ * An array of std::list objects (`list<int> adj[5]`, `new list<int>[V]`) is drawn the way an
+ * adjacency list is drawn on a board: a row of cells, each list hanging from its cell. The
+ * row is the lists' head pointers; tail and size stay visible in the stack panel.
+ */
+function asHeads(a: MemoryItem): MemoryItem {
+  if (a.kind !== "array" || !a.children?.length || !a.children.every(isStdList)) return a;
+  return { ...a, children: a.children.map((c, i) => ({ ...c.children!.find((x) => x.name === "head")!, name: `[${i}]`, label: `[${i}]` })) };
+}
+
 function collect(step: Step): Found[] {
   const found: Found[] = [];
   const top = step.stack.length - 1;
@@ -66,7 +78,8 @@ function collect(step: Step): Found[] {
   });
 
   step.stack.forEach((frame, fi) => {
-    for (const v of frame.variables) {
+    for (const raw of frame.variables) {
+      const v = asHeads(raw);
       if (v.kind === "array" && drawable(v)) {
         found.push({ item: v, title: v.name, owner: frame.name, candidates: named(scalars(frame.variables), fi === top, v.name), heapHint: HEAP_NAME.test(v.name), graphHint: GRAPH_NAME.test(v.name), stackHint: STACK_NAME.test(v.name) });
       } else if (v.kind === "object") {
@@ -74,7 +87,8 @@ function collect(step: Step): Found[] {
         const fields = scalars(v.children);
         const locals = method === top ? scalars(step.stack[method].variables) : [];
         const near = (via: string) => [...named(fields, fi === top || method === top, via), ...named(locals, method === top, via)];
-        for (const field of v.children ?? []) {
+        for (const rawField of v.children ?? []) {
+          const field = asHeads(rawField);
           if (field.kind === "array" && drawable(field)) {
             found.push({
               item: field, title: `${v.name}.${field.name}`, owner: frame.name, candidates: near(field.name),
@@ -90,7 +104,8 @@ function collect(step: Step): Found[] {
     }
   });
 
-  for (const h of step.heap) {
+  for (const raw of step.heap) {
+    const h = asHeads(raw);
     if (!drawable(h)) continue;
     const owners = step.stack.flatMap((f) => f.variables).filter((v) => v.pointsTo === h.id || v.children?.some((c) => c.pointsTo === h.id));
     found.push({
@@ -317,7 +332,8 @@ function graphEdges(f: Found, step: Step): { n: number; edges: { u: number; v: n
       const v = Number(ints[0]?.value);
       if (!node || !Number.isInteger(v)) break;
       edges.push({ u, v, w: ints.find((x) => /^(w|wt|weight|cost)$/i.test(x.name))?.value ?? "1" });
-      id = node.children!.find((x) => x.kind === "pointer")?.pointsTo?.split("_")[0];
+      const link = node.children!.find((x) => x.kind === "pointer" && x.name === "next") ?? node.children!.find((x) => x.kind === "pointer");
+      id = link?.pointsTo?.split("_")[0];
     }
   });
   return { n: elems.length, edges };

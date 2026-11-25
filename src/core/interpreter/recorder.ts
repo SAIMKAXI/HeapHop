@@ -318,7 +318,9 @@ export class Recorder {
       case "obj": {
         const cls = this.classes.get(v.type);
         const children = (cls?.fields ?? []).map((f) => {
-          const fl = `${typeText(f.type)} ${f.name}${f.arraySize !== null ? `[${f.arraySize}]` : ""}${f.arraySize2 !== null ? `[${f.arraySize2}]` : ""}`;
+          // Inside a std::list and its nodes, "node* next" is shown for "list<int>::node* next".
+          const shownType = cls?.builtin ? typeText(f.type).replace(/^list<.*>::node/, "node") : typeText(f.type);
+          const fl = `${shownType} ${f.name}${f.arraySize !== null ? `[${f.arraySize}]` : ""}${f.arraySize2 !== null ? `[${f.arraySize2}]` : ""}`;
           return this.build(v.f[f.name] ?? { k: "uninit" }, f.type, f.arraySize !== null, `${id}_${f.name}`, f.name, fl, refs);
         });
         return { ...base, typeName: isArray ? typeName : v.type, kind: "object", children };

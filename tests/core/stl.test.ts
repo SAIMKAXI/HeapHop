@@ -21,7 +21,7 @@ function trace(code: string, input = ""): Trace {
   return r.trace;
 }
 
-function rejected(code: string, features = STL) {
+function rejected(code: string, features: { stl?: boolean } = STL) {
   const r = run(code, undefined, "", features);
   if (r.ok) assert.fail("expected the program to be rejected");
   return r.error;
@@ -158,7 +158,7 @@ test("explanations talk about the list's nodes and iterators in list terms", () 
   const model = new TraceModel(t);
   const text = (i: number) => explainStep(model, i).map((s) => s.text).join(" ");
   const push = t.steps.findIndex((s) => s.sourceLine === 6);
-  assert.match(text(push), /The list makes a new node, list<int>::node #1/);
+  assert.match(text(push), /The list makes node #1 on the heap/);
   const inc = t.steps.findIndex((s) => s.sourceLine === 8);
   assert.match(text(inc), /`it` is now end\(\)/);
   const pop = t.steps.findIndex((s) => s.sourceLine === 9);
@@ -182,7 +182,7 @@ test("using an iterator after erasing its element stops with advice", () => {
   const t = trace(code);
   assert.match(last(t).error!.message, /no longer valid: the element it pointed at was erased on line 7/);
   const advice = explainStep(new TraceModel(t), t.steps.length - 1).map((s) => s.text).join(" ");
-  assert.match(advice, /Keep the iterator that erase\(\) gives back/);
+  assert.match(advice, /Carry on with the iterator erase\(\) gives back/);
 });
 
 test("the dangling iterator is shown as dangling before it is used", () => {
@@ -208,4 +208,35 @@ test("iterator arithmetic and printing an iterator are compile errors, as in g++
   assert.match(plus.message, /cannot be used with \+/);
   assert.equal(plus.line, 7);
   assert.match(rejected(main("list<int> a = {1};\ncout << a.begin();")).message, /cannot print an iterator/);
+});
+
+// ---- drawing ------------------------------------------------------------------
+
+test("an array of lists is drawn as an adjacency list: a row of cells, each list hanging from its cell", async () => {
+  const { layoutArrays } = await import("../../src/layout/arrays");
+  const t = trace(readFileSync(join(dir, "10_dfs_member_array.cpp"), "utf8"));
+  const step = t.steps.findLast((s) => s.heap.length >= 8)!;
+  const { strips } = layoutArrays(step, 0, new Map());
+  const adj = strips.find((s) => s.title === "g.adj");
+  assert.ok(adj, "g.adj is drawn as an array strip");
+  assert.equal(adj.cells.length, 5);
+  assert.ok(adj.cells[0].pointer && adj.cells[0].pointsTo, "cell 0 points at the first node of adj[0]");
+  // Named adj, so it is also drawn as the graph it stands for: 4 undirected edges.
+  assert.ok(adj.graph, "adj is drawn as a graph too");
+  assert.equal(adj.graph.vertices.length, 5);
+  assert.equal(adj.graph.edges.length, 4);
+});
+
+test("list nodes are called node #N, with the element type only when two kinds of list are used", () => {
+  const one = new TraceModel(trace(main("list<int> a = {1, 2};")));
+  assert.deepEqual([...new Set(one.trace.steps.flatMap((s) => s.heap.map((h) => one.nameOf(h.id))))], ["node #1", "node #2"]);
+  const two = new TraceModel(trace(main("list<int> a = {1};\nlist<string> b = {\"x\"};")));
+  const names = new Set(two.trace.steps.flatMap((s) => s.heap.map((h) => two.nameOf(h.id))));
+  assert.deepEqual([...names].sort(), ["int node #1", "string node #1"]);
+});
+
+test("a list of pairs (or of another container) is refused with a hint", () => {
+  const e = rejected(main("list<pair<int, int>> edges;"));
+  assert.equal(e.kind, "unsupported");
+  assert.match(e.message, /A list of pair<\.\.\.>.*struct with two fields/);
 });

@@ -629,6 +629,18 @@ export class Executor {
     if (args.length > 2) throw compileError(`${type} has no constructor that takes ${args.length} arguments.`, line);
     const first = this.use(this.value(args[0]), args[0]);
     if (args.length === 1 && this.lists.typeOf(first) === type) return this.owned(args[0], first, line);
+    if (isIter(first)) {
+      // list<int> b(a.begin(), a.end()): a copy of the elements from first up to (not including) last.
+      const last = args.length === 2 ? this.use(this.value(args[1]), args[1]) : UNINIT;
+      if (!isIter(last) || last.iter !== first.iter) throw compileError(`${type}(first, last) needs two iterators of the same list.`, line);
+      if (first.iter !== type) throw unsupported(`Making a ${type} from a ${first.iter}`, line);
+      const values: Value[] = [];
+      for (let it = first; it.a !== last.a; it = this.lists.step(it, 1, exprText(args[0]))) {
+        if (it.a === null) throw fault("other", `${exprText(args[1])} cannot be reached by moving forward from ${exprText(args[0])}.`);
+        values.push(this.copyOwned(this.mem.read(this.lists.elem(it, exprText(args[0]))), line));
+      }
+      return this.lists.build(type, values, line);
+    }
     const n = this.int(first, args[0]);
     if (n < 0 || n > 1000) throw fault("other", `A list of ${n} elements was asked for, which HeapHop does not allow (0 to 1000).`);
     if (elem.ptr === 0 && this.classes.has(elem.base)) {
@@ -696,7 +708,7 @@ export class Executor {
         argc(1);
         const pos = position(e.args[0]);
         const id = this.lists.node(pos, exprText(e.args[0]));
-        if (id === null) throw fault("out_of_bounds", `${exprText(e.args[0])} is end(), which is not an element, so there is nothing to erase.`);
+        if (id === null) throw fault("out_of_bounds", `The iterator ${exprText(e.args[0])} is end(), which is not an element, so there is nothing to erase.`);
         return iter(type, la, this.lists.unlink(la, id, e.line));
       }
       case "remove":

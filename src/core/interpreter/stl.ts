@@ -273,8 +273,8 @@ export class ListRuntime {
     if (!this.mem.heap.has(it.a)) {
       const dead = this.mem.freed.get(it.a);
       throw fault("use_after_free", dead
-        ? `${what} is no longer valid: the element it pointed at was erased on line ${dead.line}. After erase, use the iterator it gives back: ${what} = list.erase(${what});`
-        : `${what} does not point at an element of a list.`);
+        ? `The iterator ${what} is no longer valid: the element it pointed at was erased on line ${dead.line}.`
+        : `The iterator ${what} does not point at an element of a list.`);
     }
     return it.a;
   }
@@ -283,7 +283,7 @@ export class ListRuntime {
   elem(it: Ptr, what: string): string {
     const id = this.node(it, what);
     if (id === null) {
-      throw fault("out_of_bounds", `${what} is end(), which stands one place past the last element. There is no element there to read or change.`);
+      throw fault("out_of_bounds", `The iterator ${what} is end(), which stands one place past the last element. There is no element there to read or change.`);
     }
     return `${id}.value`;
   }
@@ -293,20 +293,20 @@ export class ListRuntime {
     const id = this.node(it, what);
     let to: string | null;
     if (delta === 1) {
-      if (id === null) throw fault("out_of_bounds", `${what} is already end(), so ++ would move past the end of the list.`);
+      if (id === null) throw fault("out_of_bounds", `The iterator ${what} is already end(), so ++ would move past the end of the list.`);
       to = this.link(`${id}.next`);
     } else if (id === null) {
       to = this.link(`${it.l}.tail`);
-      if (to === null) throw fault("out_of_bounds", `${what} is end() of an empty list, so -- has no element to move back to.`);
+      if (to === null) throw fault("out_of_bounds", `The iterator ${what} is end() of an empty list, so -- has no element to move back to.`);
     } else {
       to = this.link(`${id}.prev`);
-      if (to === null) throw fault("out_of_bounds", `${what} is at begin(), so -- would move before the first element.`);
+      if (to === null) throw fault("out_of_bounds", `The iterator ${what} is at begin(), so -- would move before the first element.`);
     }
     return { ...it, a: to };
   }
 
   /** The iterator must belong to this list (insert and erase take a position in this list). */
   owns(la: string, it: Ptr, what: string, method: string) {
-    if (it.l !== la) throw fault("other", `${what} belongs to a different list, so it cannot be a position for ${method}() here.`);
+    if (it.l !== la) throw fault("other", `The iterator ${what} belongs to a different list, so it cannot be a position for ${method}() here.`);
   }
 }

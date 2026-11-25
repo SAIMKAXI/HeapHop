@@ -173,7 +173,7 @@ const ERROR_ADVICE: Record<string, string> = {
 
 /** Advice for the mistakes that only happen with std::list, recognised by their message. */
 function listAdvice(message: string): string | undefined {
-  if (/was erased/.test(message)) return "erase() deletes the element's node. Keep the iterator that erase() gives back, and stop using the old one.";
+  if (/was erased/.test(message)) return "erase() deletes the element's node, so iterators to it stop working. Carry on with the iterator erase() gives back: it = nums.erase(it);";
   if (/is end\(\)|already end\(\)|at begin\(\)/.test(message)) return "end() is not an element. Check it != list.end() before using *it, and do not move past end() or before begin().";
   if (/on an empty list/.test(message)) return "Check !list.empty() before taking an element out of a list.";
   return undefined;
@@ -237,7 +237,7 @@ export function explainStep(model: TraceModel, index: number): Sentence[] {
   }
   for (const e of of("alloc")) {
     out.push(say(isListNode(e.typeName)
-      ? `The list makes a new node, ${model.nameOf(e.objectId)}, on the heap to hold the element.`
+      ? `The list makes ${model.nameOf(e.objectId)} on the heap to hold the new element.`
       : `\`new\` creates ${model.nameOf(e.objectId)} on the heap.`, "good", [e.objectId]));
   }
   // A reference parameter is another name for a variable in the caller. Both show the
