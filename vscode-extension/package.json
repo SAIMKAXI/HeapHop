@@ -1,0 +1,160 @@
+{
+  "name": "heaphop",
+  "displayName": "HeapHop: C++ Memory Visualizer",
+  "description": "See your C++ linked lists, trees and std::list come alive: step through the program and watch the stack, the heap, every node and every pointer change.",
+  "version": "1.0.0",
+  "publisher": "heaphop",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "private": true,
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0b1622",
+    "theme": "dark"
+  },
+  "homepage": "https://heaphop.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SAIMKAXI/HeapHop"
+  },
+  "pricing": "Free",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Education",
+    "Visualization"
+  ],
+  "keywords": [
+    "c++",
+    "cpp",
+    "linked list",
+    "pointers",
+    "memory",
+    "heap",
+    "data structures",
+    "std::list",
+    "visualizer",
+    "dsa"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onWebviewPanel:heaphop.visualizer"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "heaphop.visualize",
+        "title": "Visualize Current File",
+        "category": "HeapHop",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "heaphop.rerun",
+        "title": "Run Again",
+        "category": "HeapHop",
+        "icon": "$(debug-restart)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "heaphop.visualize",
+          "when": "resourceLangId == cpp || resourceLangId == c",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "heaphop.visualize",
+          "when": "resourceLangId == cpp || resourceLangId == c",
+          "group": "navigation@90"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "heaphop.rerun",
+          "when": "heaphop.panelOpen"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "heaphop.visualize",
+        "key": "ctrl+alt+h",
+        "mac": "cmd+alt+h",
+        "when": "editorTextFocus && (editorLangId == cpp || editorLangId == c)"
+      }
+    ],
+    "configuration": {
+      "title": "HeapHop",
+      "properties": {
+        "heaphop.runOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the program again and redraw the picture every time the visualized file is saved."
+        },
+        "heaphop.highlightLines": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight the line the current step is on (and the line that called the current function) in the editor."
+        },
+        "heaphop.followCursor": {
+          "type": "boolean",
+          "default": true,
+          "description": "When the cursor moves to a line of the visualized file, mark on the timeline every step that ran that line."
+        },
+        "heaphop.showProblems": {
+          "type": "boolean",
+          "default": true,
+          "description": "Underline code HeapHop cannot run, and the line where the program crashed, and list them in the Problems panel."
+        }
+      }
+    },
+    "colors": [
+      {
+        "id": "heaphop.currentLineBackground",
+        "description": "Background of the line the current HeapHop step is on.",
+        "defaults": {
+          "dark": "#3dd6c62e",
+          "light": "#0b748024",
+          "highContrast": "#3dd6c655",
+          "highContrastLight": "#0b748040"
+        }
+      },
+      {
+        "id": "heaphop.callerLineBackground",
+        "description": "Background of the line that called the function the current HeapHop step is in.",
+        "defaults": {
+          "dark": "#f2b84b1a",
+          "light": "#a8640e14",
+          "highContrast": "#f2b84b40",
+          "highContrastLight": "#a8640e30"
+        }
+      },
+      {
+        "id": "heaphop.errorLineBackground",
+        "description": "Background of the line where the visualized program crashed.",
+        "defaults": {
+          "dark": "#f2797a33",
+          "light": "#b4231822",
+          "highContrast": "#f2797a66",
+          "highContrastLight": "#b4231840"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "node ../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "test": "node ../node_modules/tsx/dist/cli.mjs --test \"test/*.test.ts\"",
+    "webview:check": "node ../node_modules/tsx/dist/cli.mjs scripts/webview-check.mts",
+    "check": "npm run typecheck && npm test && npm run build && npm run webview:check",
+    "package": "npm run build && vsce package --no-dependencies --out heaphop.vsix",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version"
+  },
+  "devDependencies": {
+    "@types/vscode": "1.85.0",
+    "@vscode/vsce": "^4.1.1"
+  }
+}

@@ -10,7 +10,8 @@ It runs entirely in the browser. Nothing is sent to a server.
 **Use HeapHop here: [heaphop.vercel.app](https://heaphop.vercel.app)**. It is free and needs no account.
 
 HeapHop is a Data Structures semester project at Air University (BS Cybersecurity,
-3rd semester). A VS Code extension that shows the same view next to your code is planned.
+3rd semester). It is also a **VS Code extension** that shows the same view next to your code
+(see [The VS Code extension](#the-vs-code-extension)).
 
 ## The site
 
@@ -21,6 +22,25 @@ HeapHop is a Data Structures semester project at Air University (BS Cybersecurit
 | `/editor` | Your own programs: write, run, and step through them. Starts with a blank starter program, then remembers your work in the browser |
 | `/faq`, `/about`, `/privacy` | Questions and answers, the team, and what is (and is not) stored |
 | `/supported` | The part of C++ HeapHop runs, built from `docs/SUBSET.md` |
+
+## The VS Code extension
+
+The extension opens the HeapHop picture in a panel beside any C++ file. It has the
+visualizer only: no lessons and no account.
+
+- **HeapHop: Visualize Current File** (Ctrl+Alt+H, or the button at the top right of a `.cpp`
+  editor) runs the file and opens the panel. Saving the file runs it again.
+- The editor follows the panel: the line of the current step and the line that called it are
+  highlighted, and putting the cursor on a line marks the steps that ran it.
+- Code HeapHop cannot run and the line where a program crashed are underlined and listed in
+  the Problems panel.
+- A **Program input** box for `cin`. It follows the VS Code theme (light, dark, high contrast).
+- On top of everything the website runs, the extension also runs **`std::list`**: lists,
+  iterators, `auto` and range-based `for`. A list is drawn as the doubly linked list of nodes
+  it really is, and an array of lists as an adjacency list (and a graph).
+
+Its code lives in [`vscode-extension/`](vscode-extension/). Building, trying and publishing
+it are explained in [vscode-extension/PUBLISHING.md](vscode-extension/PUBLISHING.md).
 
 ## What it does
 
@@ -61,8 +81,10 @@ src/layout/      pure functions: one step in, node positions and arrow paths out
 src/runtime/     runs the interpreter in a Web Worker, with a time limit
 src/ui/          React components
 src/app/         the Next.js website: landing, Learn, Editor, FAQ, About, Privacy, Supported
-src/standalone/  the same interface as one script file, for the VS Code webview
+src/standalone/  the same interface as one script file, used to check it in a locked-down page
 content/         examples, lessons (linked lists and trees), glossary
+vscode-extension/ the VS Code extension: its commands, editor highlights and panel. The
+                 engine and the picture come from src/, so both always show the same thing
 tests/           unit tests, browser tests, and the C++ test programs with their g++ output
 docs/SUBSET.md   the supported part of C++ (also shown on the site)
 ```

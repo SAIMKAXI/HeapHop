@@ -42,3 +42,9 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 dist/
 scripts/byte-video/byte-video-out/
+
+# VS Code extension: its packages, its build output and packaged .vsix files
+/vscode-extension/node_modules/
+/vscode-extension/media/webview/
+/vscode-extension/test/screenshots/
+*.vsix

@@ -1,5 +1,5 @@
 // Standalone shell: the same interface without Next.js, as one script file.
-// Used by the webview check and by the VS Code extension.
+// Used by the webview check. (The VS Code extension has its own entry in vscode-extension/webview.)
 //
 // A webview may not load a Worker from a file URL, so the Worker's code is embedded in
 // this bundle as text and started from a Blob. The page's security policy needs

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The VS Code extension's own components are styled in its own build (vscode-extension/webview/styles.css). */
+@source not "../../vscode-extension";
 
 /* Screen shapes for the visualizer. phone-tall: a phone held upright (Code / Memory tabs).
    phone-land: a phone held sideways, too short for panels stacked above the controls. */

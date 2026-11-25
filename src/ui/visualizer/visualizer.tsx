@@ -5,7 +5,7 @@
 // The code and stack panels can be resized; a lesson card sits under the heap, never on it.
 // A phone held upright shows Code or Memory, chosen with tabs; held sideways, the two sit side
 // by side with a one-line explanation and the timeline beside the buttons.
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { Trace } from "@/core/types";
 import { highlightsFor, TraceModel, type Selection } from "@/core/trace";
 import { explainStep } from "@/core/explain";
@@ -29,8 +29,25 @@ import { usePlayback, useStepKeys } from "./use-playback";
 /** Width of a panel divider (Tailwind w-1.5). */
 const SPLITTER_W = 6;
 
+/** Where the visualizer sits inside another tool (the VS Code extension) instead of the website. */
+export interface EmbeddedOptions {
+  /** Shown where the site header would be (program input, run state). */
+  header?: ReactNode;
+  /** Called whenever the current step changes, so the host can mark the line in its own editor. */
+  onStepChange?: (info: { step: number; line: number; callerLine: number | null; error: boolean }) => void;
+  /** A line the host wants selected (the editor's cursor line); null clears it. */
+  focusLine?: number | null;
+  /** Step to open at (after a re-run, the step the student was on). Clamped to the trace. */
+  initialStep?: number;
+}
+
 interface VisualizerProps {
   trace: Trace;
+  /**
+   * Embedded in another tool: no site header, no code panel (the host's editor shows the code),
+   * no Byte. Absent on the website.
+   */
+  embedded?: EmbeddedOptions;
   /** When given, the lesson card guides the student through its checkpoints. */
   lesson?: Lesson;
   /** The site page this run belongs to, and the words on the button that returns there. */
@@ -39,12 +56,12 @@ interface VisualizerProps {
   onBack: () => void;
 }
 
-export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: VisualizerProps) {
+export function Visualizer({ trace, lesson, current: page, backLabel, onBack, embedded }: VisualizerProps) {
   // Derived once per trace: events, object names, and where each list node sits.
   const model = useMemo(() => new TraceModel(trace), [trace]);
   const plan = useMemo(() => planLists(trace), [trace]);
   const resolved = useMemo(() => (lesson ? resolveLesson(lesson, model) : null), [lesson, model]);
-  const playback = usePlayback(trace, resolved?.checkpoints[0]?.step ?? 0);
+  const playback = usePlayback(trace, resolved?.checkpoints[0]?.step ?? Math.max(0, Math.min(embedded?.initialStep ?? 0, trace.steps.length - 1)));
   const { step, goTo } = playback;
   // One selection (a node, a pointer or a source line) shared by every panel.
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -70,6 +87,19 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
   const clearSelection = useCallback(() => setSelection(null), []);
   useStepKeys(playback, clearSelection);
 
+  // Embedded: tell the host which line runs now, and follow the line its editor's cursor is on.
+  const onStepChange = embedded?.onStepChange;
+  useEffect(() => {
+    onStepChange?.({ step, line: current.sourceLine, callerLine: current.callerSourceLine ?? null, error: current.kind === "error" });
+  }, [onStepChange, step, current]);
+  // Following the host's cursor is a change of props, so it is applied while rendering.
+  const focusLine = embedded?.focusLine;
+  const [followed, setFollowed] = useState(focusLine);
+  if (focusLine !== followed) {
+    setFollowed(focusLine);
+    if (focusLine !== undefined) setSelection(focusLine === null ? null : { kind: "line", line: focusLine });
+  }
+
   // Keep the part of the stack that changed in view.
   useEffect(() => {
     const panel = stackRef.current;
@@ -91,10 +121,10 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
 
   return (
     <InspectContext.Provider value={inspect}>
-      <div className="flex min-h-dvh flex-col lg:h-dvh phone-tall:h-[max(100dvh,600px)] phone-land:h-[max(100dvh,330px)]">
-        <AppHeader current={page} backLabel={backLabel} onBack={onBack} />
+      <div data-embedded={embedded ? "" : undefined} className="flex min-h-dvh flex-col lg:h-dvh phone-tall:h-[max(100dvh,600px)] phone-land:h-[max(100dvh,330px)]">
+        {embedded ? embedded.header : <AppHeader current={page} backLabel={backLabel} onBack={onBack} />}
 
-        <div role="tablist" aria-label="Show" className="hidden shrink-0 gap-1 border-b-2 border-card-border bg-card p-1.5 phone-tall:flex">
+        {!embedded && <div role="tablist" aria-label="Show" className="hidden shrink-0 gap-1 border-b-2 border-card-border bg-card p-1.5 phone-tall:flex">
           {(["code", "memory"] as const).map((t) => (
             <button
               key={t}
@@ -116,15 +146,16 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
               )}
             </button>
           ))}
-        </div>
+        </div>}
 
         <div
           ref={rowRef}
+          data-vis-row
           className={cn(
             "flex min-h-0 flex-1 flex-col lg:flex-row phone-land:grid phone-land:grid-cols-[minmax(0,36%)_10.5rem_minmax(0,1fr)]",
             resolved && lessonOpen ? "phone-land:grid-rows-[minmax(4.5rem,1fr)_minmax(0,2fr)]" : "phone-land:grid-rows-[minmax(0,1fr)]"
           )} style={{ "--code-w": `${sizes.code}px`, "--stack-w": `${sizes.stack}px` } as CSSProperties}>
-          <div
+          {!embedded && <div
             id="hh-panel-code"
             data-panel="code"
             className={cn(
@@ -143,8 +174,8 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
               highlightLines={highlights.lines}
               onSelectLine={(line) => setSelection((s) => (s?.kind === "line" && s.line === line ? null : { kind: "line", line }))}
             />
-          </div>
-          <Splitter
+          </div>}
+          {!embedded && <Splitter
             label="Resize the code panel"
             className="hidden lg:block"
             value={sizes.code}
@@ -152,7 +183,7 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
             defaultValue={DEFAULT_SIZES.code}
             max={() => (rowRef.current?.clientWidth ?? Infinity) - sizes.stack - MIN_HEAP - inspectorWidth() - 2 * SPLITTER_W}
             onChange={(code) => resize({ code })}
-          />
+          />}
 
           <div
             ref={middleRef}
@@ -175,7 +206,7 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
                 lesson card is pushed out over the explanation bar. */}
             <div data-panel="heap" className="flex min-h-[320px] min-w-0 flex-1 flex-col md:min-h-0 md:overflow-hidden phone-tall:min-h-0 phone-land:contents">
               <div className="relative min-h-[260px] flex-1 md:min-h-[120px] phone-tall:min-h-[140px] phone-land:col-start-3 phone-land:row-span-2 phone-land:row-start-1 phone-land:min-h-0 phone-land:bg-background">
-                <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} robotMotion={!playback.playing && !playback.travelling} />
+                <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} robotMotion={!playback.playing && !playback.travelling} robot={!embedded} />
               </div>
               {resolved && lessonOpen && (
                 <LessonCard

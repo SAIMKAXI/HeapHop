@@ -13,7 +13,8 @@ interface CanvasToolbarProps {
   fullscreen: boolean;
   onToggleFullscreen: () => void;
   robot: boolean;
-  onToggleRobot: () => void;
+  /** Absent where Byte is not offered (the VS Code extension): the button is not shown. */
+  onToggleRobot?: () => void;
 }
 
 const button =
@@ -35,7 +36,9 @@ export function CanvasToolbar({ viewport, percentRef, canFocus, onFocus, fullscr
       <button type="button" className={button} onClick={viewport.fit} aria-label="Fit everything on screen" title="Fit to screen"><Scan size={15} /></button>
       <button type="button" className={button} onClick={onFocus} disabled={!canFocus} aria-label="Centre the selected node" title="Focus selected node"><Focus size={15} /></button>
       <span className="mx-1 h-5 w-px bg-card-border" />
-      <button type="button" data-robot-toggle className={`${button} ${robot ? "text-accent" : ""}`} onClick={onToggleRobot} aria-pressed={robot} aria-label="Byte, the robot helper" title={robot ? "Hide Byte" : "Show Byte"}><Bot size={15} /></button>
+      {onToggleRobot && (
+        <button type="button" data-robot-toggle className={`${button} ${robot ? "text-accent" : ""}`} onClick={onToggleRobot} aria-pressed={robot} aria-label="Byte, the robot helper" title={robot ? "Hide Byte" : "Show Byte"}><Bot size={15} /></button>
+      )}
       <button type="button" className={button} onClick={onToggleFullscreen} aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"} title={fullscreen ? "Exit fullscreen (Esc)" : "Fullscreen"}>
         {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
       </button>
