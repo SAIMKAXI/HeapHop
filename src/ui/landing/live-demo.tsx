@@ -66,14 +66,14 @@ function DemoFrame({ activeLine, step, steps, playing, onToggle, canvas, caption
             onClick={onToggle}
             disabled={!onToggle}
             aria-label={playing ? "Pause the demo" : "Play the demo"}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-card-border/30 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-card-border/30 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40 lg:h-auto lg:w-auto lg:p-1.5"
           >
             {playing ? <Pause size={14} aria-hidden /> : <Play size={14} aria-hidden />}
           </button>
         </span>
       </div>
       <div className="grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <pre className="overflow-x-auto border-b border-card-border bg-code-bg py-3 font-mono text-[12.5px] leading-6 md:border-b-0 md:border-r">
+        <pre className="overflow-x-auto border-b border-card-border bg-code-bg py-3 font-mono text-[0.7812rem] leading-6 md:border-b-0 md:border-r">
           {LINES.slice(FIRST_SHOWN).map((line, i) => {
             const number = FIRST_SHOWN + i + 1;
             return (
@@ -84,7 +84,7 @@ function DemoFrame({ activeLine, step, steps, playing, onToggle, canvas, caption
             );
           })}
         </pre>
-        <div className="relative h-[300px] md:h-auto md:min-h-[380px]">{canvas}</div>
+        <div className="relative h-75 md:h-auto md:min-h-[380px]">{canvas}</div>
       </div>
       <figcaption className="min-h-[3.25rem] border-t border-card-border px-4 py-3 text-sm" aria-live="off">{caption}</figcaption>
     </figure>

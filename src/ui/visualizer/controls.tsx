@@ -21,7 +21,7 @@ function IconButton({ title, onClick, disabled, children, className }: { title: 
       aria-label={title}
       onClick={onClick}
       disabled={disabled}
-      className={cn("rounded-lg p-2 text-muted-foreground transition-colors hover:bg-card-border/60 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-25", className)}
+      className={cn("flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-muted-foreground lg:min-h-0 lg:min-w-0 transition-colors hover:bg-card-border/60 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-25", className)}
     >
       {children}
     </button>
@@ -35,8 +35,8 @@ export function Controls({ playback: p, marks }: ControlsProps) {
   const atEnd = p.step === p.last;
 
   return (
-    <div className="border-t-2 border-card-border bg-card px-3 py-3 sm:px-5">
-      <div className="relative mb-2">
+    <div className="shrink-0 border-t-2 border-card-border bg-card px-3 py-3 sm:px-5 phone-land:flex phone-land:items-center phone-land:gap-4 phone-land:py-1.5">
+      <div className="relative mb-2 phone-land:mb-0 phone-land:min-w-0 phone-land:flex-1">
         <input
           type="range"
           data-timeline
@@ -63,9 +63,9 @@ export function Controls({ playback: p, marks }: ControlsProps) {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 phone-land:shrink-0 phone-land:flex-nowrap phone-land:gap-3">
         <div className="flex items-center gap-1">
-          <IconButton title="Go to first step" onClick={p.first} disabled={atStart}><ChevronsLeft size={18} /></IconButton>
+          <IconButton title="Go to first step" onClick={p.first} disabled={atStart} className="max-sm:hidden"><ChevronsLeft size={18} /></IconButton>
           <IconButton title="Previous step (←)" onClick={p.prev} disabled={atStart}><ChevronLeft size={20} /></IconButton>
           <IconButton
             title={p.playing ? "Pause" : "Auto-play"}
@@ -77,20 +77,31 @@ export function Controls({ playback: p, marks }: ControlsProps) {
           </IconButton>
           <IconButton title="Next step (→ or Space)" onClick={p.next} disabled={atEnd}><ChevronRight size={20} /></IconButton>
           <IconButton title="Step over function call (S)" onClick={p.stepOver} disabled={atEnd}><ArrowDownToLine size={17} /></IconButton>
-          <IconButton title="Go to last step" onClick={p.end} disabled={atEnd}><ChevronsRight size={18} /></IconButton>
+          <IconButton title="Go to last step" onClick={p.end} disabled={atEnd} className="max-sm:hidden"><ChevronsRight size={18} /></IconButton>
         </div>
 
         <span className="text-sm tabular-nums text-muted-foreground">
           <span className="font-bold text-foreground">{p.step + 1}</span> / {total}
         </span>
 
-        <div className="flex items-center gap-4">
+        <button
+          type="button"
+          data-speed-cycle
+          title="Playback speed: tap to change"
+          aria-label={`Playback speed ${p.speed}x, tap to change`}
+          onClick={() => p.setSpeed(SPEEDS[(speedIndex + 1) % SPEEDS.length])}
+          className="flex min-h-10 min-w-12 items-center justify-center rounded-lg border border-card-border text-xs font-semibold tabular-nums text-muted-foreground focus-visible:outline-2 focus-visible:outline-accent sm:hidden"
+        >
+          {p.speed}x
+        </button>
+
+        <div className="hidden items-center gap-4 sm:flex">
           <div className="flex items-center gap-1.5">
-            <IconButton title="Slower" onClick={() => p.setSpeed(SPEEDS[speedIndex - 1])} disabled={speedIndex <= 0} className="p-1"><Minus size={13} /></IconButton>
-            <span className="min-w-[40px] text-center text-xs tabular-nums text-muted-foreground" aria-label="Speed">{p.speed}x</span>
-            <IconButton title="Faster" onClick={() => p.setSpeed(SPEEDS[speedIndex + 1])} disabled={speedIndex >= SPEEDS.length - 1} className="p-1"><Plus size={13} /></IconButton>
+            <IconButton title="Slower" onClick={() => p.setSpeed(SPEEDS[speedIndex - 1])} disabled={speedIndex <= 0} className="lg:p-1"><Minus size={13} /></IconButton>
+            <span className="min-w-10 text-center text-xs tabular-nums text-muted-foreground" aria-label="Speed">{p.speed}x</span>
+            <IconButton title="Faster" onClick={() => p.setSpeed(SPEEDS[speedIndex + 1])} disabled={speedIndex >= SPEEDS.length - 1} className="lg:p-1"><Plus size={13} /></IconButton>
           </div>
-          <div className="hidden items-center gap-1.5 text-[11px] text-muted sm:flex">
+          <div className="hidden items-center gap-1.5 text-[0.6875rem] text-muted sm:flex phone-land:hidden">
             <Keyboard size={13} aria-hidden />
             <span>← → Space S R</span>
           </div>

@@ -14,7 +14,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
   const next = TOPICS[at + 1];
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:py-12" data-topic={topic.topic}>
-      <a href="/learn" data-back-to-topics className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-accent">
+      <a href="/learn" data-back-to-topics className="inline-flex min-h-10 items-center gap-1.5 text-sm lg:min-h-0 font-semibold text-muted-foreground hover:text-accent">
         <ArrowLeft size={14} aria-hidden /> All topics
       </a>
       <header data-reveal-children className="mt-5 flex flex-col gap-6 rounded-2xl border-2 border-card-border bg-card p-6 sm:flex-row sm:items-center">

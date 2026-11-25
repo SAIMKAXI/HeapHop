@@ -5,7 +5,7 @@
 // The view lives in a ref, not in React state: dragging and zooming write one CSS
 // transform per animation frame and never re-render the nodes.
 import { useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
-import { centerOn, fitView, panBy, zoomAt, IDENTITY, READABLE_ZOOM, type Rect, type Size, type View } from "@/layout";
+import { centerOn, fitView, panBy, readableZoomFor, zoomAt, IDENTITY, READABLE_ZOOM, type Rect, type Size, type View } from "@/layout";
 
 export interface ViewportApi {
   zoomBy(factor: number): void;
@@ -115,7 +115,7 @@ export function useViewport({ containerRef, contentRef, percentRef, boundsRef, o
     // When the canvas changes size (inspector opened, window resized, fullscreen), keep
     // the whole picture in view unless the student has taken over the camera.
     const resize = new ResizeObserver(() => {
-      if (followRef.current) set(fitView(boundsRef.current, size(), READABLE_ZOOM));
+      if (followRef.current) set(fitView(boundsRef.current, size(), readableZoomFor(size().width)));
       else schedule();
     });
     resize.observe(el);
@@ -141,7 +141,7 @@ export function useViewport({ containerRef, contentRef, percentRef, boundsRef, o
     zoomBy: (factor) => { const s = size(); if (factor !== 1) followRef.current = false; set(zoomAt(viewRef.current, { x: s.width / 2, y: s.height / 2 }, factor)); },
     reset: () => { const b = boundsRef.current; followRef.current = false; set({ k: 1, x: 32 - b.x, y: 32 - b.y }); },
     fit: () => { followRef.current = true; set(fitView(boundsRef.current, size())); },
-    frame: () => set(fitView(boundsRef.current, size(), READABLE_ZOOM)),
+    frame: () => set(fitView(boundsRef.current, size(), readableZoomFor(size().width))),
     focus: (box) => { followRef.current = false; set(centerOn(box, size(), Math.max(viewRef.current.k, 1))); },
     following: () => followRef.current,
     view: () => viewRef.current,

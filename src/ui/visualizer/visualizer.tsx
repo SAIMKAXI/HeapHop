@@ -3,6 +3,8 @@
 // The visualizer screen: code on the left, the stack and the heap in the middle, the
 // inspector on the right when something is selected, and the timeline at the bottom.
 // The code and stack panels can be resized; a lesson card sits under the heap, never on it.
+// A phone held upright shows Code or Memory, chosen with tabs; held sideways, the two sit side
+// by side with a one-line explanation and the timeline beside the buttons.
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Trace } from "@/core/types";
 import { highlightsFor, TraceModel, type Selection } from "@/core/trace";
@@ -16,6 +18,7 @@ import { InspectContext, type InspectApi } from "@/ui/inspect-context";
 import { InspectorPanel } from "@/ui/inspector/inspector-panel";
 import { LessonCard } from "@/ui/lesson/lesson-card";
 import { RichText, TONE_TEXT } from "@/ui/rich-text";
+import { cn } from "@/ui/utils";
 import { CodePanel } from "./code-panel";
 import { DEFAULT_SIZES, loadSizes, MIN_HEAP, MIN_SIZES, saveSizes, type PanelSizes } from "./panel-sizes";
 import { Splitter } from "./splitter";
@@ -46,6 +49,8 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
   // One selection (a node, a pointer or a source line) shared by every panel.
   const [selection, setSelection] = useState<Selection | null>(null);
   const [lessonOpen, setLessonOpen] = useState(true);
+  // Which half a phone held upright shows. Memory first: it is what the run is for.
+  const [tab, setTab] = useState<"code" | "memory">("memory");
   const [checkpoint, setCheckpoint] = useState(0);
   const stackRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
@@ -86,11 +91,49 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
 
   return (
     <InspectContext.Provider value={inspect}>
-      <div className="flex min-h-dvh flex-col lg:h-dvh">
+      <div className="flex min-h-dvh flex-col lg:h-dvh phone-tall:h-[max(100dvh,600px)] phone-land:h-[max(100dvh,330px)]">
         <AppHeader current={page} backLabel={backLabel} onBack={onBack} />
 
-        <div ref={rowRef} className="flex min-h-0 flex-1 flex-col lg:flex-row" style={{ "--code-w": `${sizes.code}px`, "--stack-w": `${sizes.stack}px` } as CSSProperties}>
-          <div data-panel="code" className="max-h-[30vh] shrink-0 overflow-y-auto border-b-2 border-card-border lg:max-h-none lg:w-[var(--code-w)] lg:border-b-0">
+        <div role="tablist" aria-label="Show" className="hidden shrink-0 gap-1 border-b-2 border-card-border bg-card p-1.5 phone-tall:flex">
+          {(["code", "memory"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              id={`hh-tab-${t}`}
+              aria-selected={tab === t}
+              aria-controls={`hh-panel-${t}`}
+              data-view-tab={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-accent",
+                tab === t ? "bg-accent text-on-accent" : "text-muted-foreground hover:bg-card-border/40 hover:text-foreground"
+              )}
+            >
+              {t === "code" ? "Code" : "Memory"}
+              {t === "code" && current.sourceLine != null && (
+                <span className={cn("rounded-md px-1.5 py-0.5 text-[0.6875rem] font-bold tabular-nums", tab === t ? "bg-on-accent/15" : "bg-accent/15 text-accent")}>line {current.sourceLine}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div
+          ref={rowRef}
+          className={cn(
+            "flex min-h-0 flex-1 flex-col lg:flex-row phone-land:grid phone-land:grid-cols-[minmax(0,36%)_10.5rem_minmax(0,1fr)]",
+            resolved && lessonOpen ? "phone-land:grid-rows-[minmax(4.5rem,1fr)_minmax(0,2fr)]" : "phone-land:grid-rows-[minmax(0,1fr)]"
+          )} style={{ "--code-w": `${sizes.code}px`, "--stack-w": `${sizes.stack}px` } as CSSProperties}>
+          <div
+            id="hh-panel-code"
+            data-panel="code"
+            className={cn(
+              "max-h-[30vh] shrink-0 overflow-y-auto border-b-2 border-card-border lg:max-h-none lg:w-[var(--code-w)] lg:border-b-0",
+              "phone-tall:max-h-none phone-tall:min-h-0 phone-tall:flex-1 phone-tall:border-b-0",
+              "phone-land:col-start-1 phone-land:row-start-1 phone-land:max-h-none phone-land:min-h-0 phone-land:border-b-0 phone-land:border-r-2",
+              tab !== "code" && "phone-tall:hidden"
+            )}
+          >
             <CodePanel
               source={trace.source}
               activeFunction={current.activeFunction}
@@ -111,13 +154,17 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
             onChange={(code) => resize({ code })}
           />
 
-          <div ref={middleRef} className="flex min-h-0 flex-1 flex-col bg-background md:flex-row">
-            <div ref={stackRef} data-panel="stack" className="max-h-[28vh] shrink-0 overflow-auto border-b-2 border-card-border p-4 md:max-h-none md:w-[var(--stack-w)] md:border-b-0 md:p-5">
+          <div
+            ref={middleRef}
+            id="hh-panel-memory"
+            className={cn("flex min-h-0 flex-1 flex-col bg-background md:flex-row phone-tall:overflow-y-auto phone-land:contents", tab !== "memory" && "phone-tall:hidden")}
+          >
+            <div ref={stackRef} data-panel="stack" className="max-h-[28vh] shrink-0 overflow-auto border-b-2 border-card-border p-4 md:max-h-none md:w-[var(--stack-w)] md:border-b-0 md:p-5 phone-tall:max-h-[24%] phone-tall:p-3 phone-land:col-start-2 phone-land:row-span-2 phone-land:row-start-1 phone-land:max-h-none phone-land:w-auto phone-land:border-b-0 phone-land:border-r-2 phone-land:bg-background phone-land:p-3">
               <StackPanel frames={current.stack} />
             </div>
             <Splitter
               label="Resize the stack panel"
-              className="hidden md:block"
+              className="hidden md:block phone-land:hidden"
               value={sizes.stack}
               min={MIN_SIZES.stack}
               defaultValue={DEFAULT_SIZES.stack}
@@ -126,8 +173,8 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
             />
             {/* On a desktop the panel shares the window's height: the drawing shrinks before the
                 lesson card is pushed out over the explanation bar. */}
-            <div data-panel="heap" className="flex min-h-[320px] min-w-0 flex-1 flex-col md:min-h-0 md:overflow-hidden">
-              <div className="relative min-h-[260px] flex-1 md:min-h-[120px]">
+            <div data-panel="heap" className="flex min-h-[320px] min-w-0 flex-1 flex-col md:min-h-0 md:overflow-hidden phone-tall:min-h-0 phone-land:contents">
+              <div className="relative min-h-[260px] flex-1 md:min-h-[120px] phone-tall:min-h-[140px] phone-land:col-start-3 phone-land:row-span-2 phone-land:row-start-1 phone-land:min-h-0 phone-land:bg-background">
                 <MemoryCanvas model={model} plan={plan} stepIndex={step} selection={selection} highlighted={highlights.objects} onSelect={setSelection} robotMotion={!playback.playing && !playback.travelling} />
               </div>
               {resolved && lessonOpen && (
@@ -138,6 +185,7 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
                   onGo={goToCheckpoint}
                   onReveal={goTo}
                   onClose={() => setLessonOpen(false)}
+                  className="phone-land:col-start-1 phone-land:row-start-2 phone-land:max-h-none phone-land:border-r-2 phone-land:border-r-card-border"
                 />
               )}
             </div>
@@ -158,22 +206,23 @@ export function Visualizer({ trace, lesson, current: page, backLabel, onBack }: 
           </div>
         )}
 
-        <div className="flex flex-col gap-2 border-t-2 border-accent/20 bg-accent/5 px-5 py-3 md:flex-row md:items-start md:gap-4">
+        {/* On a phone held sideways during a lesson, the lesson card explains the step instead. */}
+        <div className={cn("flex flex-col gap-2 border-t-2 border-accent/20 bg-accent/5 px-5 py-3 md:flex-row md:items-start md:gap-4", resolved && lessonOpen && "phone-land:hidden", "phone-tall:max-h-[22vh] phone-tall:shrink-0 phone-tall:overflow-y-auto phone-tall:px-4 phone-land:max-h-14 phone-land:shrink-0 phone-land:overflow-y-auto phone-land:py-1.5")}>
           <div className="flex min-w-0 flex-1 items-start gap-3">
             <span data-step={step + 1} data-steps={trace.steps.length} className="mt-0.5 shrink-0 rounded-lg bg-accent/15 px-2.5 py-1 text-xs font-bold tabular-nums text-accent">
               Step {step + 1}/{trace.steps.length}
             </span>
             <div className="min-w-0 flex-1" data-explanation aria-live="polite">
               {sentences.map((s, i) => (
-                <p key={i} className={i === 0 ? `text-sm font-medium leading-relaxed ${TONE_TEXT[s.tone]}` : `mt-0.5 text-[13px] leading-relaxed ${s.tone === "info" ? "text-muted-foreground" : TONE_TEXT[s.tone]}`}>
+                <p key={i} className={i === 0 ? `text-sm font-medium leading-relaxed ${TONE_TEXT[s.tone]}` : `mt-0.5 text-[0.8125rem] leading-relaxed ${s.tone === "info" ? "text-muted-foreground" : TONE_TEXT[s.tone]}`}>
                   <RichText text={s.text} />
                 </p>
               ))}
             </div>
           </div>
           {output && (
-            <div className="md:w-[360px] md:shrink-0">
-              <h3 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Output so far</h3>
+            <div className="md:w-90 md:shrink-0">
+              <h3 className="mb-1 text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground">Output so far</h3>
               <pre data-output className="max-h-24 overflow-auto rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2 font-mono text-sm text-foreground">{output}</pre>
             </div>
           )}

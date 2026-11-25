@@ -30,6 +30,15 @@ export function panBy(view: View, dx: number, dy: number): View {
 /** Below this zoom the text inside nodes is too small to read and is hidden. */
 export const READABLE_ZOOM = 0.45;
 
+/** On a phone-width canvas the text is already small, so the camera stops zooming out here. */
+export const PHONE_READABLE_ZOOM = 0.7;
+const PHONE_CANVAS = 560;
+
+/** How far the camera may zoom out to fit a run, for a canvas this many pixels wide. */
+export function readableZoomFor(canvasWidth: number): number {
+  return canvasWidth < PHONE_CANVAS ? PHONE_READABLE_ZOOM : READABLE_ZOOM;
+}
+
 /**
  * Show all of `bounds`, centred, never zoomed in past 100%. With `minZoom`, never zoom out
  * further than that: a picture that is still too wide then shows its left end, where a

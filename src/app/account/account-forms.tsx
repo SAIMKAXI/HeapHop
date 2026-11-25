@@ -78,7 +78,7 @@ export function AccountForms({ email, fullName, university, universities, admin,
             <p className="mb-3 text-sm text-muted-foreground">Add a second step to logging in: a code from an app on your phone. Someone who learns your password still can&apos;t get in.</p>
             {setup?.error && <Banner kind="error">{setup.error}</Banner>}
             <button type="button" disabled={starting} onClick={() => start(async () => setSetup(await startMfa()))}
-              className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:opacity-90 disabled:opacity-60" data-mfa-start>
+              className="inline-flex min-h-10 items-center rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:opacity-90 disabled:opacity-60" data-mfa-start>
               {starting ? "Please wait…" : "Set up MFA"}
             </button>
           </div>

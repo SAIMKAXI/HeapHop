@@ -22,7 +22,7 @@ export function LoginForm({ next, notice, noticeKind, disabled }: {
         <input type="hidden" name="next" value={next} />
         <Field label="Email" name="email" type="email" inputMode="email" autoComplete="email" maxLength={254} defaultValue={state.values?.email} />
         <PasswordField label="Password" name="password" autoComplete="current-password" maxLength={200} />
-        <p className="-mt-2 mb-3 text-right text-xs"><a href="/forgot-password" className="text-muted-foreground hover:text-accent hover:underline" data-forgot-link>Forgot your password?</a></p>
+        <p className="-mt-2 mb-3 text-right text-xs"><a href="/forgot-password" className="inline-flex min-h-10 items-center text-muted-foreground hover:text-accent hover:underline lg:min-h-0" data-forgot-link>Forgot your password?</a></p>
         <Submit pending={pending}>Log in</Submit>
       </form>
     </AuthCard>

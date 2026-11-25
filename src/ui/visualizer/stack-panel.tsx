@@ -23,8 +23,8 @@ function StackPanelImpl({ frames }: { frames: StackFrame[] }) {
           >
             <div className={cn("flex flex-wrap items-center gap-x-2 gap-y-1 border-b px-4 py-2.5", top ? "border-accent/20 text-accent" : "border-card-border/30 text-muted-foreground")}>
               <span className="min-w-0 text-sm font-bold [overflow-wrap:anywhere]">{frame.name}()</span>
-              {depth > 0 && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning">depth {depth}</span>}
-              {top && <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent">active</span>}
+              {depth > 0 && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[0.625rem] font-semibold text-warning">depth {depth}</span>}
+              {top && <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[0.625rem] font-semibold text-accent">active</span>}
             </div>
             <div className="flex flex-col gap-1 p-2.5">
               {frame.variables.length === 0

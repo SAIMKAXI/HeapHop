@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { detectLists, planLists } from "../../src/core/structures";
-import { centerOn, fitView, layoutStep, screenToWorld, visibleWorldRect, zoomAt, intersects, MAX_ZOOM, MIN_ZOOM, READABLE_ZOOM, TREE_NODE_D, GAP_X, NODE_W, type Layout, type NodeBox } from "../../src/layout";
+import { centerOn, fitView, layoutStep, readableZoomFor, screenToWorld, visibleWorldRect, zoomAt, intersects, MAX_ZOOM, MIN_ZOOM, PHONE_READABLE_ZOOM, READABLE_ZOOM, TREE_NODE_D, GAP_X, NODE_W, type Layout, type NodeBox } from "../../src/layout";
 import type { Trace } from "../../src/core/types";
 import { NODE, trace } from "../core/helpers";
 
@@ -228,4 +228,15 @@ test("5.7 only boxes inside the visible rectangle need drawing", () => {
   const seen = visibleWorldRect({ x: -2000, y: 0, k: 1 }, size, 100);
   assert.equal(intersects(seen, { x: 0, y: 0, width: 148, height: 80 }), false);
   assert.equal(intersects(seen, { x: 2100, y: 50, width: 148, height: 80 }), true);
+});
+
+test("on a phone-width canvas the camera stops zooming out sooner, so node text stays readable", () => {
+  assert.equal(readableZoomFor(1200), READABLE_ZOOM, "wide canvases keep the usual limit");
+  assert.equal(readableZoomFor(560), READABLE_ZOOM);
+  assert.equal(readableZoomFor(390), PHONE_READABLE_ZOOM);
+  assert.ok(PHONE_READABLE_ZOOM > READABLE_ZOOM);
+  const longList = { x: 0, y: 0, width: 1400, height: 120 };
+  const view = fitView(longList, { width: 390, height: 500 }, readableZoomFor(390));
+  assert.equal(view.k, PHONE_READABLE_ZOOM);
+  assert.equal(view.x, 48, "too wide for the screen: the head of the list is shown, the rest is a swipe away");
 });

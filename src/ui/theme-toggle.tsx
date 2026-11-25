@@ -13,9 +13,9 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label={label}
       title={label}
-      className="rounded-md border border-card-border p-1.5 text-muted-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-card-border text-muted-foreground lg:h-8 lg:w-8 lg:rounded-md transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
     >
-      {light ? <Moon size={13} aria-hidden /> : <Sun size={13} aria-hidden />}
+      {light ? <Moon size={15} aria-hidden /> : <Sun size={15} aria-hidden />}
     </button>
   );
 }

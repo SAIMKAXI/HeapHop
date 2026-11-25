@@ -18,10 +18,12 @@ interface LessonCardProps {
   /** Step to the result of a prediction. */
   onReveal: (step: number) => void;
   onClose: () => void;
+  /** Placement classes from the visualizer (where the card sits on a phone held sideways). */
+  className?: string;
 }
 
-const primary = "rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-foreground disabled:opacity-40";
-const secondary = "rounded-md border border-card-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40";
+const primary = "inline-flex whitespace-nowrap min-h-10 items-center justify-center lg:min-h-0 rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-on-accent hover:opacity-90 focus-visible:outline-2 focus-visible:outline-foreground disabled:opacity-40";
+const secondary = "inline-flex whitespace-nowrap min-h-10 items-center justify-center lg:min-h-0 rounded-md border border-card-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40";
 
 function PredictionBlock({ checkpoint, onReveal }: { checkpoint: ResolvedCheckpoint; onReveal: (step: number) => void }) {
   const prediction = checkpoint.prediction!;
@@ -46,7 +48,7 @@ function PredictionBlock({ checkpoint, onReveal }: { checkpoint: ResolvedCheckpo
               data-correct={(answered && isAnswer) || undefined}
               disabled={answered}
               onClick={() => { setPicked(o.id); onReveal(prediction.revealStep); }}
-              className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${tone}`}
+              className={`inline-flex min-h-10 items-center rounded-full border px-3 py-1 text-xs font-semibold lg:min-h-0 lg:px-2.5 ${tone}`}
             >
               {o.label}
             </button>
@@ -65,15 +67,15 @@ function PredictionBlock({ checkpoint, onReveal }: { checkpoint: ResolvedCheckpo
   );
 }
 
-export function LessonCard({ resolved, current, travelling, onGo, onReveal, onClose }: LessonCardProps) {
+export function LessonCard({ resolved, current, travelling, onGo, onReveal, onClose, className = "" }: LessonCardProps) {
   const { lesson, checkpoints, problems } = resolved;
   const checkpoint = checkpoints[current];
   const last = current >= checkpoints.length - 1;
   const [folded, setFolded] = useState(false);
   // Docked under the heap rather than floating over it, so it never hides a node.
   return (
-    <aside data-lesson-card data-folded={folded || undefined} aria-label={`Lesson: ${lesson.title}`} className="flex max-h-[60%] min-h-0 shrink-0 flex-col border-t-2 border-accent/40 bg-card">
-      <header className="flex items-center justify-between gap-2 px-4 py-2">
+    <aside data-lesson-card data-folded={folded || undefined} aria-label={`Lesson: ${lesson.title}`} className={`flex max-h-[60%] min-h-0 shrink-0 flex-col border-t-2 border-accent/40 bg-card ${className}`}>
+      <header className="flex items-center justify-between gap-2 px-4 py-1 lg:py-2">
         <h3 className="truncate text-xs font-bold uppercase tracking-wider text-accent">Lesson · {lesson.title}</h3>
         <span className="flex shrink-0 items-center gap-2">
           <span className="text-xs tabular-nums text-muted-foreground" data-lesson-progress>{Math.min(current + 1, checkpoints.length)} / {checkpoints.length}</span>
@@ -84,7 +86,7 @@ export function LessonCard({ resolved, current, travelling, onGo, onReveal, onCl
             aria-label={folded ? "Show the lesson" : "Hide the lesson"}
             title={folded ? "Show the lesson" : "Hide the lesson"}
             onClick={() => setFolded((f) => !f)}
-            className="rounded-md p-1 text-muted-foreground hover:bg-card-border/40 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent"
+            className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-card-border/40 lg:h-auto lg:w-auto lg:p-1 hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent"
           >
             {folded ? <ChevronUp size={15} aria-hidden /> : <ChevronDown size={15} aria-hidden />}
           </button>

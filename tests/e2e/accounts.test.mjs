@@ -265,9 +265,12 @@ test("the header: Learn, Editor, About, FAQ, then the profile icon with Account 
   const order = await page.$eval("header", (h) => [...h.querySelectorAll("nav[aria-label=Site], [data-profile-button], [data-theme-toggle]")]
     .map((e) => ("profileButton" in e.dataset ? "profile" : "themeToggle" in e.dataset ? "theme" : "nav")));
   assert.deepEqual(order, ["nav", "profile", "theme"]);
-  const toggle = await page.$eval("[data-theme-toggle]", (b) => b.getBoundingClientRect().height);
-  const icon = await page.$eval("[data-profile-button]", (b) => b.getBoundingClientRect().height);
-  assert.ok(toggle < icon, `the theme switch (${toggle}px) is smaller than the profile icon (${icon}px)`);
+  const heights = () => page.evaluate(() => ["[data-theme-toggle]", "[data-profile-button]"].map((sel) => document.querySelector(sel).getBoundingClientRect().height));
+  await page.setViewport({ width: 1280, height: 800 });
+  const [toggle, icon] = await heights();
+  assert.ok(toggle < icon, `on a laptop the theme switch (${toggle}px) is smaller than the profile icon (${icon}px)`);
+  await page.setViewport({ width: 800, height: 600 });
+  assert.ok((await heights()).every((h) => h >= 40), "on touch screens both are big enough to tap (8.21)");
   assert.equal(await page.$("[role=menu]"), null, "the menu starts closed");
   await openMenu(page);
   assert.deepEqual(await page.$$eval("[role=menuitem]", (m) => m.map((i) => i.textContent)), ["Account settings", "Log out"]);

@@ -19,7 +19,7 @@ interface InspectorPanelProps {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section data-inspector-section={title} className="border-t border-card-border px-4 py-3">
-      <h4 className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted">{title}</h4>
+      <h4 className="mb-2 text-[0.625rem] font-bold uppercase tracking-widest text-muted">{title}</h4>
       {children}
     </section>
   );
@@ -80,7 +80,7 @@ function ObjectInspector({ model, stepIndex, id, onSelect, onJump }: Omit<Inspec
         </dl>
       </Section>
       <Section title="References">
-        <p className="mb-1 text-[11px] text-muted-foreground">Pointing at it now ({incoming.length})</p>
+        <p className="mb-1 text-[0.6875rem] text-muted-foreground">Pointing at it now ({incoming.length})</p>
         {incoming.length === 0 ? <p className="text-xs italic text-muted">nothing</p> : (
           <ul>{incoming.map((r) => (
             <li key={r.cellId}>
@@ -90,7 +90,7 @@ function ObjectInspector({ model, stepIndex, id, onSelect, onJump }: Omit<Inspec
             </li>
           ))}</ul>
         )}
-        <p className="mb-1 mt-2 text-[11px] text-muted-foreground">It points at</p>
+        <p className="mb-1 mt-2 text-[0.6875rem] text-muted-foreground">It points at</p>
         {leaves.filter((l) => l.kind === "pointer" && heapRootOf(l.target)).length === 0 ? <p className="text-xs italic text-muted">nothing</p> : (
           <ul>{leaves.filter((l) => l.kind === "pointer" && heapRootOf(l.target)).map((l) => (
             <li key={l.cellId}>
@@ -220,10 +220,10 @@ export function InspectorPanel(props: InspectorPanelProps) {
     : selection.kind === "pointer" ? (explainPointer(model, selection.cellId, stepIndex)?.label ?? "pointer")
     : `Line ${selection.line}`;
   return (
-    <aside data-no-pan data-inspector={selection.kind} aria-label="Inspector" className="flex w-[320px] shrink-0 flex-col overflow-hidden border-l-2 border-card-border bg-card">
+    <aside data-no-pan data-inspector={selection.kind} aria-label="Inspector" className="flex w-80 shrink-0 flex-col overflow-hidden border-l-2 border-card-border bg-card max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:max-h-[60dvh] max-md:w-auto max-md:rounded-t-2xl max-md:border-l-0 max-md:border-t-2 max-md:shadow-2xl phone-land:fixed phone-land:inset-y-0 phone-land:right-0 phone-land:z-40 phone-land:shadow-2xl">
       <header className="flex items-center justify-between px-4 py-2.5">
         <h3 className="truncate text-sm font-bold"><RichText text={title} /></h3>
-        <button type="button" aria-label="Close inspector" className="rounded p-1 text-muted-foreground hover:bg-accent/10 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent" onClick={() => onSelect(null)}><X size={15} /></button>
+        <button type="button" aria-label="Close inspector" className="flex h-10 w-10 items-center justify-center rounded text-muted-foreground lg:h-auto lg:w-auto lg:p-1 hover:bg-accent/10 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent" onClick={() => onSelect(null)}><X size={15} /></button>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {selection.kind === "object" && <ObjectInspector {...props} id={selection.id} />}

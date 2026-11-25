@@ -12,7 +12,7 @@ interface CodeInputProps {
   onChange: (value: string) => void;
 }
 
-const TEXT = "py-6 pl-3 pr-6 font-mono text-[14px] leading-relaxed";
+const TEXT = "py-6 pl-3 pr-6 font-mono text-[0.875rem] leading-relaxed";
 
 export function CodeInput({ value, onChange }: CodeInputProps) {
   const areaRef = useRef<HTMLTextAreaElement>(null);
@@ -51,9 +51,9 @@ export function CodeInput({ value, onChange }: CodeInputProps) {
 
   return (
     <div className="flex h-full min-h-0">
-      <div ref={gutterRef} aria-hidden className="w-[54px] shrink-0 select-none overflow-hidden border-r border-card-border/30 bg-code-bg pr-2 pt-6 text-right">
+      <div ref={gutterRef} aria-hidden className="w-13.5 shrink-0 select-none overflow-hidden border-r border-card-border/30 bg-code-bg pr-2 pt-6 text-right">
         {Array.from({ length: lineCount }, (_, i) => (
-          <div key={i} className="px-2 font-mono text-[14px] leading-relaxed text-muted">{i + 1}</div>
+          <div key={i} className="px-2 font-mono text-[0.875rem] leading-relaxed text-muted">{i + 1}</div>
         ))}
       </div>
       <div className="relative min-w-0 flex-1 bg-code-bg">

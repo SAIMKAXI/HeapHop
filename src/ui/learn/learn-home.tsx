@@ -35,7 +35,7 @@ export function LearnHome() {
       </section>
 
       <h2 className="sr-only">Topics</h2>
-      <ul data-reveal-children className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-topic-grid>
+      <ul data-reveal-children className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 sm:max-lg:[&>li:last-child:nth-child(odd)]:col-span-2" data-topic-grid>
         {TOPICS.map((t) => {
           const lessons = lessonsOf(t).length;
           const programs = examplesOf(t).reduce((n, g) => n + g.examples.length, 0);
@@ -48,9 +48,9 @@ export function LearnHome() {
                 </div>
                 <span className="mt-4 text-lg font-bold">{t.title}</span>
                 <span className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{t.short}</span>
-                <span className="mt-5 flex items-center justify-between gap-3 text-sm">
+                <span className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm">
                   <span className="text-muted">{plural(lessons, "lesson")}{programs ? ` · ${plural(programs, "program")}` : ""}</span>
-                  <span className="flex items-center gap-1 font-semibold text-accent">
+                  <span className="flex items-center gap-1 whitespace-nowrap font-semibold text-accent">
                     Explore topic <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
                   </span>
                 </span>
@@ -60,14 +60,14 @@ export function LearnHome() {
         })}
       </ul>
 
-      <div data-reveal-children className="mt-5 grid gap-5 md:grid-cols-2">
+      <div data-reveal-children className="mt-5 grid gap-5 lg:grid-cols-2">
         <section className={`${learnCard} sm:flex-row sm:items-center sm:gap-5 hover:translate-y-0`} data-learn-practice>
           <span className={iconTile}><SquareTerminal size={20} aria-hidden /></span>
           <div className="mt-3 flex-1 sm:mt-0">
             <h2 className="text-lg font-bold">Practice &amp; build</h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Write your own C++ and step through it the same way.</p>
           </div>
-          <a href="/editor" className="mt-4 inline-flex items-center gap-1.5 self-start rounded-full border-2 border-accent/60 px-4 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-accent hover:text-background sm:mt-0 sm:self-center">
+          <a href="/editor" className="mt-4 inline-flex min-h-10 shrink-0 items-center gap-1.5 self-start whitespace-nowrap rounded-full border-2 border-accent/60 px-4 py-1.5 text-sm lg:min-h-0 font-semibold text-accent transition-colors hover:bg-accent hover:text-background sm:mt-0 sm:self-center">
             Open the Editor <ArrowRight size={14} aria-hidden />
           </a>
         </section>
@@ -77,9 +77,9 @@ export function LearnHome() {
             <h2 className="text-lg font-bold">Quick references</h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Which C++ HeapHop runs, and answers to common questions.</p>
           </div>
-          <span className="mt-4 flex gap-2 sm:mt-0">
-            <a href="/supported" className="rounded-full border-2 border-card-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-accent hover:text-accent">Supported C++</a>
-            <a href="/faq" className="rounded-full border-2 border-card-border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:border-accent hover:text-accent">FAQ</a>
+          <span className="mt-4 flex shrink-0 gap-2 sm:mt-0">
+            <a href="/supported" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full border-2 border-card-border px-3.5 py-1.5 text-sm font-semibold lg:min-h-0 transition-colors hover:border-accent hover:text-accent">Supported C++</a>
+            <a href="/faq" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full border-2 border-card-border px-3.5 py-1.5 text-sm font-semibold lg:min-h-0 transition-colors hover:border-accent hover:text-accent">FAQ</a>
           </span>
         </section>
       </div>

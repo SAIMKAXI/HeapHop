@@ -26,8 +26,11 @@ test("every page loads without errors, marks itself in the navigation, and every
   const links = new Set();
   for (const path of PAGES) {
     const page = await newPage({ path, ready: "header" });
-    const current = await page.$$eval("header nav [aria-current='page']", (a) => a.map((x) => x.getAttribute("href")));
-    if (["/learn", "/editor", "/faq", "/about"].includes(path)) assert.deepEqual(current, [path], `${path} is marked in the header`);
+    const marked = (nav) => page.$$eval(`header nav[aria-label='${nav}'] [aria-current='page']`, (a) => a.map((x) => x.getAttribute("href")));
+    if (["/learn", "/editor", "/faq", "/about"].includes(path)) {
+      assert.deepEqual(await marked("Site"), [path], `${path} is marked in the header`);
+      assert.deepEqual(await marked("Site menu"), [path], `and in the phone menu (8.21)`);
+    }
     for (const href of await page.$$eval("a[href^='/']", (a) => a.map((x) => x.getAttribute("href")))) links.add(href);
     assert.deepEqual(page.errors, [], path);
     await page.close();

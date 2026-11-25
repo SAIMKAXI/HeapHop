@@ -45,7 +45,7 @@ function NodeTooltip({ model, stepIndex, id }: { model: TraceModel; stepIndex: n
   return (
     <>
       <p className="mb-1 text-xs font-bold">{rec.displayName}{item.orphaned ? " · unreachable" : ""}</p>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 text-[11px]">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 text-[0.6875rem]">
         {fields.filter((f) => !f.children).slice(0, 6).map((f) => (
           <div key={f.id} className="contents">
             <dt className="font-mono text-muted-foreground">{f.name || "value"}</dt>
@@ -53,10 +53,10 @@ function NodeTooltip({ model, stepIndex, id }: { model: TraceModel; stepIndex: n
           </div>
         ))}
       </dl>
-      <p className="mt-1.5 text-[11px] text-muted-foreground">
+      <p className="mt-1.5 text-[0.6875rem] text-muted-foreground">
         {refs.length === 0 ? "Nothing points at it" : <>Pointed at by <RichText text={refs.map((r) => cellLabel(model, r.owner, r.name, view.step.activeFunction)).join(", ")} /></>}
       </p>
-      <p className="text-[11px] text-muted-foreground">Created on line {rec.allocLine}</p>
+      <p className="text-[0.6875rem] text-muted-foreground">Created on line {rec.allocLine}</p>
     </>
   );
 }
@@ -193,7 +193,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
   return (
     <div
       ref={wrapperRef}
-      className={fullscreen === "window" ? "fixed inset-0 z-50 bg-background" : "absolute inset-0 bg-background"}
+      className={fullscreen === "window" ? "@container fixed inset-0 z-50 bg-background" : "@container absolute inset-0 bg-background"}
     >
       {!still && (
         <CanvasToolbar
@@ -210,7 +210,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
       <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1">
         <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Heap</h3>
         {summary.map((s, i) => (
-          <span key={i} data-list-kind className="w-fit rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-accent">{s}</span>
+          <span key={i} data-list-kind className="w-fit rounded-full bg-accent/10 px-2.5 py-0.5 text-[0.6875rem] font-semibold text-accent">{s}</span>
         ))}
       </div>
       <div
@@ -295,7 +295,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
         ref={tipRef}
         role="tooltip"
         data-node-tooltip
-        className={`pointer-events-none fixed left-0 top-0 z-50 max-w-[260px] rounded-lg border border-card-border bg-card px-3 py-2 shadow-xl ${hoverId ? "" : "hidden"}`}
+        className={`pointer-events-none fixed left-0 top-0 z-50 max-w-65 rounded-lg border border-card-border bg-card px-3 py-2 shadow-xl ${hoverId ? "" : "hidden"}`}
       >
         {hoverId && <NodeTooltip model={model} stepIndex={stepIndex} id={hoverId} />}
       </div>

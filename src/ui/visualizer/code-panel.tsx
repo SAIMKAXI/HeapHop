@@ -47,10 +47,10 @@ export function CodePanel({ source, activeFunction, activeLine, callerLine, sele
       <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
         Code
         {activeFunction && (
-          <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-bold normal-case tracking-normal text-accent">in {activeFunction}()</span>
+          <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[0.625rem] font-bold normal-case tracking-normal text-accent">in {activeFunction}()</span>
         )}
       </h3>
-      <div className="overflow-x-auto rounded-xl border-2 border-card-border bg-code-bg py-1 font-mono text-[13px] leading-relaxed">
+      <div className="overflow-x-auto rounded-xl border-2 border-card-border bg-code-bg py-1 font-mono text-[0.8125rem] leading-relaxed">
         {source.map((line, i) => {
           const lineNo = i + 1;
           const active = lineNo === activeLine;

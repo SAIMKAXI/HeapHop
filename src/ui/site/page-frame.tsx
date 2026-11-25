@@ -52,9 +52,9 @@ export function PageFrame({ current, title, intro, scene, children }: PageFrameP
             <Logo size={22} />
             <span><span className="font-bold text-foreground">HeapHop</span> · made by Cyber Security students at Air University</span>
           </p>
-          <nav aria-label="More pages" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          <nav aria-label="More pages" className="flex flex-wrap gap-x-5 gap-y-0 text-sm lg:gap-y-2">
             {FOOTER_LINKS.map((l) => (
-              <a key={l.page} href={l.href} aria-current={current === l.page ? "page" : undefined} className="text-muted-foreground underline-offset-4 hover:text-accent hover:underline">
+              <a key={l.page} href={l.href} aria-current={current === l.page ? "page" : undefined} className="inline-flex min-h-10 min-w-10 items-center justify-center text-muted-foreground underline-offset-4 hover:text-accent hover:underline lg:min-h-0 lg:min-w-0">
                 {l.label}
               </a>
             ))}

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Screen shapes for the visualizer. phone-tall: a phone held upright (Code / Memory tabs).
+   phone-land: a phone held sideways, too short for panels stacked above the controls. */
+@custom-variant phone-tall (@media (max-width: 767.98px) and (orientation: portrait));
+@custom-variant phone-land (@media (max-width: 1023.98px) and (max-height: 520px) and (orientation: landscape));
+
+/* Big screens: from 1600 px wide the whole site grows together (text, spacing, widths are all
+   rem): 125% at 2560 px, at most 150%. Breakpoints are unaffected (media queries use the
+   browser's own 16 px), and 100% keeps the visitor's own font-size setting below 1600 px. */
+html { font-size: clamp(100%, calc(100% + (100vw - 100rem) * 0.0041667), 150%); }
+
 /* Blueprint: calm and technical, like a schematic. Dark (default): deep navy with teal
    actions. Light: cool off-white with navy text and a deeper teal. Next arrows are teal
    and prev arrows amber, so the two never look alike. Every text colour passes WCAG AA

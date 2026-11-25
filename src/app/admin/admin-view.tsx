@@ -12,7 +12,7 @@ export interface AdminStats { users: number; disabled: number; last_7_days: numb
 
 const card = "rounded-xl border-2 border-card-border bg-card p-5";
 
-const button = "rounded-full border border-card-border px-3 py-1 text-xs font-semibold hover:border-accent disabled:opacity-50";
+const button = "inline-flex min-h-10 items-center rounded-full border border-card-border px-3 py-1 text-xs lg:min-h-0 font-semibold hover:border-accent disabled:opacity-50";
 
 /** Spellings that matched no listed university: merge each into one, or add it as new. */
 function ReviewNames({ items, universities }: { items: AdminStats["to_review"]; universities: University[] }) {
@@ -60,10 +60,10 @@ export function AdminView({ me, users, stats, universities }: { me: string; user
       <AppHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
         <h1 className="text-3xl font-bold tracking-tight">Admin</h1>
-        <section className="mt-6 grid gap-4 sm:grid-cols-3" data-admin-stats>
-          <div className={card}><p className="text-sm text-muted-foreground">Users</p><p className="mt-1 text-3xl font-bold">{stats.users}</p></div>
-          <div className={card}><p className="text-sm text-muted-foreground">Sign-ups, last 7 days</p><p className="mt-1 text-3xl font-bold">{stats.last_7_days}</p></div>
-          <div className={card}><p className="text-sm text-muted-foreground">Disabled</p><p className="mt-1 text-3xl font-bold">{stats.disabled}</p></div>
+        <section className="mt-6 grid grid-cols-3 gap-2 sm:gap-4" data-admin-stats>
+          <div className={`${card} max-sm:p-3`}><p className="text-xs text-muted-foreground sm:text-sm">Users</p><p className="mt-1 text-2xl font-bold sm:text-3xl">{stats.users}</p></div>
+          <div className={`${card} max-sm:p-3`}><p className="text-xs text-muted-foreground sm:text-sm">Sign-ups, last 7 days</p><p className="mt-1 text-2xl font-bold sm:text-3xl">{stats.last_7_days}</p></div>
+          <div className={`${card} max-sm:p-3`}><p className="text-xs text-muted-foreground sm:text-sm">Disabled</p><p className="mt-1 text-2xl font-bold sm:text-3xl">{stats.disabled}</p></div>
         </section>
         <section className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className={card}>
@@ -88,19 +88,20 @@ export function AdminView({ me, users, stats, universities }: { me: string; user
           </div>
         </section>
         <ReviewNames items={stats.to_review} universities={universities} />
+        {/* Below 768 px each user is a small card (the same table, laid out as blocks with labels). */}
         <section className={`${card} mt-4 overflow-x-auto`} data-admin-users>
           <h2 className="font-bold">Users</h2>
           {state.error && <div className="mt-3"><Banner kind="error">{state.error}</Banner></div>}
           {state.ok && <div className="mt-3"><Banner kind="ok">{state.message}</Banner></div>}
-          <table className="mt-3 w-full text-left text-sm">
-            <thead className="text-muted-foreground"><tr><th className="py-2 pr-3">Name</th><th className="pr-3">Email</th><th className="pr-3">University</th><th className="pr-3">Joined</th><th className="pr-3">Status</th><th /></tr></thead>
-            <tbody>
+          <table className="mt-3 w-full text-left text-sm max-md:block">
+            <thead className="text-muted-foreground max-md:hidden"><tr><th className="py-2 pr-3">Name</th><th className="pr-3">Email</th><th className="pr-3">University</th><th className="pr-3">Joined</th><th className="pr-3">Status</th><th /></tr></thead>
+            <tbody className="max-md:block">
               {users.map((u) => (
-                <tr key={u.id} className="border-t border-card-border" data-user-row={u.email}>
-                  <td className="py-2 pr-3 font-medium">{u.full_name}{u.role === "admin" && <span className="ml-2 rounded bg-accent/15 px-1.5 text-xs text-accent">admin</span>}</td>
-                  <td className="pr-3">{u.email}</td>
-                  <td className="pr-3">{u.university}</td>
-                  <td className="pr-3 whitespace-nowrap">{new Date(u.created_at).toLocaleDateString()}</td>
+                <tr key={u.id} className="border-t border-card-border max-md:flex max-md:flex-col max-md:gap-1 max-md:py-3" data-user-row={u.email}>
+                  <td className="py-2 pr-3 font-medium max-md:py-0 max-md:text-base">{u.full_name}{u.role === "admin" && <span className="ml-2 rounded bg-accent/15 px-1.5 text-xs text-accent">admin</span>}</td>
+                  <td className="pr-3 max-md:break-all max-md:text-muted-foreground">{u.email}</td>
+                  <td className="pr-3 max-md:text-muted-foreground">{u.university}</td>
+                  <td className="pr-3 whitespace-nowrap max-md:text-muted-foreground"><span className="md:hidden">Joined </span>{new Date(u.created_at).toLocaleDateString()}</td>
                   <td className={`pr-3 ${u.disabled ? "text-danger" : "text-success"}`}>
                     {u.disabled ? "Disabled" : "Active"}
                     {u.reference && <span className="ml-2 font-mono text-xs text-muted-foreground" title="The reference code this student sees, for review requests" data-user-reference>{u.reference}</span>}
@@ -110,7 +111,7 @@ export function AdminView({ me, users, stats, universities }: { me: string; user
                       <form action={action}>
                         <input type="hidden" name="userId" value={u.id} />
                         <input type="hidden" name="disable" value={String(!u.disabled)} />
-                        <button type="submit" disabled={pending} className="rounded-full border border-card-border px-3 py-1 text-xs font-semibold hover:border-accent">
+                        <button type="submit" disabled={pending} className="inline-flex min-h-10 items-center rounded-full border border-card-border px-3 py-1 text-xs font-semibold hover:border-accent max-md:mt-1 lg:min-h-0">
                           {u.disabled ? "Enable" : "Disable"}
                         </button>
                       </form>

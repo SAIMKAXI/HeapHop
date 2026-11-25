@@ -21,7 +21,17 @@ export function loadSizes(): PanelSizes {
   } catch {
     // Storage blocked or damaged: use the defaults.
   }
-  return DEFAULT_SIZES;
+  // The defaults grow with the page on big screens (the root font size is above 16 px there).
+  const scale = rootScale();
+  return { code: Math.round(DEFAULT_SIZES.code * scale), stack: Math.round(DEFAULT_SIZES.stack * scale) };
+}
+
+function rootScale(): number {
+  try {
+    return Math.max(1, parseFloat(getComputedStyle(document.documentElement).fontSize) / 16 || 1);
+  } catch {
+    return 1;
+  }
 }
 
 export function saveSizes(sizes: PanelSizes) {

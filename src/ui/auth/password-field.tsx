@@ -26,7 +26,7 @@ export function PasswordField({
           ref={input} id={id} name={name} type={shown ? "text" : "password"} autoComplete={autoComplete} maxLength={maxLength}
           spellCheck={false} autoCapitalize="none" autoCorrect="off"
           required aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined}
-          className="w-full rounded-lg border-2 border-card-border bg-background py-2 pl-3 pr-11 text-sm outline-none transition-colors focus:border-accent aria-invalid:border-danger"
+          className="w-full rounded-lg border-2 border-card-border bg-background py-2.5 pl-3 pr-12 text-base outline-none sm:text-sm lg:py-2 transition-colors focus:border-accent aria-invalid:border-danger"
         />
         <button
           type="button" onClick={() => setShown((s) => !s)}

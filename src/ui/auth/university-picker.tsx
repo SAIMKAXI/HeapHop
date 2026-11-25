@@ -73,7 +73,7 @@ export function UniversityPicker({
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={onKeyDown}
-        className="w-full rounded-lg border-2 border-card-border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-accent aria-invalid:border-danger"
+        className="w-full rounded-lg border-2 border-card-border bg-background px-3 py-2.5 text-base outline-none transition-colors focus:border-accent aria-invalid:border-danger sm:text-sm lg:py-2"
       />
       {idName && <input type="hidden" name={idName} value={exact ? String(exact.id) : ""} />}
       {expanded && (
@@ -84,7 +84,7 @@ export function UniversityPicker({
               key={o.kind === "uni" ? o.u.id : "unlisted"} id={`${base}-opt-${i}`} role="option" aria-selected={i === active}
               data-university-option={o.kind === "uni" ? o.u.name : undefined} data-university-unlisted={o.kind === "unlisted" || undefined}
               onMouseDown={(e) => e.preventDefault()} onClick={() => pick(i)} onMouseEnter={() => setActive(i)}
-              className={`cursor-pointer rounded-md px-3 py-2 text-sm ${i === active ? "bg-accent/15 text-foreground" : "text-muted-foreground"}`}
+              className={`cursor-pointer rounded-md px-3 py-2.5 text-sm lg:py-2 ${i === active ? "bg-accent/15 text-foreground" : "text-muted-foreground"}`}
             >
               {o.kind === "uni" ? (
                 <>

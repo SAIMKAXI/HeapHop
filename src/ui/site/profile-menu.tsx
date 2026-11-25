@@ -4,7 +4,7 @@
 import { CircleUserRound, LogOut, Settings, ShieldCheck } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-const item = "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-card-border/50 focus-visible:bg-card-border/50 focus-visible:outline-none";
+const item = "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left lg:min-h-0 lg:py-2 text-sm text-foreground transition-colors hover:bg-card-border/50 focus-visible:bg-card-border/50 focus-visible:outline-none";
 
 export function ProfileMenu({ admin }: { admin: boolean }) {
   const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ export function ProfileMenu({ admin }: { admin: boolean }) {
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
         data-profile-button
-        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-card-border text-muted-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent aria-expanded:border-accent aria-expanded:text-accent"
+        className="flex h-10 w-10 items-center justify-center rounded-full border-2 lg:h-9 lg:w-9 border-card-border text-muted-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-accent aria-expanded:border-accent aria-expanded:text-accent"
       >
         <CircleUserRound size={20} aria-hidden />
       </button>

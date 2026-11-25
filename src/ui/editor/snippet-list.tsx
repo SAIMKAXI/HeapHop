@@ -48,10 +48,10 @@ export function SnippetList({ state, compact = false, onPicked, renaming, onRena
           )}
           {!compact && renaming !== s.id && (
             <span className="flex shrink-0 gap-0.5 pr-3 opacity-60 group-focus-within:opacity-100 group-hover:opacity-100">
-              <button type="button" aria-label={`Rename ${s.title}`} title="Rename" onClick={() => setRenaming(s.id)} className="rounded p-1 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent">
+              <button type="button" aria-label={`Rename ${s.title}`} title="Rename" onClick={() => setRenaming(s.id)} className="flex h-10 w-10 items-center justify-center rounded hover:text-accent focus-visible:outline-2 focus-visible:outline-accent lg:h-auto lg:w-auto lg:p-1">
                 <Pencil size={12} />
               </button>
-              <button type="button" data-delete-snippet aria-label={`Delete ${s.title}`} title="Delete" onClick={() => deleteSnippet(s.id)} className="rounded p-1 hover:text-danger focus-visible:outline-2 focus-visible:outline-danger">
+              <button type="button" data-delete-snippet aria-label={`Delete ${s.title}`} title="Delete" onClick={() => deleteSnippet(s.id)} className="flex h-10 w-10 items-center justify-center rounded hover:text-danger focus-visible:outline-2 focus-visible:outline-danger lg:h-auto lg:w-auto lg:p-1">
                 <Trash2 size={12} />
               </button>
             </span>

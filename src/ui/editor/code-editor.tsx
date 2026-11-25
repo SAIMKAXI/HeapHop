@@ -24,7 +24,7 @@ interface CodeEditorProps {
 const SUPPORTED_HREF = "/supported";
 
 const READS_INPUT = /\b(cin|getline)\b/;
-const kbd = "rounded border border-card-border bg-background px-1.5 py-0.5 font-mono text-[10px]";
+const kbd = "rounded border border-card-border bg-background px-1.5 py-0.5 font-mono text-[0.625rem]";
 
 function ToolButton({ onClick, disabled, title, danger, children }: { onClick: () => void; disabled?: boolean; title: string; danger?: boolean; children: ReactNode }) {
   return (
@@ -34,7 +34,7 @@ function ToolButton({ onClick, disabled, title, danger, children }: { onClick: (
       disabled={disabled}
       title={title}
       className={cn(
-        "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-30",
+        "flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-[0.75rem] font-medium transition-colors lg:min-h-0 lg:min-w-0 focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-30",
         danger ? "text-danger hover:bg-danger/10" : "text-muted-foreground hover:bg-card-border/30 hover:text-foreground"
       )}
     >
@@ -75,7 +75,7 @@ export function CodeEditor({ onRun, input, onInputChange, error, isRunning }: Co
       <AppHeader current="editor" />
 
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-[280px] shrink-0 flex-col border-r-2 border-card-border bg-card/50 md:flex">
+        <aside className="hidden w-70 shrink-0 flex-col border-r-2 border-card-border bg-card/50 md:flex">
           <div className="flex items-center justify-between border-b border-card-border px-5 py-3">
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Your programs</h2>
             <button
@@ -83,7 +83,7 @@ export function CodeEditor({ onRun, input, onInputChange, error, isRunning }: Co
               data-new-snippet
               onClick={() => setRenaming(createSnippet())}
               title={`Start a new program (${state.snippets.length}/${MAX_SNIPPETS})`}
-              className="flex items-center gap-1.5 rounded-lg bg-accent/10 px-2.5 py-1.5 text-[11px] font-semibold text-accent transition-colors hover:bg-accent/20 focus-visible:outline-2 focus-visible:outline-accent"
+              className="flex min-h-10 items-center gap-1.5 rounded-lg bg-accent/10 px-3 py-1.5 text-[0.6875rem] font-semibold text-accent lg:min-h-0 lg:px-2.5 transition-colors hover:bg-accent/20 focus-visible:outline-2 focus-visible:outline-accent"
             >
               <Plus size={13} aria-hidden /> New
             </button>
@@ -107,21 +107,21 @@ export function CodeEditor({ onRun, input, onInputChange, error, isRunning }: Co
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 border-b border-card-border/60 bg-code-bg px-4 py-2">
+          <div className="flex items-center gap-1 border-b border-card-border/60 bg-code-bg px-2 py-1.5 sm:gap-1.5 sm:px-4 sm:py-2">
             <ToolButton onClick={() => setCode(formatCpp(code))} disabled={!code.trim()} title="Fix the indentation">
-              <AlignLeft size={13} aria-hidden /> Format
+              <AlignLeft size={13} aria-hidden /> <span className="max-sm:sr-only">Format</span>
             </ToolButton>
             <ToolButton onClick={copy} disabled={!code.trim()} title="Copy the code">
               {copied ? <Check size={13} className="text-success" aria-hidden /> : <Copy size={13} aria-hidden />}
-              {copied ? "Copied!" : "Copy"}
+              <span className="max-sm:sr-only">{copied ? "Copied!" : "Copy"}</span>
             </ToolButton>
             <ToolButton onClick={resetTab} title="Go back to the starter code">
-              <RotateCcw size={13} aria-hidden /> Reset
+              <RotateCcw size={13} aria-hidden /> <span className="max-sm:sr-only">Reset</span>
             </ToolButton>
             <ToolButton onClick={() => setCode("")} disabled={!code.trim()} title="Remove all the code" danger>
-              <Trash2 size={13} aria-hidden /> Clear
+              <Trash2 size={13} aria-hidden /> <span className="max-sm:sr-only">Clear</span>
             </ToolButton>
-            <span className="ml-auto text-[11px] text-muted">{lineCount} {lineCount === 1 ? "line" : "lines"}</span>
+            <span className="ml-auto text-[0.6875rem] text-muted">{lineCount} {lineCount === 1 ? "line" : "lines"}</span>
           </div>
 
           <div className="relative min-h-0 flex-1 overflow-hidden">
@@ -154,12 +154,13 @@ export function CodeEditor({ onRun, input, onInputChange, error, isRunning }: Co
                 rows={2}
                 spellCheck={false}
                 placeholder="for example: 1 10 1 20 2 0"
-                className="w-full resize-y rounded-lg border-2 border-card-border bg-code-bg px-3 py-2 font-mono text-[13px] text-foreground outline-none placeholder:text-muted focus:border-accent"
+                className="w-full resize-y rounded-lg border-2 border-card-border bg-code-bg px-3 py-2 font-mono text-[0.8125rem] text-foreground outline-none placeholder:text-muted focus:border-accent"
               />
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-4 border-t-2 border-card-border bg-card px-5 py-3.5">
+          <div className="flex items-center justify-between gap-3 border-t-2 border-card-border bg-card px-4 py-3 sm:gap-4 sm:px-5 sm:py-3.5">
+            {onWebsite && <a href={SUPPORTED_HREF} className="inline-flex min-h-10 items-center text-xs text-muted underline underline-offset-2 hover:text-accent sm:hidden">Supported C++</a>}
             <p className="hidden text-xs text-muted sm:block">
               Structs, classes, pointers, new and delete, arrays, functions, loops, cin.
               {onWebsite && <> <a href={SUPPORTED_HREF} data-supported-link className="underline underline-offset-2 hover:text-accent">What C++ is supported</a></>}

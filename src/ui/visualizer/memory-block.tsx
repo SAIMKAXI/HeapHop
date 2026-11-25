@@ -34,7 +34,7 @@ function ArrayLine({ item }: { item: MemoryItem }) {
       className={cn("flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg px-4 py-2 text-sm transition-all duration-300", item.changed && "cell-changed")}>
       <span className="min-w-0 shrink-0 font-medium text-muted-foreground">{item.label}</span>
       <span className="text-muted">=</span>
-      <span className="min-w-0 font-mono text-[13px] font-bold text-success [overflow-wrap:anywhere]">{arraySummary(item)}</span>
+      <span className="min-w-0 font-mono text-[0.8125rem] font-bold text-success [overflow-wrap:anywhere]">{arraySummary(item)}</span>
     </div>
   );
 }
@@ -80,12 +80,12 @@ function MemoryCell({ item, depth = 0 }: MemoryBlockProps) {
         >
           <span>{item.label}</span>
           {item.address && (
-            <span className="ml-auto font-mono text-[11px] font-normal text-muted-foreground">
+            <span className="ml-auto font-mono text-[0.6875rem] font-normal text-muted-foreground">
               {item.address}
             </span>
           )}
           {isOrphaned && (
-            <span className="rounded-full bg-danger/20 px-2.5 py-0.5 text-[10px] font-semibold text-danger">
+            <span className="rounded-full bg-danger/20 px-2.5 py-0.5 text-[0.625rem] font-semibold text-danger">
               LEAKED
             </span>
           )}
@@ -118,7 +118,7 @@ function MemoryCell({ item, depth = 0 }: MemoryBlockProps) {
       <span className="min-w-0 shrink-0 font-medium text-muted-foreground">
         {item.label}
         {item.address && (
-          <span className="ml-1.5 font-mono text-[10px] text-muted-foreground">
+          <span className="ml-1.5 font-mono text-[0.625rem] text-muted-foreground">
             {item.address}
           </span>
         )}
