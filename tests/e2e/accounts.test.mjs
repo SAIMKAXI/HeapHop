@@ -356,11 +356,19 @@ test("the login page shows the live 3D list beside the form, and sign-up shows B
   assert.deepEqual(page.errors, [], "no errors, even where WebGL is unavailable");
   if (await page.$eval("canvas[data-heap-scene]", (c) => c.dataset.ready === "true")) {
     // cur rests on each node from head, and the glowing node is always the one cur is on
+    // Watch until one whole lap from head has been seen. CI machines draw WebGL in software and
+    // run the animation slower, so the wait ends at the lap, with 15 s as the outer limit.
     const seen = await page.evaluate(() => new Promise((done) => {
       const c = document.querySelector("canvas[data-heap-scene]");
       const order = [];
-      const t = setInterval(() => { const n = c.dataset.curNode; if (n && n !== "-1" && order.at(-1) !== n) order.push(n); }, 40);
-      setTimeout(() => { clearInterval(t); done(order); }, 7500);
+      const finish = () => { clearInterval(t); clearTimeout(limit); done(order); };
+      const t = setInterval(() => {
+        const n = c.dataset.curNode;
+        if (n && n !== "-1" && order.at(-1) !== n) order.push(n);
+        const head = order.indexOf("0");
+        if (head >= 0 && order.length >= head + 5) finish();
+      }, 40);
+      const limit = setTimeout(finish, 15000);
     }));
     const start = seen.indexOf("0");
     assert.ok(start >= 0, `cur rests on head: ${seen}`);
