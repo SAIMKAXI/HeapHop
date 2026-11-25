@@ -289,7 +289,7 @@ export class Recorder {
   }
 
   private pointer(base: Omit<MemoryItem, "kind">, p: Ptr, refs: Set<string>): MemoryItem {
-    if (p.a === null) return { ...base, kind: "pointer", value: "nullptr" };
+    if (p.a === null) return { ...base, kind: "pointer", value: p.iter ? "end()" : "nullptr" };
     const rootKey = p.a.split(".")[0];
     if (!this.mem.alive(p.a)) {
       const item: MemoryItem = { ...base, kind: "pointer", value: "dangling", dangling: true };
@@ -306,7 +306,7 @@ export class Recorder {
     if (typeof v === "number") return { ...base, kind: "scalar", value: String(v) };
     if (typeof v === "boolean") return { ...base, kind: "scalar", value: v ? "true" : "false" };
     switch (v.k) {
-      case "uninit": return { ...base, kind: type.ptr > 0 ? "pointer" : "scalar", value: "?" };
+      case "uninit": return { ...base, kind: type.ptr > 0 || type.base.endsWith("::iterator") ? "pointer" : "scalar", value: "?" };
       case "dbl": return { ...base, kind: "scalar", value: formatDouble(v.v) };
       case "chr": return { ...base, kind: "scalar", value: showChar(v.c) };
       case "str": return { ...base, kind: "scalar", value: JSON.stringify(v.s) };

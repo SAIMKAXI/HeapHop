@@ -37,6 +37,11 @@ function findCell(step: Step | undefined, cellId: string): MemoryItem | undefine
   return walk(step.heap);
 }
 
+/** A node that a std::list made for one of its elements ("list<int>::node"). */
+const isListNode = (typeName: string | undefined) => !!typeName && typeName.startsWith("list<") && typeName.endsWith(">::node");
+/** A std::list iterator cell ("list<int>::iterator"). */
+const isIterator = (cell: MemoryItem | undefined) => !!cell && cell.typeName.startsWith("list<") && cell.typeName.endsWith("::iterator");
+
 /** "`head`", "`next` of Node #1", "`head` (in main)". */
 export function cellLabel(model: TraceModel, owner: CellOwner, name: string, activeFunction?: string): string {
   if (owner.kind === "object") return `\`${name}\` of ${model.nameOf(owner.id)}`;
@@ -59,6 +64,19 @@ function pointerSentence(model: TraceModel, index: number, e: Extract<TraceEvent
   const fromRoot = heapRootOf(e.from), toRoot = heapRootOf(e.to);
   const to = targetLabel(model, e.to), from = targetLabel(model, e.from);
   const refs = [fromRoot, toRoot, e.owner.kind === "object" ? e.owner.id : null];
+
+  if (isIterator(cell)) {
+    const end = "end(): it stands one place past the last element, so there is no element under it";
+    if (e.declared) return say(e.to ? `${who} is created and stands on ${to}.` : `${who} is created at ${end}.`, "info", refs);
+    if (e.to && e.from) {
+      const was = prev?.heap.find((h) => h.id === fromRoot);
+      const link = was?.children?.find((c) => (c.name === "next" || c.name === "prev") && heapRootOf(c.pointsTo) === toRoot);
+      if (link) return say(`${who} moves ${link.name === "next" ? "forward" : "back"} along \`${link.name}\` from ${from} to ${to}.`, "info", refs);
+      return say(`${who} now stands on ${to} instead of ${from}.`, "info", refs);
+    }
+    if (e.to) return say(`${who} now stands on ${to}. Before, it was end().`, "info", refs);
+    if (e.from) return say(`${who} is now ${end}.`, "info", refs);
+  }
 
   if (e.declared) {
     if (e.to) return say(`${who} is created and points at ${to}.`, "info", refs);
@@ -153,13 +171,21 @@ const ERROR_ADVICE: Record<string, string> = {
   division_by_zero: "Check the divisor before dividing.",
 };
 
+/** Advice for the mistakes that only happen with std::list, recognised by their message. */
+function listAdvice(message: string): string | undefined {
+  if (/was erased/.test(message)) return "erase() deletes the element's node. Keep the iterator that erase() gives back, and stop using the old one.";
+  if (/is end\(\)|already end\(\)|at begin\(\)/.test(message)) return "end() is not an element. Check it != list.end() before using *it, and do not move past end() or before begin().";
+  if (/on an empty list/.test(message)) return "Check !list.empty() before taking an element out of a list.";
+  return undefined;
+}
+
 /** One short line for an event, used in history lists. */
 export function describeEvent(model: TraceModel, entry: HistoryEntry): string {
   const e = entry.event;
   const fn = model.trace.steps[entry.step]?.activeFunction;
   switch (e.type) {
-    case "alloc": return `${model.nameOf(e.objectId)} created with new`;
-    case "free": return `${model.nameOf(e.objectId)} deleted`;
+    case "alloc": return `${model.nameOf(e.objectId)} created ${isListNode(e.typeName) ? "by the list" : "with new"}`;
+    case "free": return `${model.nameOf(e.objectId)} ${isListNode(e.typeName) ? "removed from the list" : "deleted"}`;
     case "became_unreachable": return `${model.nameOf(e.objectId)} became unreachable (leaked)`;
     case "pointer_changed": return `${cellLabel(model, e.owner, e.name, fn)} → ${targetLabel(model, e.to)}`;
     case "value_changed": return `${cellLabel(model, e.owner, e.name, fn)} = ${e.to}`;
@@ -187,7 +213,7 @@ export function explainStep(model: TraceModel, index: number): Sentence[] {
 
   if (step.kind === "error" && step.error) {
     out.push(say(`The program stops here. ${step.error.message}`, "danger"));
-    const advice = ERROR_ADVICE[step.error.code];
+    const advice = listAdvice(step.error.message) ?? ERROR_ADVICE[step.error.code];
     if (advice) out.push(say(advice, "info"));
     return out;
   }
@@ -198,7 +224,9 @@ export function explainStep(model: TraceModel, index: number): Sentence[] {
 
   for (const e of of("free")) {
     const name = model.nameOf(e.objectId);
-    out.push(say(`${name} is deleted: its memory is given back and the object no longer exists.`, "info", [e.objectId]));
+    out.push(say(isListNode(e.typeName)
+      ? `${name} is taken out of the list and deleted: its memory is given back.`
+      : `${name} is deleted: its memory is given back and the object no longer exists.`, "info", [e.objectId]));
     const left = danglingAt(model, index, e.objectId);
     if (left.length > 0) {
       out.push(say(`${joinWords(left)} still ${left.length === 1 ? "holds" : "hold"} the old address of ${name}. ${left.length === 1 ? "It is a dangling pointer" : "They are dangling pointers"}: using ${left.length === 1 ? "it" : "them"} would be an error.`, "warn", [e.objectId]));
@@ -208,7 +236,9 @@ export function explainStep(model: TraceModel, index: number): Sentence[] {
     out.push(say(`No pointer reaches ${model.nameOf(e.objectId)} any more, and it was never deleted. Its memory is leaked: the program can no longer use it or free it.`, "danger", [e.objectId]));
   }
   for (const e of of("alloc")) {
-    out.push(say(`\`new\` creates ${model.nameOf(e.objectId)} on the heap.`, "good", [e.objectId]));
+    out.push(say(isListNode(e.typeName)
+      ? `The list makes a new node, ${model.nameOf(e.objectId)}, on the heap to hold the element.`
+      : `\`new\` creates ${model.nameOf(e.objectId)} on the heap.`, "good", [e.objectId]));
   }
   // A reference parameter is another name for a variable in the caller. Both show the
   // same change in the same step; it is explained once, on the real variable.
@@ -245,7 +275,9 @@ export function explainObject(model: TraceModel, objectId: string, index: number
   if (!rec) return [];
   const out: Sentence[] = [];
   const line = rec.allocLine > 0 ? ` on line ${rec.allocLine}` : "";
-  out.push(say(`${rec.displayName} was created with \`new\`${line} (step ${rec.allocStep + 1}).`, "info", [rec.id]));
+  out.push(say(isListNode(rec.typeName)
+    ? `${rec.displayName} is a node the list made${line} (step ${rec.allocStep + 1}) to hold one element. Its \`prev\` and \`next\` link it to its neighbours.`
+    : `${rec.displayName} was created with \`new\`${line} (step ${rec.allocStep + 1}).`, "info", [rec.id]));
 
   if (index < rec.allocStep) {
     out.push(say("At this step it does not exist yet.", "info", [rec.id]));
@@ -320,7 +352,8 @@ export function explainPointer(model: TraceModel, cellId: string, index: number)
   const targetId = cell.pointsTo ?? null;
   const target = state === "points" ? targetLabel(model, targetId)
     : state === "dangling" ? `${cell.freedTarget ? model.nameOf(cell.freedTarget) : "an object"}, which was deleted`
-    : state === "uninitialised" ? "nothing usable: it has no value yet" : "nullptr";
+    : state === "uninitialised" ? "nothing usable: it has no value yet"
+    : cell.value === "end()" ? "end(), one place past the last element" : "nullptr";
 
   const last = model.lastChangeOf(cellId, index);
   const change = last && last.event.type === "pointer_changed" ? last.event : null;

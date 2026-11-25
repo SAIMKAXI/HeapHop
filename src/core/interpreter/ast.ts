@@ -81,6 +81,8 @@ export type Stmt = { line: number } & (
   | { k: "cin"; targets: Expr[]; wholeLine: boolean }
   /** `cin.ignore();` */
   | { k: "cinIgnore" }
+  /** `for (int x : nums) ...` (std::list support only). `type.ref` for `int& x`. */
+  | { k: "rangeFor"; type: TypeRef; name: string; e: Expr; body: Stmt[] }
 );
 
 export interface Param {
@@ -121,8 +123,17 @@ export interface Field {
   line: number;
 }
 
+/** What a class made by HeapHop itself (not by the program) stands for. */
+export type BuiltinClass =
+  /** std::list<elem>: fields head, tail, size; nodes are the `node` class. */
+  | { kind: "list"; elem: TypeRef; node: string }
+  /** One element of a std::list: fields prev, value, next. */
+  | { kind: "listNode"; list: string };
+
 export interface ClassDef {
   name: string;
+  /** Set for the classes HeapHop provides (std::list and its node); absent for the program's own. */
+  builtin?: BuiltinClass;
   fields: Field[];
   ctors: FuncDef[];
   dtor: FuncDef | null;

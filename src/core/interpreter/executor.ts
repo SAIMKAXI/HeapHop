@@ -9,7 +9,8 @@ import { fault, RuntimeFault, SourceError, StopSignal, unsupported } from "./err
 import { InputReader } from "./input";
 import { Memory, type Frame, type Slot } from "./memory";
 import { formatDouble, Recorder } from "./recorder";
-import { chr, copyValue, dbl, kindOf, NULL_PTR, ptr, str, UNINIT, type Ptr, type Value } from "./values";
+import { ListRuntime } from "./stl";
+import { chr, copyValue, dbl, iter, kindOf, NULL_PTR, ptr, str, UNINIT, type Ptr, type Value } from "./values";
 
 class BreakSignal {}
 class ContinueSignal {}
@@ -20,6 +21,8 @@ const isControl = (e: unknown) => e instanceof BreakSignal || e instanceof Conti
 
 const isObject = (v: Value): v is Exclude<Value, number | boolean> => typeof v === "object";
 const isPtr = (v: Value): v is Ptr => isObject(v) && v.k === "ptr";
+/** A std::list iterator (a pointer that knows its list). */
+const isIter = (v: Value): v is Ptr => isPtr(v) && v.iter !== undefined;
 const isK = <K extends string>(v: Value, k: K): v is Extract<Value, { k: K }> => isObject(v) && v.k === k;
 
 const KIND_WORDS: Record<string, string> = {
@@ -54,6 +57,8 @@ export class Executor {
   private hasGlobals = false;
 
   private stdin: InputReader;
+  /** std::list operations. Only reachable when the program names a list type. */
+  private lists: ListRuntime;
 
   constructor(
     private program: Program,
@@ -65,6 +70,15 @@ export class Executor {
     this.classes = program.classes;
     this.mem = new Memory(this.classes, limits);
     this.rec = new Recorder(this.mem, this.classes, limits);
+    const element: Expr = { k: "var", name: "an element", line: 0 };
+    this.lists = new ListRuntime({
+      mem: this.mem,
+      classes: this.classes,
+      destroyValue: (v, addr) => this.destroyValue(v, addr),
+      equal: (a, b) => this.equal(a, b),
+      less: (a, b, line) => this.truthy(this.arith("<", this.use(a, element), this.use(b, element), element, element, line), element),
+      copy: (v, line) => this.copyOwned(v, line),
+    });
   }
 
   // ---- running the program -------------------------------------------------
@@ -167,11 +181,55 @@ export class Executor {
   /** Run the destructor of an object (or of each object in an array), if its class has one. */
   private destroyValue(v: Value, addr: string) {
     if (isK(v, "obj")) {
+      if (this.lists.info(v.type)) {
+        this.lists.destroy(addr, this.line);
+        return;
+      }
       const dtor = this.classes.get(v.type)?.dtor;
       if (dtor) this.invoke(dtor, [], addr, this.line);
+      // Member lists go when their object goes, after its destructor body has run.
+      if (this.hasLists(v)) this.destroyLists(this.mem.read(addr), addr);
     } else if (isK(v, "arr")) {
       for (let i = v.e.length - 1; i >= 0; i--) this.destroyValue(v.e[i], `${addr}.${i}`);
     }
+  }
+
+  /** Delete the nodes of every std::list inside a value (its members, its array elements). */
+  private destroyLists(v: Value, addr: string) {
+    if (isK(v, "obj")) {
+      if (this.lists.info(v.type)) { this.lists.destroy(addr, this.line); return; }
+      for (const key of Object.keys(v.f)) this.destroyLists(v.f[key], `${addr}.${key}`);
+    } else if (isK(v, "arr")) {
+      v.e.forEach((el, i) => this.destroyLists(el, `${addr}.${i}`));
+    }
+  }
+
+  /** Does this value contain a std::list anywhere? */
+  private hasLists(v: Value): boolean {
+    if (isK(v, "obj")) return this.lists.info(v.type) !== null || Object.keys(v.f).some((k) => this.hasLists(v.f[k]));
+    if (isK(v, "arr")) return v.e.some((el) => this.hasLists(el));
+    return false;
+  }
+
+  /** A copy that owns its lists: every std::list inside is copied node by node, as C++ copies do. */
+  private copyOwned(v: Value, line: number): Value {
+    if (!this.hasLists(v)) return copyValue(v);
+    if (isK(v, "obj")) {
+      if (this.lists.info(v.type)) return this.lists.copyOf(v, line);
+      const f: Record<string, Value> = Object.create(null);
+      for (const key of Object.keys(v.f)) f[key] = this.copyOwned(v.f[key], line);
+      return { k: "obj", type: v.type, f };
+    }
+    if (isK(v, "arr")) return { k: "arr", e: v.e.map((el) => this.copyOwned(el, line)) };
+    return v;
+  }
+
+  /**
+   * The value an expression gives, ready to be stored somewhere new. A function's result is a
+   * temporary the new place can simply take over; anything else is copied.
+   */
+  private owned(e: Expr, v: Value, line: number): Value {
+    return (e.k === "call" || e.k === "mcall") && this.hasLists(v) ? v : this.copyOwned(v, line);
   }
 
   private loopGuard(count: number, line: number) {
@@ -270,7 +328,7 @@ export class Executor {
         this.step("statement", s.line);
         throw new ContinueSignal();
       case "return": {
-        const v = s.e ? copyValue(this.value(s.e)) : UNINIT;
+        const v = s.e ? this.owned(s.e, this.value(s.e), s.line) : UNINIT;
         this.line = s.line;
         this.step("return", s.line);
         throw new ReturnSignal(v);
@@ -292,6 +350,9 @@ export class Executor {
       case "cinIgnore":
         this.stdin.skipChar();
         this.step("statement", s.line);
+        return;
+      case "rangeFor":
+        this.rangeFor(s);
         return;
       case "cout": {
         // Each part is printed as soon as it is evaluated: in `cout << "a" << f()`, "a"
@@ -373,11 +434,21 @@ export class Executor {
   }
 
   private declare(d: Declarator) {
+    if (d.type.base === "auto") return this.declareAuto(d);
     const t = d.type;
     // Globals have static storage, so C++ fills them with zeros; locals start unknown.
     const global = this.hasGlobals && this.mem.frames.length === 1;
     const blank = (ty: TypeRef) => (global ? this.zero(ty) : this.fresh(ty));
     const cls = t.ptr === 0 ? this.classes.get(t.base) : undefined;
+
+    if (cls && this.lists.info(cls.name) && d.arraySize === null && d.arraySize2 === null) {
+      let v: Value;
+      if (d.initList) v = this.listFrom(cls.name, d.initList, d.line);
+      else if (d.init) v = this.owned(d.init, this.coerce(t, this.value(d.init), d.line), d.line);
+      else v = this.listCtor(cls.name, d.ctorArgs ?? [], d.line);
+      this.mem.declare(d.name, t, false, v);
+      return;
+    }
 
     if (d.arraySize2 !== null) {
       if (cls) throw unsupported("A two-dimensional array of objects", d.line);
@@ -418,7 +489,7 @@ export class Executor {
       if (d.init) {
         const v = this.value(d.init);
         if (!isK(v, "obj") || v.type !== cls.name) throw compileError(`"${d.name}" is a ${cls.name}, but it is given ${KIND_WORDS[kindOf(v)]}.`, d.line);
-        this.mem.declare(d.name, t, false, copyValue(v));
+        this.mem.declare(d.name, t, false, this.owned(d.init, v, d.line));
         return;
       }
       const slot = this.mem.declare(d.name, t, false, this.makeObject(cls, global, d.line));
@@ -451,6 +522,7 @@ export class Executor {
   }
 
   private makeObject(cls: ClassDef, zeroed: boolean, line: number): Value {
+    if (this.lists.info(cls.name)) return this.lists.empty(cls.name); // a std::list starts empty
     // No prototype: a C++ member may be called __proto__ or constructor.
     const f: Record<string, Value> = Object.create(null);
     for (const field of cls.fields) {
@@ -489,6 +561,7 @@ export class Executor {
   private newObject(e: Extract<Expr, { k: "new" }>): Value {
     const cls = this.classes.get(e.type);
     const type: TypeRef = { base: e.type, ptr: 0, ref: false };
+    if (cls && this.lists.info(cls.name)) return ptr(this.mem.alloc(type, false, this.listCtor(cls.name, e.args, e.line), e.line));
     if (cls) {
       const zeroed = e.parens && cls.ctors.length === 0 && e.args.length === 0; // `new Node()` zero-fills a plain struct
       const addr = this.mem.alloc(type, false, this.makeObject(cls, zeroed, e.line), e.line);
@@ -508,6 +581,243 @@ export class Executor {
     const addr = this.mem.alloc(e.elem, true, { k: "arr", e: elems }, e.line);
     if (cls && cls.ctors.length > 0) for (let i = 0; i < n; i++) this.construct(cls, `${addr}.${i}`, [], e.line);
     return ptr(addr);
+  }
+
+  // ---- std::list -----------------------------------------------------------
+
+  /** `auto it = nums.begin();`, `auto n = nums.size();`: the type comes from the value. */
+  private declareAuto(d: Declarator) {
+    const init = d.init ?? d.ctorArgs![0];
+    const v = this.use(this.value(init), init);
+    let type: TypeRef;
+    if (isPtr(v) && v.iter !== undefined) type = { base: `${v.iter}::iterator`, ptr: 0, ref: false };
+    else if (typeof v === "number") type = { base: "int", ptr: 0, ref: false };
+    else if (typeof v === "boolean") type = { base: "bool", ptr: 0, ref: false };
+    else {
+      switch (v.k) {
+        case "dbl": type = { base: "double", ptr: 0, ref: false }; break;
+        case "chr": type = { base: "char", ptr: 0, ref: false }; break;
+        case "str": type = { base: "string", ptr: 0, ref: false }; break;
+        case "obj": type = { base: v.type, ptr: 0, ref: false }; break;
+        case "ptr": {
+          const target = v.a === null ? null : this.mem.typeAt(v.a);
+          if (!target) throw compileError(`auto cannot tell what "${d.name}" should point at. Write its type, for example Node* ${d.name} = ...;`, d.line);
+          type = { base: target.type.base, ptr: target.type.ptr + 1, ref: false };
+          break;
+        }
+        default: throw compileError(`auto cannot be used for ${KIND_WORDS[kindOf(v)]}. Write the type of "${d.name}".`, d.line);
+      }
+    }
+    this.mem.declare(d.name, type, false, isK(v, "obj") ? this.owned(init, v, d.line) : copyValue(v));
+  }
+
+  /** One element for a list: converted to the element type and copied. */
+  private listElement(elem: TypeRef, e: Expr, line: number): Value {
+    return this.copyOwned(this.coerce(elem, this.use(this.valueFor(elem, e), e), line), line);
+  }
+
+  /** `list<int> nums = {1, 2, 3};` */
+  private listFrom(type: string, items: Expr[], line: number): Value {
+    const { elem } = this.lists.info(type)!;
+    return this.lists.build(type, items.map((x) => this.listElement(elem, x, line)), line);
+  }
+
+  /** `list<int> a;`, `list<int> b(a);`, `list<int> c(3);`, `list<int> d(3, 7);` */
+  private listCtor(type: string, args: Expr[], line: number): Value {
+    const { elem } = this.lists.info(type)!;
+    if (args.length === 0) return this.lists.empty(type);
+    if (args.length > 2) throw compileError(`${type} has no constructor that takes ${args.length} arguments.`, line);
+    const first = this.use(this.value(args[0]), args[0]);
+    if (args.length === 1 && this.lists.typeOf(first) === type) return this.owned(args[0], first, line);
+    const n = this.int(first, args[0]);
+    if (n < 0 || n > 1000) throw fault("other", `A list of ${n} elements was asked for, which HeapHop does not allow (0 to 1000).`);
+    if (elem.ptr === 0 && this.classes.has(elem.base)) {
+      throw unsupported(`Making a list of ${n} ${elem.base} objects at once`, line, "Add them one at a time with push_back.");
+    }
+    const value = args.length === 2 ? this.listElement(elem, args[1], line) : this.zero(elem);
+    return this.lists.build(type, Array.from({ length: n }, () => copyValue(value)), line);
+  }
+
+  private listMethod(e: Extract<Expr, { k: "mcall" }>, la: string, type: string): Value {
+    const { elem } = this.lists.info(type)!;
+    const what = exprText(e.obj);
+    const m = e.method;
+    const argc = (n: number) => {
+      if (e.args.length !== n) throw compileError(`${what}.${m}() takes ${n === 0 ? "no arguments" : n === 1 ? "one argument" : `${n} arguments`}, but ${e.args.length} ${e.args.length === 1 ? "is" : "are"} given.`, e.line);
+    };
+    const position = (x: Expr): Ptr => {
+      const v = this.use(this.value(x), x);
+      if (!isIter(v) || v.iter !== type) throw compileError(`${exprText(x)} is not an iterator of a ${type}, so it cannot be a position in ${what}.`, e.line);
+      this.lists.owns(la, v, exprText(x), m);
+      return v;
+    };
+    switch (m) {
+      case "push_back": case "emplace_back": case "push_front": case "emplace_front": {
+        if (m.startsWith("emplace") && e.args.length > 1) throw unsupported(`${m}() with several constructor arguments`, e.line, "Make the object first, then push_back it.");
+        argc(1);
+        const v = this.listElement(elem, e.args[0], e.line);
+        if (m.endsWith("back")) this.lists.insertBefore(la, type, null, v, e.line);
+        else this.lists.pushFront(la, type, v, e.line);
+        return UNINIT;
+      }
+      case "pop_back": case "pop_front":
+        argc(0);
+        this.lists.pop(la, m === "pop_back" ? "tail" : "head", m, what, e.line);
+        return UNINIT;
+      case "front": case "back":
+        argc(0);
+        return this.copyOwned(this.mem.read(this.lists.endRef(la, m === "front" ? "head" : "tail", m, what)), e.line);
+      case "size":
+        argc(0);
+        return this.lists.size(la);
+      case "empty":
+        argc(0);
+        return this.lists.size(la) === 0;
+      case "clear":
+        argc(0);
+        this.lists.clear(la, e.line);
+        return UNINIT;
+      case "begin": case "cbegin":
+        argc(0);
+        return this.lists.begin(la, type);
+      case "end": case "cend":
+        argc(0);
+        return this.lists.end(la, type);
+      case "insert": {
+        if (e.args.length === 3) throw unsupported("insert() with a count or a range", e.line, "Insert one value at a time: nums.insert(it, value);");
+        argc(2);
+        const pos = position(e.args[0]);
+        const before = this.lists.node(pos, exprText(e.args[0]));
+        const id = this.lists.insertBefore(la, type, before, this.listElement(elem, e.args[1], e.line), e.line);
+        return iter(type, la, id);
+      }
+      case "erase": {
+        if (e.args.length === 2) throw unsupported("erase() with a range of elements", e.line, "Erase one element at a time: it = nums.erase(it);");
+        argc(1);
+        const pos = position(e.args[0]);
+        const id = this.lists.node(pos, exprText(e.args[0]));
+        if (id === null) throw fault("out_of_bounds", `${exprText(e.args[0])} is end(), which is not an element, so there is nothing to erase.`);
+        return iter(type, la, this.lists.unlink(la, id, e.line));
+      }
+      case "remove":
+        argc(1);
+        this.lists.remove(la, this.coerce(elem, this.use(this.valueFor(elem, e.args[0]), e.args[0]), e.line), e.line);
+        return UNINIT;
+      case "reverse":
+        argc(0);
+        this.lists.reverse(la);
+        return UNINIT;
+      case "sort": case "unique":
+        if (e.args.length > 0) throw unsupported(`${m}() with a comparison function`, e.line, `${m}() with no arguments uses == and <.`);
+        if (m === "sort") this.lists.sort(la, e.line);
+        else this.lists.unique(la, e.line);
+        return UNINIT;
+      case "rbegin": case "rend": case "crbegin": case "crend":
+        throw unsupported(`${m}() (reverse iterators)`, e.line, "Walk the list backwards with --it, starting from end().");
+      case "splice": case "merge": case "resize": case "assign": case "swap": case "emplace": case "remove_if": case "max_size":
+        throw unsupported(`The list method ${m}()`, e.line);
+      default:
+        throw compileError(`${type} has no member function named ${m}().`, e.line);
+    }
+  }
+
+  /** `for (int x : nums)`, `for (auto& x : nums)`, and the same over an array. */
+  private rangeFor(s: Extract<Stmt, { k: "rangeFor" }>) {
+    const frame = this.mem.top();
+    const where = this.ref(s.e);
+    const container = this.mem.read(where);
+    const listType = this.lists.typeOf(container);
+    let elemType: TypeRef;
+    let next: () => string | null;
+    let after = () => {};
+    if (listType) {
+      elemType = this.lists.info(listType)!.elem;
+      let it = this.lists.begin(where, listType);
+      let current: string | null = null;
+      next = () => (current = it.a) === null ? null : `${current}.value`;
+      after = () => {
+        if (current && !this.mem.heap.has(current)) {
+          const dead = this.mem.freed.get(current);
+          throw fault("use_after_free", `The element this range-for loop was standing on was erased${dead ? ` on line ${dead.line}` : ""}, so the loop cannot move on. To erase while walking a list, use an iterator loop: it = ${exprText(s.e)}.erase(it);`);
+        }
+        it = this.lists.step(it, 1, "the loop's iterator");
+      };
+    } else if (isK(container, "arr")) {
+      const placed = this.mem.typeAt(where);
+      const first = container.e[0];
+      if (!placed || isK(first, "arr")) throw unsupported("A range-for loop over a two-dimensional array", s.line, "Use two ordinary for loops.");
+      elemType = placed.type;
+      let i = 0;
+      next = () => (i < container.e.length ? `${where}.${i++}` : null);
+    } else {
+      throw compileError(`a range-for loop needs a list or an array, but ${exprText(s.e)} is ${KIND_WORDS[kindOf(container)]}.`, s.line);
+    }
+    const declared: TypeRef = s.type.base === "auto" ? { ...elemType, ref: s.type.ref } : s.type;
+
+    for (let n = 1; ; n++) {
+      this.line = s.line;
+      const a = next();
+      if (a === null) {
+        this.step("condition", s.line, `${this.srcLine(s.line)}  →  no more elements`, { condition: false });
+        return;
+      }
+      this.loopGuard(n, s.line);
+      frame.scopes.push([]);
+      let stop: boolean;
+      try {
+        if (declared.ref) this.mem.declare(s.name, declared, false, UNINIT, a);
+        else this.mem.declare(s.name, declared, false, this.copyOwned(this.coerce(declared, this.mem.read(a), s.line), s.line));
+        this.step("condition", s.line, `${this.srcLine(s.line)}  →  ${s.name} = ${this.brief(this.mem.read(a))}`, { condition: true });
+        stop = this.loopBody(s.body);
+      } catch (e) {
+        if (isControl(e)) this.closeScope(frame);
+        throw e;
+      }
+      this.closeScope(frame);
+      if (stop) return;
+      this.line = s.line;
+      after();
+    }
+  }
+
+  /** std::next, std::prev, std::advance, std::distance and std::find on list iterators. */
+  private iteratorLibrary(e: Extract<Expr, { k: "call" }>): Value | undefined {
+    const first = e.args[0] ? this.value(e.args[0]) : UNINIT;
+    if (!isIter(first)) return undefined;
+    const what = exprText(e.args[0]);
+    const count = (x: Expr | undefined) => (x ? this.int(this.value(x), x) : 1);
+    const move = (it: Ptr, n: number): Ptr => {
+      if (Math.abs(n) > 1000) throw fault("other", `Moving an iterator ${n} places is more than HeapHop allows.`);
+      for (let i = 0; i < Math.abs(n); i++) it = this.lists.step(it, n > 0 ? 1 : -1, what);
+      return it;
+    };
+    const arity = (min: number, max: number) => {
+      if (e.args.length < min || e.args.length > max) throw compileError(`${e.name}() is called with ${e.args.length} argument${e.args.length === 1 ? "" : "s"}.`, e.line);
+    };
+    switch (e.name) {
+      case "next": arity(1, 2); return move(first, count(e.args[1]));
+      case "prev": arity(1, 2); return move(first, -count(e.args[1]));
+      case "advance": {
+        arity(2, 2);
+        const addr = this.ref(e.args[0]);
+        this.mem.write(addr, move(first, count(e.args[1])));
+        return UNINIT;
+      }
+      case "distance": case "find": {
+        arity(e.name === "find" ? 3 : 2, e.name === "find" ? 3 : 2);
+        const last = this.use(this.value(e.args[1]), e.args[1]);
+        if (!isIter(last) || last.iter !== first.iter) throw compileError(`${exprText(e.args[1])} is not an iterator of the same list type as ${what}.`, e.line);
+        const wanted = e.name === "find" ? this.use(this.value(e.args[2]), e.args[2]) : UNINIT;
+        let it = first;
+        for (let n = 0; ; n++) {
+          if (it.a === last.a) return e.name === "find" ? last : n;
+          if (it.a === null) throw fault("other", `${exprText(e.args[1])} cannot be reached by moving forward from ${what}.`);
+          if (e.name === "find" && this.equal(this.mem.read(this.lists.elem(it, what)), wanted)) return it;
+          it = this.lists.step(it, 1, what);
+        }
+      }
+    }
+    return undefined;
   }
 
   // ---- calls ---------------------------------------------------------------
@@ -536,6 +846,10 @@ export class Executor {
 
   /** The standard functions lab code uses (std::max in the AVL lab, swap in sorting). A program's own function of the same name wins. */
   private library(e: Extract<Expr, { k: "call" }>): Value | undefined {
+    if (["next", "prev", "advance", "distance", "find"].includes(e.name)) {
+      const result = this.iteratorLibrary(e);
+      if (result !== undefined) return result;
+    }
     const LIBRARY: Record<string, number> = { max: 2, min: 2, abs: 1, swap: 2 };
     const arity = Object.hasOwn(LIBRARY, e.name) ? LIBRARY[e.name] : undefined;
     if (arity === undefined) return undefined;
@@ -570,6 +884,7 @@ export class Executor {
     const addr = e.arrow ? this.pointee(e.obj) : this.ref(e.obj);
     const target = this.mem.read(addr);
     if (!isK(target, "obj")) throw compileError(`${exprText(e.obj)} is not an object, so it has no method ${e.method}().`, e.line);
+    if (this.lists.info(target.type)) return this.listMethod(e, addr, target.type);
     const cls = this.classes.get(target.type);
     const m = this.findMethod(cls, e.method, e.args.length);
     if (!m) throw compileError(`${target.type} has no method ${e.method}() that takes ${e.args.length} argument${e.args.length === 1 ? "" : "s"}.`, e.line);
@@ -586,7 +901,7 @@ export class Executor {
     const bound = fn.params.map((p, i) =>
       p.type.ref
         ? { ref: this.ref(args[i]), value: UNINIT as Value }
-        : { ref: null, value: copyValue(this.coerce(p.type, this.valueFor(p.type, args[i]), callLine)) }
+        : { ref: null, value: this.owned(args[i], this.coerce(p.type, this.valueFor(p.type, args[i]), callLine), callLine) }
     );
     const frame = this.mem.pushFrame(qualifiedName(fn), fn.className, thisAddr, callLine);
     fn.params.forEach((p, i) => this.mem.declare(p.name, p.type, false, bound[i].value, bound[i].ref));
@@ -598,7 +913,7 @@ export class Executor {
         if (!field) throw compileError(`${cls.name} has no member named "${init.field}".`, init.line);
         if (init.args.length > 1) throw unsupported("A member initialiser with several values", init.line);
         const v = init.args.length === 1 ? this.coerce(field.type, this.value(init.args[0]), init.line) : this.zero(field.type);
-        this.mem.write(`${thisAddr}.${init.field}`, copyValue(v));
+        this.mem.write(`${thisAddr}.${init.field}`, this.copyOwned(v, init.line));
       }
     }
 
@@ -650,7 +965,13 @@ export class Executor {
 
   /** Address of the object a pointer expression points at. */
   private pointee(e: Expr): string {
-    const a = this.checkPointer(this.value(e), e);
+    return this.pointeeOf(this.value(e), e);
+  }
+
+  /** Same, for a value already computed. For a list iterator: the element it stands on. */
+  private pointeeOf(v: Value, e: Expr): string {
+    if (isIter(v)) return this.lists.elem(v, exprText(e));
+    const a = this.checkPointer(v, e);
     const target = this.mem.read(a); // faults if the memory is gone
     return isK(target, "arr") ? `${a}.0` : a; // p->x on a heap array means element 0
   }
@@ -661,6 +982,15 @@ export class Executor {
       case "var": return this.varAddr(e.name, e.line);
       case "member": return `${e.arrow ? this.pointee(e.obj) : this.ref(e.obj)}.${e.field}`;
       case "deref": return this.pointee(e.e);
+      case "mcall": {
+        // nums.front() = 5;  nums.back() += 1;
+        const la = e.arrow ? this.pointee(e.obj) : this.ref(e.obj);
+        const target = this.mem.read(la);
+        if (isK(target, "obj") && this.lists.info(target.type) && (e.method === "front" || e.method === "back") && e.args.length === 0) {
+          return this.lists.endRef(la, e.method === "front" ? "head" : "tail", e.method, exprText(e.obj));
+        }
+        throw compileError("this expression cannot be assigned to or have its address taken.", e.line);
+      }
       case "index": {
         const base = this.value(e.arr);
         const i = this.int(this.value(e.idx), e.idx);
@@ -709,6 +1039,7 @@ export class Executor {
 
   private truthy(v: Value, e: Expr): boolean {
     this.use(v, e);
+    if (isIter(v)) throw compileError(`${exprText(e)} is an iterator, so it cannot be used as a condition. Compare it with end(), for example it != nums.end().`, e.line);
     if (isPtr(v)) return v.a !== null;
     if (isK(v, "str") || isK(v, "obj") || isK(v, "arr")) throw compileError(`${exprText(e)} cannot be used as a condition.`, e.line);
     return this.num(v, e) !== 0;
@@ -734,6 +1065,7 @@ export class Executor {
       case "chr": return v.c;
       case "str": return v.s;
       case "ptr": {
+        if (v.iter) throw compileError("cout cannot print an iterator. Print the element it stands on with *it.", this.line);
         if (v.a === null) return "0";
         const n = Number(v.a.split(".")[0].slice(1));
         return `0x${(n * 0x100).toString(16)}`;
@@ -744,6 +1076,7 @@ export class Executor {
 
   /** Short text for a value in a "call" label. */
   private brief(v: Value): string {
+    if (isIter(v) && v.a === null) return "end()";
     if (isPtr(v)) return v.a === null ? "nullptr" : `→${v.a.replace(/\./g, "_")}`;
     if (isK(v, "uninit")) return "?";
     if (isK(v, "obj")) return v.type;
@@ -757,7 +1090,13 @@ export class Executor {
   /** Convert a value to the declared type of the place it is stored in. */
   private coerce(t: TypeRef, v: Value, line: number): Value {
     if (isK(v, "uninit")) return v;
-    const bad = () => compileError(`a ${typeText({ ...t, ref: false })} cannot hold ${KIND_WORDS[kindOf(v)]}.`, line);
+    const bad = () => compileError(`a ${typeText({ ...t, ref: false })} cannot hold ${isIter(v) ? `a ${v.iter}::iterator` : KIND_WORDS[kindOf(v)]}.`, line);
+    const iterOf = this.lists.iteratorOf(t);
+    if (iterOf) {
+      if (isIter(v) && v.iter === iterOf) return v;
+      throw bad();
+    }
+    if (isIter(v)) throw bad();
     if (t.ptr > 0) {
       if (isPtr(v)) return v;
       if (v === 0) return NULL_PTR;
@@ -802,6 +1141,7 @@ export class Executor {
       }
       throw compileError(`the operator ${op} does not work on strings.`, line);
     }
+    if (isIter(l) || isIter(r)) throw compileError(`a list iterator cannot be used with ${op}. Move it one element at a time with ++it or --it, or use std::next(it).`, line);
     if (isPtr(l) || isPtr(r)) throw unsupported("Pointer arithmetic and ordering comparisons between pointers", line, "Use an index (p[i]) or walk the list with ->next.");
     const a = this.num(l, le);
     const b = this.num(r, re);
@@ -841,6 +1181,14 @@ export class Executor {
     const t = placed;
     if (t && !t.isArray) v = this.coerce(t.type, v, e.line);
     else if (t?.isArray) throw compileError("a whole array cannot be assigned. Copy its elements one at a time.", e.line);
+    if (this.hasLists(v)) {
+      // b = a; copies a's nodes, and b's old nodes are deleted.
+      const fresh = this.owned(e.value, v, e.line);
+      const old = this.mem.read(addr);
+      if (this.lists.typeOf(old)) this.lists.replace(addr, fresh, e.line);
+      else { this.destroyLists(old, addr); this.mem.write(addr, fresh); }
+      return fresh;
+    }
     this.mem.write(addr, copyValue(v));
     return v;
   }
@@ -879,8 +1227,21 @@ export class Executor {
       }
       case "assign": return this.assign(e);
       case "incdec": {
+        if (e.target.k === "mcall" || e.target.k === "call") {
+          // --nums.end(): an iterator that a call gave back can be moved where it stands.
+          const temp = this.value(e.target);
+          if (isIter(temp)) {
+            const moved = this.lists.step(temp, e.delta, exprText(e.target));
+            return e.prefix ? moved : temp;
+          }
+        }
         const addr = this.ref(e.target);
         const cur = this.use(this.mem.read(addr), e.target);
+        if (isIter(cur)) {
+          const moved = this.lists.step(cur, e.delta, exprText(e.target));
+          this.mem.write(addr, moved);
+          return e.prefix ? moved : cur;
+        }
         if (isPtr(cur)) throw unsupported("++ or -- on a pointer (pointer arithmetic)", e.line, "Walk a list with p = p->next.");
         const n = this.num(cur, e.target) + e.delta;
         const next: Value = isK(cur, "dbl") ? dbl(n) : isK(cur, "chr") ? chr(String.fromCharCode(n & 0xff)) : n | 0;

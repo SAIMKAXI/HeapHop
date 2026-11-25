@@ -1,15 +1,21 @@
 // Public entry point of the interpreter: C++ source in, RunResult out.
 // Nothing outside this folder may import the files next to this one.
 import { clampLimits, DEFAULT_LIMITS, MAX_INPUT_CHARS, MAX_SOURCE_CHARS, MAX_SOURCE_LINES, TRACE_VERSION, type RunLimits, type RunResult, type Trace } from "../types";
-import { tokenize } from "./tokenizer";
+import { tokenize, type Directives } from "./tokenizer";
 import { parse } from "./parser";
 import { Executor } from "./executor";
 import { SourceError } from "./errors";
 
+/** Parts of C++ a shell switches on beyond the core subset. */
+export interface RunFeatures {
+  /** std::list, auto and range-based for. The VS Code extension turns this on; the website does not (yet). */
+  stl?: boolean;
+}
+
 /**
  * Interpret a program. `input` is everything the program will read with cin, supplied up front.
  */
-export function run(code: string, limits: RunLimits = DEFAULT_LIMITS, input = ""): RunResult {
+export function run(code: string, limits: RunLimits = DEFAULT_LIMITS, input = "", features: RunFeatures = {}): RunResult {
   try {
     const text = code.replace(/\r\n?/g, "\n");
     const source = text.split("\n");
@@ -26,7 +32,9 @@ export function run(code: string, limits: RunLimits = DEFAULT_LIMITS, input = ""
       return { ok: false, error: { kind: "unsupported", line: 1, message: `Line 1: the input for cin is longer than ${MAX_INPUT_CHARS} characters. Give the program less input.` } };
     }
     limits = clampLimits(limits);
-    const program = parse(tokenize(text));
+    const directives: Directives = { includes: [], usings: [] };
+    const tokens = tokenize(text, directives);
+    const program = parse(tokens, { stl: features.stl === true, ...directives });
     const hasMain = program.functions.some((f) => f.name === "main");
     if (!hasMain && program.topLevel.length === 0) {
       return { ok: false, error: { kind: "empty", message: "There is nothing to run yet. Write an int main() { ... } with some statements in it." } };

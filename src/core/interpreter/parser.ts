@@ -3,10 +3,21 @@
 // its line (rule 7: a readable error, never a wrong picture).
 import { describeToken, type Token } from "./tokens";
 import { parseError, unsupported } from "./errors";
+import { typeText } from "./ast";
 import type {
   AssignOp, BinaryOp, ClassDef, Declarator, Expr, Field, FuncDef, MemberInit, Param, Program,
   Stmt, SwitchCase, TypeRef,
 } from "./ast";
+
+/** What the parser may accept beyond the core subset. */
+export interface ParseOptions {
+  /** Accept std::list (with auto and range-for). Off on the website, on in the VS Code extension. */
+  stl?: boolean;
+  /** What the #include lines name, from the tokenizer. */
+  includes?: string[];
+  /** The using lines, from the tokenizer. */
+  usings?: string[];
+}
 
 const BUILTIN_TYPES = new Set(["int", "void", "bool", "char", "double", "float", "long", "short", "unsigned", "signed"]);
 
@@ -37,8 +48,21 @@ class Parser {
   private classes = new Map<string, ClassDef>();
   /** File-level integer constants (`const int MAX = 100;`), usable as array sizes. */
   private consts = new Map<string, number>();
+  /** std::list is switched on for this run. */
+  private stl: boolean;
+  /** `#include <list>` or `#include <bits/stdc++.h>` is present. */
+  private listIncluded: boolean;
+  /** `using namespace std;` or `using std::list;` is present, so plain `list` means std::list. */
+  private listUnqualified: boolean;
+  /** Name of the class whose body is being read (inside it, its own name is never ambiguous). */
+  private currentClass: string | null = null;
 
-  constructor(private tokens: Token[]) {
+  constructor(private tokens: Token[], options: ParseOptions = {}) {
+    this.stl = options.stl === true;
+    const includes = options.includes ?? [];
+    const usings = options.usings ?? [];
+    this.listIncluded = includes.includes("<list>") || includes.includes("<bits/stdc++.h>");
+    this.listUnqualified = usings.includes("using namespace std") || usings.includes("using std::list");
     // Pre-scan so `Node* p;` is read as a declaration even before Node is fully parsed.
     for (let i = 0; i < tokens.length - 1; i++) {
       const t = tokens[i];
@@ -84,17 +108,19 @@ class Parser {
     const [what, hint] = UNSUPPORTED_KEYWORDS[t.value];
     throw unsupported(what, t.line, hint);
   }
-  /** `std::` in front of a name changes nothing for us. */
+  /** `std::` in front of a name changes nothing for us, except for std::list (see parseListType). */
   private skipStd() {
-    if (this.isIdent() && this.peek().value === "std" && this.is("::", 1)) this.pos += 2;
+    if (this.isIdent() && this.peek().value === "std" && this.is("::", 1) && !(this.stl && this.isListAt(0))) this.pos += 2;
   }
 
   // ---- types ---------------------------------------------------------------
 
   private isTypeStart(offset = 0): boolean {
     const t = this.peek(offset);
+    if (this.stl && this.isListAt(offset)) return true;
     if (t.type === "keyword") {
       if (BUILTIN_TYPES.has(t.value) || t.value === "const") return true;
+      if (t.value === "auto" && this.stl) return true;
       if (t.value === "struct" || t.value === "class") return this.isIdent(offset + 1) && !this.is("{", offset + 2) && !this.is(":", offset + 2);
       return false;
     }
@@ -105,12 +131,86 @@ class Parser {
     return false;
   }
 
+  /** `list<` or `std::list<` starts at this offset. */
+  private isListAt(offset: number): boolean {
+    const t = this.peek(offset);
+    if (t.type !== "ident") return false;
+    if (t.value === "std" && this.is("::", offset + 1)) return this.peek(offset + 2).type === "ident" && this.peek(offset + 2).value === "list" && this.is("<", offset + 3);
+    return t.value === "list" && this.is("<", offset + 1);
+  }
+
+  /**
+   * `list<int>`, `std::list<Node*>`, `list<string>::iterator`. Follows the rules g++ applies:
+   * the header must be included, and plain `list` needs `using namespace std;` or `using std::list;`.
+   */
+  private parseListType(): string {
+    const qualified = this.peek().value === "std";
+    if (qualified) this.pos += 2; // std::
+    const id = this.advance(); // list
+    if (!this.listIncluded) {
+      throw parseError(`"${qualified ? "std::" : ""}list" is used, but its header is not included. Add #include <list> at the top of the file.`, id.line);
+    }
+    if (!qualified) {
+      if (!this.listUnqualified) {
+        throw parseError(`"list" is not declared here. Write std::list, or add using namespace std; at the top of the file.`, id.line);
+      }
+      if (this.classes.has("list") || this.typeNames.has("list")) {
+        throw parseError(`"list" is ambiguous: this file defines its own list, and using namespace std; also brings in std::list. Rename your class (for example to List) or write std::list.`, id.line);
+      }
+    }
+    this.expect("<");
+    if (this.isListAt(0)) throw unsupported("A list of lists", id.line, "Use a list of pointers, or an array of lists.");
+    const t = this.peek();
+    if (t.type === "keyword" && t.value === "auto") throw parseError("auto cannot be the element type of a list.", t.line);
+    const elemBase = this.parseBaseType();
+    let ptrs = 0;
+    while (this.match("*")) ptrs++;
+    if (this.is(">>")) throw unsupported("A list of lists", id.line, "Use a list of pointers, or an array of lists.");
+    if (this.is(",")) throw unsupported("A list with a custom allocator", id.line);
+    if (this.is("&")) throw parseError("a list cannot hold references.", id.line);
+    this.expect(">");
+    if (elemBase === "void" && ptrs === 0) throw parseError("a list cannot hold void.", id.line);
+    const name = this.ensureList({ base: elemBase, ptr: ptrs, ref: false }, id.line);
+    if (this.match("::")) {
+      const member = this.expectIdent("a member type of list, such as iterator");
+      if (member.value === "iterator" || member.value === "const_iterator") return `${name}::iterator`;
+      if (member.value === "reverse_iterator" || member.value === "const_reverse_iterator") {
+        throw unsupported(`list<...>::${member.value}`, member.line, "Walk the list backwards with --it, starting from end().");
+      }
+      throw unsupported(`list<...>::${member.value}`, member.line);
+    }
+    return name;
+  }
+
+  /** The classes that stand for list<elem> and its node, made the first time the type is named. */
+  private ensureList(elem: TypeRef, line: number): string {
+    const name = `list<${typeText(elem)}>`;
+    if (this.classes.has(name)) return name;
+    const node = `${name}::node`;
+    const nodePtr: TypeRef = { base: node, ptr: 1, ref: false };
+    const field = (fname: string, type: TypeRef) => ({ type, name: fname, arraySize: null, arraySize2: null, init: null, line });
+    this.classes.set(name, {
+      name, fields: [field("head", nodePtr), field("tail", nodePtr), field("size", { base: "int", ptr: 0, ref: false })],
+      ctors: [], dtor: null, methods: [], line, builtin: { kind: "list", elem, node },
+    });
+    this.classes.set(node, {
+      name: node, fields: [field("prev", nodePtr), field("value", elem), field("next", nodePtr)],
+      ctors: [], dtor: null, methods: [], line, builtin: { kind: "listNode", list: name },
+    });
+    return name;
+  }
+
   /** Base type without pointer stars: `const unsigned int`, `struct Node`, `std::string`. */
   private parseBaseType(): string {
     while (this.match("const")) { /* accepted, not enforced */ }
     const t = this.peek();
     let base: string;
-    if (t.type === "keyword" && (t.value === "struct" || t.value === "class")) {
+    if (this.stl && this.isListAt(0)) {
+      base = this.parseListType();
+    } else if (this.stl && t.type === "keyword" && t.value === "auto") {
+      this.advance();
+      base = "auto";
+    } else if (t.type === "keyword" && (t.value === "struct" || t.value === "class")) {
       this.advance();
       base = this.expectIdent("a type name").value;
     } else if (t.type === "keyword" && BUILTIN_TYPES.has(t.value)) {
@@ -119,9 +219,13 @@ class Parser {
       const core = words.filter((w) => !["unsigned", "signed", "long", "short"].includes(w));
       base = core[0] ?? "int"; // `unsigned`, `long long` ... are shown as int
     } else {
+      const qualified = this.isIdent() && this.peek().value === "std" && this.is("::", 1);
       this.skipStd();
       const id = this.expectIdent("a type name");
       if (!this.typeNames.has(id.value)) throw parseError(`"${id.value}" is not a type HeapHop knows.`, id.line);
+      if (id.value === "list" && !qualified && this.stl && this.listIncluded && this.listUnqualified && this.currentClass !== "list") {
+        throw parseError(`"list" is ambiguous: this file defines its own list, and using namespace std; also brings in std::list. Rename your class (for example to List).`, id.line);
+      }
       base = id.value;
       if (this.is("<")) throw unsupported("A template type such as " + base + "<...>", id.line);
     }
@@ -151,7 +255,7 @@ class Parser {
     while (this.peek().type !== "eof") {
       const t = this.peek();
       if (this.match(";")) continue;
-      if (t.type === "keyword" && UNSUPPORTED_KEYWORDS[t.value] && t.value !== "sizeof") this.rejectKeyword(t);
+      if (t.type === "keyword" && UNSUPPORTED_KEYWORDS[t.value] && t.value !== "sizeof" && !(t.value === "auto" && this.stl)) this.rejectKeyword(t);
 
       if (this.is("typedef")) { this.parseTypedef(); continue; }
       if ((this.is("struct") || this.is("class")) && this.isIdent(1) && (this.is("{", 2) || this.is(":", 2) || this.is(";", 2))) {
@@ -235,6 +339,8 @@ class Parser {
     const cls: ClassDef = { name, fields: [], ctors: [], dtor: null, methods: [], line: kw.line };
     this.classes.set(name, cls);
     this.expect("{");
+    const outer = this.currentClass;
+    this.currentClass = name;
 
     while (!this.is("}")) {
       const t = this.peek();
@@ -281,6 +387,7 @@ class Parser {
       this.expect(";");
     }
     this.expect("}");
+    this.currentClass = outer;
     if (typedefForm) {
       while (this.isIdent()) {
         const alias = this.advance().value;
@@ -296,6 +403,7 @@ class Parser {
 
   private parseFieldRest(type: TypeRef, id: Token): Field {
     if (type.ref) throw unsupported("A reference member", id.line);
+    if (type.base === "auto") throw parseError("a member cannot be declared auto. Write its type.", id.line);
     const size = (): number => {
       const n = this.advance();
       this.expect("]");
@@ -341,12 +449,14 @@ class Parser {
 
   /** Parameters, optional initialiser list, body. Returns null for a prototype (`;`). */
   private parseFunctionRest(ret: TypeRef, name: string, className: string | null, kind: FuncDef["kind"], line: number): FuncDef | null {
+    if (ret.base === "auto") throw unsupported("An auto return type", line, "Write the type the function returns.");
     this.expect("(");
     const params: Param[] = [];
     if (this.is("void") && this.is(")", 1)) this.advance();
     while (!this.is(")")) {
       const base = this.parseBaseType();
       const type = this.parseDeclType(base);
+      if (base === "auto") throw unsupported("An auto parameter", this.peek().line, "Write the parameter's type.");
       const pname = this.isIdent() ? this.advance().value : `arg${params.length + 1}`;
       if (this.match("[")) { // `int arr[]` and `int g[][5]` are pointers
         if (!this.is("]")) this.parseExpr();
@@ -438,7 +548,7 @@ class Parser {
           if (!this.isTypeStart()) throw unsupported("Defining a struct or class inside a function", line, "Move it above the function.");
           break;
         default:
-          if (UNSUPPORTED_KEYWORDS[t.value]) this.rejectKeyword(t);
+          if (UNSUPPORTED_KEYWORDS[t.value] && !(t.value === "auto" && this.stl)) this.rejectKeyword(t);
       }
     }
 
@@ -496,6 +606,19 @@ class Parser {
   private parseFor(): Stmt {
     const line = this.advance().line;
     this.expect("(");
+    if (this.stl && this.isTypeStart()) {
+      // `for (int x : nums)`, `for (auto& x : nums)`
+      const save = this.pos;
+      const type = this.parseDeclType(this.parseBaseType());
+      if (this.isIdent() && this.is(":", 1)) {
+        const name = this.advance().value;
+        this.advance(); // :
+        const e = this.parseExpr();
+        this.expect(")");
+        return { k: "rangeFor", type, name, e, body: this.parseBody(), line };
+      }
+      this.pos = save;
+    }
     let init: Stmt | null = null;
     if (!this.match(";")) {
       if (this.isTypeStart()) init = this.parseDeclaration();
@@ -585,18 +708,36 @@ class Parser {
         }
         if (d.arraySize === null && d.initList === null && d.initRows === null) throw parseError(`the array "${d.name}" needs a size.`, id.line);
       } else if (this.match("=")) {
-        if (this.is("{")) throw unsupported("Brace initialisation of an object", id.line);
-        d.init = this.parseAssignment();
+        if (this.is("{")) {
+          if (!this.isListName(type)) throw unsupported("Brace initialisation of an object", id.line);
+          this.advance();
+          d.initList = this.parseArgList("}");
+          this.expect("}");
+        } else {
+          d.init = this.parseAssignment();
+        }
       } else if (this.is("(")) {
         this.advance();
         d.ctorArgs = this.parseArgs();
       } else if (this.is("{")) {
-        throw unsupported("Brace initialisation", id.line, "Use = or ( ) instead.");
+        if (!this.isListName(type)) throw unsupported("Brace initialisation", id.line, "Use = or ( ) instead.");
+        this.advance();
+        d.initList = this.parseArgList("}");
+        this.expect("}");
       }
+      if (type.base === "auto" && d.init === null && (d.ctorArgs?.length ?? 0) !== 1) {
+        throw parseError(`"auto ${d.name}" needs a starting value, such as auto ${d.name} = nums.begin();`, id.line);
+      }
+      if (type.base === "auto" && (d.arraySize !== null || d.initList !== null)) throw parseError("an array cannot be declared auto.", id.line);
       items.push(d);
     } while (this.match(","));
     this.expect(";");
     return { k: "decl", items, line };
+  }
+
+  /** `list<int> nums` (not a pointer to one): may be filled with `= {1, 2, 3}`. */
+  private isListName(type: TypeRef): boolean {
+    return type.ptr === 0 && this.classes.get(type.base)?.builtin?.kind === "list";
   }
 
   // ---- expressions ---------------------------------------------------------
@@ -726,7 +867,9 @@ class Parser {
         }
         if (this.is("<", 1) && this.isTypeStart(2)) {
           throw unsupported(`"${t.value}<...>" (a template or a standard-library container)`, line,
-            "HeapHop shows structures you build yourself with struct or class and pointers.");
+            this.stl
+              ? "Of the standard containers, HeapHop supports std::list. Other structures can be built with struct or class and pointers."
+              : "HeapHop shows structures you build yourself with struct or class and pointers.");
         }
         this.advance();
         return { k: "var", name: t.value, line };
@@ -771,6 +914,6 @@ class Parser {
   }
 }
 
-export function parse(tokens: Token[]): Program {
-  return new Parser(tokens).parseProgram();
+export function parse(tokens: Token[], options: ParseOptions = {}): Program {
+  return new Parser(tokens, options).parseProgram();
 }

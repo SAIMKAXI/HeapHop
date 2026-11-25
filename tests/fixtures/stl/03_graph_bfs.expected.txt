@@ -1,0 +1,1 @@
+BFS from vertex 2: 2 0 3 1 
