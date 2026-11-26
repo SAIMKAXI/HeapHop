@@ -1,11 +1,12 @@
-// The landing page: the slogan with Byte beside it, a live demo, the two ways in (Learn, Editor),
+// The landing page: the slogan with Byte beside it, a live demo, the three ways in (Learn, Editor, VS Code),
 // and the features under a strip of rolling C++ words. Lower sections fade in as they scroll into view.
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, CodeXml, GraduationCap, ListTree, MessageSquareText, MousePointerClick, ShieldCheck, TriangleAlert, Undo2 } from "lucide-react";
+import { ArrowRight, CodeXml, GraduationCap, ListTree, PanelRight, MessageSquareText, MousePointerClick, ShieldCheck, TriangleAlert, Undo2 } from "lucide-react";
 import { PageFrame } from "@/ui/site/page-frame";
 import { ByteHero } from "@/ui/landing/byte-hero";
 import { CodeTicker } from "@/ui/landing/code-ticker";
+import { EXTENSION_HREF } from "@/ui/site/links";
 import { LiveDemoPlayer } from "./live-demo-player";
 
 // One punchy line each, with a short sentence to back it up.
@@ -26,6 +27,10 @@ const WAYS = [
   {
     href: "/editor", icon: <CodeXml size={22} />, title: "Editor", cta: "Open the editor",
     text: "Write or paste your own lab program, give it input, and step through it forwards and backwards.",
+  },
+  {
+    href: EXTENSION_HREF, icon: <PanelRight size={22} />, title: "VS Code", cta: "Get the extension",
+    text: "The same picture in a panel beside your code, following each line as you step. It also runs vectors, maps, stacks, queues, templates and inheritance.",
   },
 ];
 
@@ -57,8 +62,8 @@ export default function LandingPage() {
 
       <section className="border-y-2 border-card-border bg-card/50">
         <div className="mx-auto max-w-6xl px-5 py-14">
-          <h2 data-reveal className="text-2xl font-bold tracking-tight">Two ways to use HeapHop</h2>
-          <div data-reveal-children className="mt-6 grid gap-5 md:grid-cols-2">
+          <h2 data-reveal className="text-2xl font-bold tracking-tight">Three ways to use HeapHop</h2>
+          <div data-reveal-children className="mt-6 grid gap-5 md:grid-cols-3">
             {WAYS.map((w) => (
               <a key={w.href} href={w.href} className="group flex flex-col rounded-2xl border-2 border-card-border bg-card p-6 transition-colors hover:border-accent/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent" aria-hidden>{w.icon}</span>

@@ -11,6 +11,7 @@ import { CodeInput } from "./code-input";
 import { SnippetList } from "./snippet-list";
 import { codeOf, createSnippet, MAX_SNIPPETS, resetTab, setCode, titleOf, useEditorState } from "./snippet-store";
 import { formatCpp } from "./text-edits";
+import { EXTENSION_HREF } from "@/ui/site/links";
 
 interface CodeEditorProps {
   onRun: (code: string) => void;
@@ -134,7 +135,12 @@ export function CodeEditor({ onRun, input, onInputChange, error, isRunning }: Co
               <div className="min-w-0 flex-1 text-sm text-danger">
                 <pre className="whitespace-pre-wrap font-sans">{error.message}</pre>
                 {error.kind === "unsupported" && onWebsite && (
-                  <a href={SUPPORTED_HREF} className="mt-1 inline-block font-semibold underline underline-offset-2">See what C++ HeapHop supports</a>
+                  <>
+                    <a href={SUPPORTED_HREF} className="mt-1 inline-block font-semibold underline underline-offset-2">See what C++ HeapHop supports</a>
+                    <p data-extension-hint className="mt-1 text-foreground/80">
+                      The <a href={EXTENSION_HREF} className="font-semibold underline underline-offset-2">HeapHop extension for VS Code</a> runs much more C++, such as vectors, maps, templates and inheritance.
+                    </p>
+                  </>
                 )}
               </div>
             </div>

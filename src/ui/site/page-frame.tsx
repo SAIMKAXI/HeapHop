@@ -54,7 +54,7 @@ export function PageFrame({ current, title, intro, scene, children }: PageFrameP
           </p>
           <nav aria-label="More pages" className="flex flex-wrap gap-x-5 gap-y-0 text-sm lg:gap-y-2">
             {FOOTER_LINKS.map((l) => (
-              <a key={l.page} href={l.href} aria-current={current === l.page ? "page" : undefined} className="inline-flex min-h-10 min-w-10 items-center justify-center text-muted-foreground underline-offset-4 hover:text-accent hover:underline lg:min-h-0 lg:min-w-0">
+              <a key={l.href} href={l.href} aria-current={l.page && current === l.page ? "page" : undefined} className="inline-flex min-h-10 min-w-10 items-center justify-center text-muted-foreground underline-offset-4 hover:text-accent hover:underline lg:min-h-0 lg:min-w-0">
                 {l.label}
               </a>
             ))}
