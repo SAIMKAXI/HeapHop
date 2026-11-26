@@ -11,13 +11,19 @@ export interface Str { k: "str"; s: string }
  * end()), `iter` is the list type ("list<int>") and `l` the address of the list it walks.
  */
 export interface Ptr { k: "ptr"; a: string | null; iter?: string; l?: string }
+/**
+ * A whole number of a type other than int (extended mode only): long long, long, unsigned,
+ * size_t... Held as a BigInt so 64-bit values and unsigned wrap-around are exact, as in g++.
+ */
+export interface Wide { k: "wide"; v: bigint; bits: 32 | 64; u: boolean }
 interface Obj { k: "obj"; type: string; f: Record<string, Value> }
-interface Arr { k: "arr"; e: Value[] }
+/** `cap`: a std::vector's capacity (extended mode); a copy has none, as a copied vector's capacity is its size. */
+interface Arr { k: "arr"; e: Value[]; cap?: number }
 /** A variable that was declared but never given a value. */
 export interface Uninit { k: "uninit" }
 
 /** A plain number is an int; a boolean is a bool. */
-export type Value = number | boolean | Dbl | Chr | Str | Ptr | Obj | Arr | Uninit;
+export type Value = number | boolean | Dbl | Chr | Str | Ptr | Obj | Arr | Uninit | Wide;
 
 export const UNINIT: Uninit = { k: "uninit" };
 export const NULL_PTR: Ptr = { k: "ptr", a: null };
@@ -27,6 +33,8 @@ export const iter = (listType: string, list: string, a: string | null): Ptr => (
 export const dbl = (v: number): Dbl => ({ k: "dbl", v });
 export const chr = (c: string): Chr => ({ k: "chr", c });
 export const str = (s: string): Str => ({ k: "str", s });
+/** A whole number of `bits` bits, wrapped the way C++ wraps it. */
+export const wide = (v: bigint, bits: 32 | 64, u: boolean): Wide => ({ k: "wide", v: u ? BigInt.asUintN(bits, v) : BigInt.asIntN(bits, v), bits, u });
 
 export function kindOf(v: Value): "int" | "bool" | Exclude<Value, number | boolean>["k"] {
   if (typeof v === "number") return "int";

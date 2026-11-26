@@ -11,7 +11,7 @@ import { summarize } from "../webview/summary";
 
 const root = join(__dirname, "..");
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-const STL = { stl: true };
+const STL = { extended: true };
 
 // ---- messages from the panel are checked ---------------------------------------
 
@@ -44,11 +44,11 @@ test("malformed or unknown panel messages are dropped", () => {
 // ---- what goes into the Problems panel -----------------------------------------
 
 test("code HeapHop cannot run is an error on its line", () => {
-  const r = run("#include <iostream>\n#include <vector>\nusing namespace std;\nint main() {\n  vector<int> v;\n}", undefined, "", STL);
+  const r = run("#include <iostream>\n#include <unordered_map>\nusing namespace std;\nint main() {\n  unordered_map<int, int> m;\n}", undefined, "", STL);
   const [p] = problemsFor(summarize(r), null);
   assert.equal(p.line, 5);
   assert.equal(p.severity, "error");
-  assert.match(p.message, /^HeapHop: "vector<\.\.\.>"/);
+  assert.match(p.message, /^HeapHop: "unordered_map<\.\.\.>"/);
   assert.doesNotMatch(p.message, /Line 5:/, "the line number is not repeated: the squiggle is on it");
 });
 

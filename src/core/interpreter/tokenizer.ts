@@ -16,7 +16,8 @@ export interface Directives {
   usings: string[];
 }
 
-export function tokenize(code: string, directives: Directives = { includes: [], usings: [] }): Token[] {
+/** `extended`: the VS Code extension's mode, which also reads 1e9-style numbers. */
+export function tokenize(code: string, directives: Directives = { includes: [], usings: [] }, extended = false): Token[] {
   const tokens: Token[] = [];
   const defines = new Map<string, string>();
   let i = 0;
@@ -83,8 +84,25 @@ export function tokenize(code: string, directives: Directives = { includes: [], 
         isFloat = true; // "5."
         i++;
       }
-      const text = code.slice(s, i);
-      if (/[fFlLuU]/.test(code[i] ?? "")) i++; // 2.5f, 10L
+      let text = code.slice(s, i);
+      if (extended && !isFloat && /[eE]/.test(code[i] ?? "") && /[\d+-]/.test(code[i + 1] ?? "")) {
+        // 1e9, 2e-3: a double written with an exponent
+        isFloat = true;
+        i++;
+        if (code[i] === "+" || code[i] === "-") i++;
+        while (i < code.length && isDigit(code[i])) i++;
+        text = code.slice(s, i);
+      } else if (extended && isFloat && /[eE]/.test(code[i] ?? "") && /[\d+-]/.test(code[i + 1] ?? "")) {
+        i++;
+        if (code[i] === "+" || code[i] === "-") i++;
+        while (i < code.length && isDigit(code[i])) i++;
+        text = code.slice(s, i);
+      }
+      // Suffixes: 2.5f, 10L, 5u, 1000000007LL. An int keeps its suffix in the token text
+      // ("10LL"), so the extended mode can give it the right type; parseInt ignores it.
+      const suffixStart = i;
+      while (/[fFlLuU]/.test(code[i] ?? "")) i++;
+      if (!isFloat) text += code.slice(suffixStart, i);
       push(isFloat ? "float" : "int", text);
       continue;
     }

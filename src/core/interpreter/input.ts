@@ -29,6 +29,15 @@ export class InputReader {
     return line;
   }
 
+  /** Where the reader is, so a failed read can leave the input as it was (`reset`). */
+  mark(): number {
+    return this.pos;
+  }
+
+  reset(pos: number) {
+    this.pos = pos;
+  }
+
   /** `cin.ignore()`: skip one character (usually the newline left by `cin >> x`). */
   skipChar() {
     if (this.pos < this.text.length) this.pos++;

@@ -35,9 +35,16 @@ visualizer only: no lessons and no account.
 - Code HeapHop cannot run and the line where a program crashed are underlined and listed in
   the Problems panel.
 - A **Program input** box for `cin`. It follows the VS Code theme (light, dark, high contrast).
-- On top of everything the website runs, the extension also runs **`std::list`**: lists,
-  iterators, `auto` and range-based `for`. A list is drawn as the doubly linked list of nodes
-  it really is, and an array of lists as an adjacency list (and a graph).
+- On top of everything the website runs, the extension runs the rest of the C++ that
+  data-structure courses use: the standard containers (`vector`, `list`, `deque`, `stack`,
+  `queue`, `priority_queue`, `pair`, `map`, `set`) and `<algorithm>`, templates, inheritance
+  and `virtual` functions, operator overloading, `try` / `catch`, lambdas, pointer
+  arithmetic, classes declared inside a class, `long long` / `unsigned` / `size_t`, `enum`,
+  `static`, default arguments, `<cmath>`, `<cctype>`, `rand()` and `<iomanip>`. A program may
+  print 50,000 characters there (20,000 on the website). A `std::list` is drawn as the doubly
+  linked list of nodes it really is, an adjacency list (`vector<int> adj[V]`) as a graph, a
+  `priority_queue` with its heap tree.
+- None of this changes the website: the extra C++ is switched on only by the extension.
 
 Its code lives in [`vscode-extension/`](vscode-extension/). Building, trying and publishing
 it are explained in [vscode-extension/PUBLISHING.md](vscode-extension/PUBLISHING.md).

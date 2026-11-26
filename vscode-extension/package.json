@@ -1,8 +1,8 @@
 {
   "name": "heaphop",
   "displayName": "HeapHop: C++ Memory Visualizer",
-  "description": "See your C++ linked lists, trees and std::list come alive: step through the program and watch the stack, the heap, every node and every pointer change.",
-  "version": "1.0.0",
+  "description": "See your C++ linked lists, trees, vectors, stacks and maps come alive: step through the program and watch the stack, the heap, every node and every pointer change.",
+  "version": "1.1.0",
   "publisher": "heaphop",
   "license": "SEE LICENSE IN LICENSE.txt",
   "private": true,
@@ -33,6 +33,9 @@
     "heap",
     "data structures",
     "std::list",
+    "vector",
+    "stl",
+    "avl tree",
     "visualizer",
     "dsa"
   ],

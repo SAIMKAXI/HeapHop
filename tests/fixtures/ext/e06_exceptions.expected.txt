@@ -1,0 +1,15 @@
+2 1
+caught: stack is empty
+caught exception: stack is full
+open divide
+close divide
+5
+open divide
+close divide
+error: division by zero
+int 42
+invalid: empty text
+out of range
+rethrowing inner
+caught anything
+done

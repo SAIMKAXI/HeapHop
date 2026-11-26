@@ -6,6 +6,7 @@
 import { createRoot } from "react-dom/client";
 import { Runner } from "@/runtime/runner";
 import type { WorkerLike } from "@/runtime/protocol";
+import { EXTENSION_LIMITS } from "@/core/types";
 import { App } from "./app";
 
 /** Replaced at build time with the bundled Worker script (scripts/build.mjs). */
@@ -26,4 +27,4 @@ followTheme();
 new MutationObserver(followTheme).observe(document.body, { attributes: true, attributeFilter: ["class"] });
 
 const root = document.getElementById("root");
-if (root) createRoot(root).render(<App run={(code, input) => runner.run(code, { input })} />);
+if (root) createRoot(root).render(<App run={(code, input) => runner.run(code, { input, limits: EXTENSION_LIMITS })} />);

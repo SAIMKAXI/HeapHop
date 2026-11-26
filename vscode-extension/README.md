@@ -6,7 +6,8 @@ every node on the heap and every pointer between them change as it runs, and the
 running is highlighted in your editor.
 
 Made for data-structures courses: linked lists (singly, doubly, circular), stacks and queues,
-binary trees and AVL trees, adjacency lists and graphs, and `std::list`.
+binary trees and AVL trees, heaps, adjacency lists and graphs, and the standard containers
+(`vector`, `list`, `stack`, `queue`, `priority_queue`, `map`, `set`, `pair`).
 
 ![A std::list drawn as nodes with prev and next arrows](media/readme/std-list.png)
 
@@ -35,27 +36,51 @@ Every time you save the file, HeapHop runs it again and keeps your place.
   iterator used after `erase`: the run stops on that line with an explanation, which also
   appears in the Problems panel. Nodes nothing can reach any more are marked as leaked.
 - **`cin` works.** Type what the program should read into **Program input**, then run.
-- **`std::list` support.** Lists, iterators, `auto` and range-based `for` loops. A
-  `std::list` is drawn as what it really is: a doubly linked list of nodes with `prev`
-  and `next` pointers. An array of lists (an adjacency list) hangs each list under its
-  cell, and is drawn as a graph too.
+- **The standard containers.** A `std::list` is drawn as what it really is: a doubly linked
+  list of nodes with `prev` and `next` pointers. A `vector` is a row of cells, a 2-D vector a
+  grid, and an adjacency list (`vector<int> adj[V]`, `list<int> adj[V]`) is drawn as a graph
+  too. A `stack` stands upright, a `priority_queue` shows its heap as a tree, a `map` shows
+  `key: value` cells.
+- **Prints what g++ prints.** `sort` compares in the same order as g++'s library, a
+  `priority_queue` keeps the same heap, `rand()` gives the same numbers as on Linux, and
+  `fixed` / `setprecision` round the same way.
 
 ![A graph's adjacency list made of std::list, with the graph drawn beside it](media/readme/graph.png)
 
 ## Supported C++
 
-HeapHop does not compile your code. It runs the part of C++ that data-structure labs use:
+HeapHop does not compile your code. It runs the C++ that data-structure courses use:
 
-- `struct` and `class`, constructors, destructors, member functions, `this`
-- pointers, pointers to pointers, references as parameters, `new` / `delete`, `new[]` / `delete[]`
-- arrays (one and two dimensions), recursion, `if` / `switch` / loops, `string`
-- `cout`, and `cin` / `getline` with typed-in input
-- `std::list` with its iterators, `auto`, and range-based `for`
-  (needs `#include <list>` or `#include <bits/stdc++.h>`, as g++ does)
+- `struct` and `class`: constructors (with initialiser lists and default arguments),
+  destructors, member functions, `this`, `static` members, classes declared inside a class
+  (`class AVLTree { struct Node { ... }; }`), operator overloading (`<`, `==`, `+`, `()` ...)
+- inheritance: base-class constructors, `virtual` functions, `override`, pure virtual
+  functions and abstract classes, virtual destructors
+- templates: function templates and class templates (`template <typename T> class Stack`)
+- pointers, pointer arithmetic on arrays (`*(p + 2)`, `p++`, `p - arr`), references,
+  `new` / `delete`, `new[]` / `delete[]`
+- arrays (one and two dimensions), `sizeof(arr) / sizeof(arr[0])`, recursion, `if` / `switch` /
+  loops, `enum` and `enum class`, `static` variables
+- `int`, `long long`, `unsigned`, `size_t`, `short`, `double`, `char`, `bool`, casts
+  (`(double)x`, `static_cast<int>(x)`), `INT_MAX` / `INT_MIN` and `numeric_limits`, `typedef` / `using`
+- `string` (including `s[i] = 'x'`, `push_back`, `substr`, `find`...), `<cmath>` (`sqrt`, `pow`...),
+  `<cctype>` (`isdigit`, `toupper`...), `rand` / `srand`, `exit`
+- `cout` with `fixed`, `setprecision`, `setw`; `cin` / `getline` with typed-in input, and
+  `while (cin >> x)`
+- `try` / `catch` / `throw`, with the standard exceptions (`runtime_error`, `out_of_range`...)
+- `vector`, `list`, `deque`, `stack`, `queue`, `priority_queue` (with `greater<T>` or a
+  comparator struct), `pair`, `map`, `set`, their iterators, `auto`, range-based `for` and
+  structured bindings (`auto [u, w] = edge;`)
+- `<algorithm>`: `sort`, `stable_sort`, `reverse`, `find`, `count`, `min_element` /
+  `max_element`, `binary_search`, `lower_bound` / `upper_bound`, `next_permutation`,
+  `accumulate`, `fill` ... with functions, lambdas or `greater<T>()` as comparators
 
-Anything else (for example `vector`, templates, inheritance) stops with a message that names
-the line, and that line is underlined in the editor. The full list is on
-[heaphop.vercel.app/supported](https://heaphop.vercel.app/supported).
+Not supported yet: `unordered_map` / `unordered_set` (use `map` / `set`), printing an object
+with your own `operator<<`, multiple inheritance, namespaces, bitwise operators, smart pointers,
+`printf` / `scanf`. Code like this stops with a message that names the line, and that line is
+underlined in the editor.
+
+![An AVL tree whose Node struct is declared inside the AVLTREE class](media/readme/avl.png)
 
 ![A program stopped where an iterator is used after erase](media/readme/crash.png)
 

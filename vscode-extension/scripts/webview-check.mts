@@ -45,12 +45,14 @@ int main() {
 }`;
 
 const UNSUPPORTED = `#include <iostream>
-#include <vector>
+#include <unordered_map>
 using namespace std;
 int main() {
-    vector<int> v;
+    unordered_map<int, int> m;
     return 0;
 }`;
+
+const extFixture = (name: string) => readFileSync(join(here, "..", "tests", "fixtures", "ext", name), "utf8");
 
 type Posted = { type: string; [key: string]: unknown };
 
@@ -236,6 +238,25 @@ html.light { --vscode-editor-background: #ffffff; }`);
     await settle();
     await page.screenshot({ path: join(shots, "6-unsupported.png") });
     ok("unsupported code shows a readable card, and its button reveals the line in the editor");
+
+    // 7. The larger C++ of the extension: vectors as a graph, a nested-class AVL tree, heaps.
+    await page.setViewport({ width: 1280, height: 860 });
+    const shotsOf: [string, string, number][] = [
+      ["e14_graphs.cpp", "7-vector-graph.png", 118],
+      ["e05_avl_nested.cpp", "8-avl-nested-class.png", 420],
+      ["e11_stack_queue.cpp", "9-priority-queue.png", 146],
+      ["e12_map_set_pair.cpp", "10-map.png", 45],
+    ];
+    for (const [file, shot, at] of shotsOf) {
+      const s = await run(extFixture(file), file);
+      if (s.status !== "completed") problems.push(`${file} did not complete: ${JSON.stringify(s)}`);
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      await page.keyboard.press("Home");
+      await stepTo(at);
+      await settle();
+      await page.screenshot({ path: join(shots, shot) });
+    }
+    ok("vectors, a nested-class AVL tree, priority queues and maps run and draw");
 
     const workers = page.workers().length;
     if (workers < 1) problems.push("programs did not run in a Worker");

@@ -1,4 +1,4 @@
-// std::list (switched on by the VS Code extension): programs print what g++ prints, the
+// The VS Code extension's extended mode. std::list: programs print what g++ prints, the
 // picture is made of real nodes, the g++ naming rules hold, and the classic mistakes stop
 // with an explanation instead of a wrong picture.
 import { test } from "node:test";
@@ -9,10 +9,10 @@ import { run } from "../../src/core/interpreter";
 import { TraceModel } from "../../src/core/trace";
 import { explainStep } from "../../src/core/explain";
 import { detectLists } from "../../src/core/structures";
-import type { Step, Trace } from "../../src/core/types";
+import { EXTENSION_LIMITS, type Step, type Trace } from "../../src/core/types";
 import { field, last, lastLive, variable } from "./helpers";
 
-const STL = { stl: true };
+const STL = { extended: true };
 const HEAD = "#include <iostream>\n#include <list>\nusing namespace std;\n";
 
 function trace(code: string, input = ""): Trace {
@@ -21,7 +21,7 @@ function trace(code: string, input = ""): Trace {
   return r.trace;
 }
 
-function rejected(code: string, features: { stl?: boolean } = STL) {
+function rejected(code: string, features: { extended?: boolean } = STL) {
   const r = run(code, undefined, "", features);
   if (r.ok) assert.fail("expected the program to be rejected");
   return r.error;
@@ -63,13 +63,13 @@ for (const file of files) {
 
 // ---- the website keeps its current behaviour ------------------------------
 
-test("without the stl feature (the website), std::list is still not supported", () => {
+test("without the extended mode (the website), std::list is still not supported", () => {
   const e = rejected(main("list<int> nums;\nnums.push_back(1);"), {});
   assert.equal(e.kind, "unsupported");
   assert.match(e.message, /standard-library container/);
 });
 
-test("without the stl feature, auto keeps its old message", () => {
+test("without the extended mode, auto keeps its old message", () => {
   const e = rejected(main("auto x = 5;"), {});
   assert.match(e.message, /auto is not supported/);
 });
@@ -102,10 +102,10 @@ test("a program's own list class clashes with std::list exactly when g++ says so
   assert.equal(e.line, 5);
 });
 
-test("other containers give a readable error that names std::list as the supported one", () => {
-  const e = rejected(`${HEAD}#include <vector>\nint main() { vector<int> v; return 0; }`);
+test("containers HeapHop lacks give a readable error that names the ones it has", () => {
+  const e = rejected(`${HEAD}#include <unordered_map>\nint main() { unordered_map<int, int> m; return 0; }`);
   assert.equal(e.kind, "unsupported");
-  assert.match(e.message, /supports std::list/);
+  assert.match(e.message, /use map instead of unordered_map/);
 });
 
 test("lists of lists and reverse iterators are refused with a hint", () => {
@@ -239,4 +239,15 @@ test("a list of pairs (or of another container) is refused with a hint", () => {
   const e = rejected(main("list<pair<int, int>> edges;"));
   assert.equal(e.kind, "unsupported");
   assert.match(e.message, /A list of pair<\.\.\.>.*struct with two fields/);
+});
+
+test("the extension may print up to 50,000 characters; the website stops at 20,000", () => {
+  const code = "#include <iostream>\nusing namespace std;\nint main() {\n  for (int i = 0; i < 450; i++) cout << \"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789\";\n  return 0;\n}";
+  const ext = run(code, EXTENSION_LIMITS, "", STL);
+  const site = run(code, undefined, "", {});
+  assert.ok(ext.ok && site.ok);
+  assert.equal(ext.trace.output.length, 45000);
+  assert.equal(ext.trace.status, "completed");
+  assert.equal(site.trace.status, "truncated");
+  assert.ok(site.trace.output.length < 20200);
 });

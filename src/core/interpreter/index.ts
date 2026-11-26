@@ -1,6 +1,6 @@
 // Public entry point of the interpreter: C++ source in, RunResult out.
 // Nothing outside this folder may import the files next to this one.
-import { clampLimits, DEFAULT_LIMITS, MAX_INPUT_CHARS, MAX_SOURCE_CHARS, MAX_SOURCE_LINES, TRACE_VERSION, type RunLimits, type RunResult, type Trace } from "../types";
+import { clampLimits, DEFAULT_LIMITS, EXTENSION_LIMITS, MAX_INPUT_CHARS, MAX_SOURCE_CHARS, MAX_SOURCE_LINES, TRACE_VERSION, type RunLimits, type RunResult, type Trace } from "../types";
 import { tokenize, type Directives } from "./tokenizer";
 import { parse } from "./parser";
 import { Executor } from "./executor";
@@ -8,8 +8,12 @@ import { SourceError } from "./errors";
 
 /** Parts of C++ a shell switches on beyond the core subset. */
 export interface RunFeatures {
-  /** std::list, auto and range-based for. The VS Code extension turns this on; the website does not (yet). */
-  stl?: boolean;
+  /**
+   * The VS Code extension's larger C++: the STL containers and algorithms, auto and range-for,
+   * templates, inheritance, exceptions, pointer arithmetic, classes inside classes and more,
+   * with the higher EXTENSION_LIMITS. The website does not turn this on.
+   */
+  extended?: boolean;
 }
 
 /**
@@ -31,10 +35,10 @@ export function run(code: string, limits: RunLimits = DEFAULT_LIMITS, input = ""
     if (input.length > MAX_INPUT_CHARS) {
       return { ok: false, error: { kind: "unsupported", line: 1, message: `Line 1: the input for cin is longer than ${MAX_INPUT_CHARS} characters. Give the program less input.` } };
     }
-    limits = clampLimits(limits);
+    limits = clampLimits(limits, features.extended ? EXTENSION_LIMITS : DEFAULT_LIMITS);
     const directives: Directives = { includes: [], usings: [] };
-    const tokens = tokenize(text, directives);
-    const program = parse(tokens, { stl: features.stl === true, ...directives });
+    const tokens = tokenize(text, directives, features.extended === true);
+    const program = parse(tokens, { extended: features.extended === true, ...directives });
     const hasMain = program.functions.some((f) => f.name === "main");
     if (!hasMain && program.topLevel.length === 0) {
       return { ok: false, error: { kind: "empty", message: "There is nothing to run yet. Write an int main() { ... } with some statements in it." } };

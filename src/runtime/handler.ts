@@ -2,7 +2,7 @@
 // without a Worker. Together with worker.ts this is the only code outside src/core that
 // may import the interpreter (enforced by the boundary check).
 import { run, type RunFeatures } from "@/core/interpreter";
-import { clampLimits } from "@/core/types";
+import { clampLimits, DEFAULT_LIMITS, EXTENSION_LIMITS } from "@/core/types";
 import { PROTOCOL_VERSION, type RunRequest, type RunResponse } from "./protocol";
 
 /** Messages are checked, not trusted: anything that is not exactly a run request is refused. */
@@ -27,5 +27,6 @@ export function handle(request: RunRequest, features: RunFeatures = {}): RunResp
     return reply({ ok: false, error: { kind: "internal", message: "This is not a valid run request, so nothing was run." } });
   }
   // run() clamps the limits too; a page can lower them but never raise them.
-  return reply(run(request.code, clampLimits(request.limits), request.input, features));
+  const ceiling = features.extended ? EXTENSION_LIMITS : DEFAULT_LIMITS;
+  return reply(run(request.code, clampLimits(request.limits, ceiling), request.input, features));
 }

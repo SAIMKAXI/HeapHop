@@ -1,4 +1,5 @@
-// The panel's Web Worker: the same interpreter as the website, with std::list switched on.
+// The panel's Web Worker: the same interpreter as the website, in its extended mode (the STL,
+// templates, exceptions and the rest, and up to 50,000 printed characters).
 // The student's program runs here, off the panel's main thread, so a long run never
 // freezes VS Code's panel.
 import { handle } from "@/runtime/handler";
@@ -10,5 +11,5 @@ const scope = self as unknown as {
 };
 
 scope.onmessage = (event) => {
-  scope.postMessage(handle(event.data, { stl: true }));
+  scope.postMessage(handle(event.data, { extended: true }));
 };

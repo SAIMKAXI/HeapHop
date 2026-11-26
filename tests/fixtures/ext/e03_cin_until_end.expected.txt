@@ -1,0 +1,4 @@
+line: first line here
+line: second line
+6 numbers, sum 108
+nothing more to read
