@@ -1,4 +1,4 @@
-// Tasks 5.2 and 5.4 (layout side) and the viewport math of 5.5 / 5.6.
+// Layout (positions, arrows, chips, end markers) and the viewport math.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -20,7 +20,7 @@ const onEdge = (p: { x: number; y: number }, b: NodeBox) =>
   (p.x === b.x || p.x === b.x + b.width) ? p.y >= b.y && p.y <= b.y + b.height
   : (p.y === b.y || p.y === b.y + b.height) ? p.x >= b.x && p.x <= b.x + b.width : false;
 
-test("5.2 the same input always gives the same layout", () => {
+test("the same input always gives the same layout", () => {
   const t = trace(fixture("10_singly_class_full.cpp"));
   const plan = planLists(t);
   t.steps.forEach((s, i) => {
@@ -29,7 +29,7 @@ test("5.2 the same input always gives the same layout", () => {
 });
 
 for (const [file, count] of [["03_singly_struct_insert_end.cpp", 4], ["12_doubly_class.cpp", 4], ["13_circular_struct.cpp", 4]] as const) {
-  test(`5.2 ${file} is drawn as one horizontal row in list order`, () => {
+  test(`${file} is drawn as one horizontal row in list order`, () => {
     const t = trace(fixture(file));
     const all = layouts(t);
     const busiest = all.reduce((a, b) => (b.nodes.length >= a.nodes.length ? b : a));
@@ -40,7 +40,7 @@ for (const [file, count] of [["03_singly_struct_insert_end.cpp", 4], ["12_doubly
   });
 }
 
-test("5.2 every arrow starts on its source box and ends on its target box, at every step", () => {
+test("every arrow starts on its source box and ends on its target box, at every step", () => {
   for (const file of ["08_singly_struct_reverse.cpp", "12_doubly_class.cpp", "14_circular_class.cpp", "10_singly_class_full.cpp"]) {
     const t = trace(fixture(file));
     for (const l of layouts(t)) {
@@ -52,7 +52,7 @@ test("5.2 every arrow starts on its source box and ends on its target box, at ev
   }
 });
 
-test("5.2 positions are stable: reversing a list never moves a node", () => {
+test("positions are stable: reversing a list never moves a node", () => {
   const t = trace(fixture("08_singly_struct_reverse.cpp"));
   const all = layouts(t);
   // Every step inside reverse(): the list is fully built and is being rewired.
@@ -69,7 +69,7 @@ test("5.2 positions are stable: reversing a list never moves a node", () => {
   assert.ok(last.every((a) => a.end.x < a.start.x));
 });
 
-test("5.4 a new node waits below its slot until it is linked in", () => {
+test("a new node waits below its slot until it is linked in", () => {
   const t = trace(`${NODE}\nint main() {\nNode* head = new Node(1);\nNode* n = new Node(2);\nn->next = head;\nhead = n;\nreturn 0; }`);
   const all = layouts(t);
   const at = (line: number) => all[t.steps.findIndex((s) => s.sourceLine === line && s.kind === "statement")];
@@ -79,7 +79,7 @@ test("5.4 a new node waits below its slot until it is linked in", () => {
   assert.equal(node(at(4), "h2").x, node(at(5), "h2").x, "it only moves up, not sideways");
 });
 
-test("5.4 after head = head->next the old first node is detached", () => {
+test("after head = head->next the old first node is detached", () => {
   const t = trace(`${NODE}\nint main() {\nNode* head = new Node(1);\nhead->next = new Node(2);\nhead = head->next;\nreturn 0; }`);
   const all = layouts(t);
   const i = t.steps.findIndex((s) => s.sourceLine === 5);
@@ -88,7 +88,7 @@ test("5.4 after head = head->next the old first node is detached", () => {
   assert.equal(node(all[i], "h2").level, 0);
 });
 
-test("5.4 chips: head and an alias sit on the node they point at; the last node gets a NULL box", () => {
+test("chips: head and an alias sit on the node they point at; the last node gets a NULL box", () => {
   const t = trace(`${NODE}\nint main() {\nNode* head = new Node(1);\nhead->next = new Node(2);\nNode* cur = head;\nNode* tail = head->next;\nreturn 0; }`);
   const l = layouts(t)[liveIndex(t)];
   const on = (id: string) => l.chips.filter((c) => c.nodeId === id).map((c) => c.label).sort();
@@ -100,14 +100,14 @@ test("5.4 chips: head and an alias sit on the node they point at; the last node 
   assert.ok(l.terminals[0].x >= node(l, "h2").x + NODE_W, "NULL is drawn to the right of the last node");
 });
 
-test("5.4 pointers held inside a stack object become chips named object.field", () => {
+test("pointers held inside a stack object become chips named object.field", () => {
   const t = trace(fixture("12_doubly_class.cpp"));
   const l = layouts(t).reduce((a, b) => (b.nodes.length >= a.nodes.length ? b : a));
   const labels = l.chips.map((c) => c.label);
   assert.ok(labels.includes("dll.head") && labels.includes("dll.tail"), labels.join(","));
 });
 
-test("5.4 uninitialised and dangling links get their own end markers", () => {
+test("uninitialised and dangling links get their own end markers", () => {
   const t = trace(`struct Node { int data; Node* next; };\nint main() {\nNode* a = new Node;\nNode* b = new Node();\na->next = b;\ndelete b;\nreturn 0; }`);
   const all = layouts(t);
   const at = (line: number) => all[t.steps.findIndex((s) => s.sourceLine === line && s.kind === "statement")];
@@ -115,7 +115,7 @@ test("5.4 uninitialised and dangling links get their own end markers", () => {
   assert.deepEqual(at(6).terminals.map((x) => x.label), ["deleted"]);
 });
 
-test("5.4 an end marker never sits on the lane of a straight arrow", () => {
+test("an end marker never sits on the lane of a straight arrow", () => {
   const t = trace(fixture("08_singly_struct_reverse.cpp"));
   for (const l of layouts(t)) {
     for (const term of l.terminals) {
@@ -127,7 +127,7 @@ test("5.4 an end marker never sits on the lane of a straight arrow", () => {
   }
 });
 
-test("5.10 a binary search tree: parents above children, and left-to-right order is sorted order", () => {
+test("a binary search tree: parents above children, and left-to-right order is sorted order", () => {
   const t = trace(`struct T { int key; T* left; T* right; };
 T* insert(T* root, int key) {
   if (root == nullptr) { T* n = new T(); n->key = key; return n; }
@@ -155,7 +155,7 @@ int main() { T* root = nullptr; root = insert(root, 50); root = insert(root, 30)
   assert.equal(l.terminals.length, 0, "trees do not get NULL boxes on every leaf");
 });
 
-test("5.10 REAL LAB 9: every step of the AVL programs lays out without overlap", () => {
+test("REAL LAB 9: every step of the AVL programs lays out without overlap", () => {
   for (const file of ["21_lab9_avl_insert.cpp", "23_lab9_avl_delete.cpp"]) {
     const t = trace(fixture(file));
     for (const l of layouts(t)) {
@@ -168,7 +168,7 @@ test("5.10 REAL LAB 9: every step of the AVL programs lays out without overlap",
   }
 });
 
-test("5.2 objects that are not list nodes go to the grid; an array made with new[] is drawn as cells", () => {
+test("objects that are not list nodes go to the grid; an array made with new[] is drawn as cells", () => {
   const t = trace(`int main() { int* a = new int[3]; int* p = new int(5); int* q = new int(6); a[0] = 1; return 0; }`);
   const l = layouts(t)[liveIndex(t)];
   assert.deepEqual(l.nodes.map((n) => n.family), [-1, -1]);
@@ -177,7 +177,7 @@ test("5.2 objects that are not list nodes go to the grid; an array made with new
   assert.ok(l.arrays[0].y + l.arrays[0].height < l.nodes[0].y, "arrays sit above the other objects");
 });
 
-test("5.2 bounds contain everything", () => {
+test("bounds contain everything", () => {
   const t = trace(fixture("14_circular_class.cpp"));
   for (const l of layouts(t)) {
     const b = l.bounds;
@@ -187,7 +187,7 @@ test("5.2 bounds contain everything", () => {
   }
 });
 
-test("5.5 zooming keeps the point under the cursor where it is", () => {
+test("zooming keeps the point under the cursor where it is", () => {
   let view = { x: 37, y: -12, k: 0.8 };
   const cursor = { x: 420, y: 260 };
   const before = screenToWorld(view, cursor);
@@ -210,7 +210,7 @@ test("automatic framing keeps text readable and shows the head end of a long lis
   assert.deepEqual(fitView(small, size, READABLE_ZOOM), fitView(small, size), "a picture that fits is centred the same way");
 });
 
-test("5.6 fit shows everything and focus centres a node", () => {
+test("fit shows everything and focus centres a node", () => {
   const size = { width: 900, height: 500 };
   const bounds = { x: -40, y: -100, width: 6000, height: 400 };
   const view = fitView(bounds, size);
@@ -223,7 +223,7 @@ test("5.6 fit shows everything and focus centres a node", () => {
   assert.deepEqual(centre, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
 });
 
-test("5.7 only boxes inside the visible rectangle need drawing", () => {
+test("only boxes inside the visible rectangle need drawing", () => {
   const size = { width: 800, height: 400 };
   const seen = visibleWorldRect({ x: -2000, y: 0, k: 1 }, size, 100);
   assert.equal(intersects(seen, { x: 0, y: 0, width: 148, height: 80 }), false);

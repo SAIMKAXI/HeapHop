@@ -1,4 +1,4 @@
-// What "fits the screen" means for one page at one size (8.21), as a function the browser runs:
+// What "fits the screen" means for one page at one size, as a function the browser runs:
 // - nothing makes the page scroll sideways;
 // - nothing visible sticks out past the left or right edge (unless a scrolling or clipping box
 //   it sits in keeps it inside);

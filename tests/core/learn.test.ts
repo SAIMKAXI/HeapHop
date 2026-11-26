@@ -11,7 +11,7 @@ import { LESSONS } from "../../content/lessons";
 import { GLOSSARY } from "../../content/glossary";
 import { NODE, trace } from "./helpers";
 
-test("7.1 the library has the 12 linked-list operations, each with a two-line intro", () => {
+test("the library has the 12 linked-list operations, each with a two-line intro", () => {
   const lists = EXAMPLES.filter((e) => e.group === "lists");
   for (const id of ["build", "traverse", "insert-front", "insert-end", "insert-position", "delete-front", "delete-end", "delete-value", "search", "reverse", "doubly", "circular"]) {
     assert.ok(lists.some((e) => e.id === id), `missing example ${id}`);
@@ -22,7 +22,7 @@ test("7.1 the library has the 12 linked-list operations, each with a two-line in
   assert.equal(new Set(EXAMPLES.map((e) => e.id)).size, EXAMPLES.length, "ids are unique");
 });
 
-test("7.1 every linked-list example runs to the end", () => {
+test("every linked-list example runs to the end", () => {
   for (const e of EXAMPLES.filter((x) => x.group === "lists")) {
     const r = run(e.code);
     if (!r.ok) assert.fail(`${e.id}: ${r.error.message}`);
@@ -30,7 +30,7 @@ test("7.1 every linked-list example runs to the end", () => {
   }
 });
 
-test("7.4 mistake demos: each one ends the way its title says", () => {
+test("mistake demos: each one ends the way its title says", () => {
   const demo = (id: string) => new TraceModel(trace(EXAMPLES.find((e) => e.id === id)!.code));
   const said = (m: TraceModel) => Array.from({ length: m.length }, (_, i) => explainStep(m, i).map((s) => s.text).join(" ")).join("\n");
 
@@ -49,7 +49,7 @@ test("7.4 mistake demos: each one ends the way its title says", () => {
   assert.match(said(forgot), /set `next = nullptr`/);
 });
 
-test("7.2 every lesson loads, runs, and places all its checkpoints in running order", async () => {
+test("every lesson loads, runs, and places all its checkpoints in running order", async () => {
   assert.ok(LESSONS.length >= 3);
   for (const entry of LESSONS) {
     const lesson = await entry.load();
@@ -80,7 +80,7 @@ test("the tree lessons build real binary trees and ask the student to predict", 
   }
 });
 
-test("7.2 one lesson plays start to finish: each checkpoint lands on its line", async () => {
+test("one lesson plays start to finish: each checkpoint lands on its line", async () => {
   const lesson = await LESSONS.find((l) => l.id === "walk-a-list")!.load();
   const r = run(lesson.code);
   assert.ok(r.ok);
@@ -93,7 +93,7 @@ test("7.2 one lesson plays start to finish: each checkpoint lands on its line", 
   assert.ok(checkpoints.some((c) => c.prediction), "the lesson includes a prediction");
 });
 
-test("7.3 the right answer of a prediction comes from the next step of the trace", () => {
+test("the right answer of a prediction comes from the next step of the trace", () => {
   const m = new TraceModel(trace(`${NODE}\nint main() {\nNode* head = new Node(1);\nhead->next = new Node(2);\nNode* cur = head;\ncur = cur->next;\ncur = cur->next;\nreturn 0; }`));
   const first = buildPrediction(m, m.stepsOnLine(6)[0], "cur")!;
   assert.equal(first.answer, "h2");
@@ -105,7 +105,7 @@ test("7.3 the right answer of a prediction comes from the next step of the trace
   assert.equal(buildPrediction(m, m.stepsOnLine(6)[0], "nosuch"), null);
 });
 
-test("7.3 predictions in the lessons always offer the correct option", async () => {
+test("predictions in the lessons always offer the correct option", async () => {
   for (const entry of LESSONS) {
     const lesson = await entry.load();
     const r = run(lesson.code);
@@ -119,7 +119,7 @@ test("7.3 predictions in the lessons always offer the correct option", async () 
   }
 });
 
-test("7.2 a broken lesson is reported in plain words instead of crashing", () => {
+test("a broken lesson is reported in plain words instead of crashing", () => {
   const m = new TraceModel(trace(`int main() {\nint a = 1;\nint b = 2;\nreturn 0; }`));
   const bad: Lesson = { id: "x", title: "x", summary: "", code: "", checkpoints: [
     { at: "int z = 9;", text: "" },
@@ -138,14 +138,14 @@ test("7.2 a broken lesson is reported in plain words instead of crashing", () =>
   assert.match(problems[4], /Put them in running order/);
 });
 
-test("7.5 the glossary defines the core words in one line each", () => {
+test("the glossary defines the core words in one line each", () => {
   for (const word of ["head", "next", "nullptr", "new", "delete"]) {
     assert.ok(GLOSSARY[word], `missing ${word}`);
     assert.ok(!GLOSSARY[word].includes("\n") && GLOSSARY[word].length < 140);
   }
 });
 
-test("7.3 a prediction about a reference parameter is answered correctly", async () => {
+test("a prediction about a reference parameter is answered correctly", async () => {
   // delete-safely asks where `head` (a Node*& parameter) points after head = head->next.
   const lesson = await LESSONS.find((l) => l.id === "delete-safely")!.load();
   const r = run(lesson.code);
@@ -156,7 +156,7 @@ test("7.3 a prediction about a reference parameter is answered correctly", async
   assert.equal(m.nameOf(cp.prediction!.answer!), "Node #2");
 });
 
-test("11.2 every Learn topic has at least two lessons, and lesson ids are unique", () => {
+test("every Learn topic has at least two lessons, and lesson ids are unique", () => {
   for (const topic of ["sorting", "lists", "doubly", "stacks", "queues", "bst", "avl", "heaps", "graphs"] as const) {
     assert.ok(LESSONS.filter((l) => l.topic === topic).length >= 2, topic);
   }

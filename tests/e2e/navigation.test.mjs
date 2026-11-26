@@ -1,4 +1,4 @@
-// 8.20 Back feels right: between main pages Back goes straight to Home; inside a section it
+// Back feels right: between main pages Back goes straight to Home; inside a section it
 // goes one step at a time; a page opened directly gets Home underneath it; after logging in,
 // Back skips the login form. Also: only the server can make the login page say an account is
 // disabled.

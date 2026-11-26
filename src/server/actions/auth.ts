@@ -83,7 +83,7 @@ export async function logIn(_prev: FormState, form: FormData): Promise<FormState
     if (error || !data.user) {
       logCode("login", error);
       if (error?.code === "email_not_confirmed") return { error: "Confirm your email first: open the link we sent you.", values };
-      // Accounts are no longer banned inside Supabase (see admin_set_disabled), so a "banned" answer
+      // Accounts are not banned inside Supabase (see admin_set_disabled), so a "banned" answer
       // can't prove the password was right: say nothing more than for a wrong password.
       if (error?.status === 429) return { error: TOO_MANY, values };
       return { error: "Email or password is wrong.", values };

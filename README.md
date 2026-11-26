@@ -1,98 +1,95 @@
 # HeapHop
 
-HeapHop shows what a C++ program does to memory, one statement at a time. Paste a
-linked-list program, press Run, and step through it: the stack frames, every node on the
-heap and every pointer between them change as the program runs. Click a node or a pointer
-to read its story: where it was created, who points at it now, and which line changed it.
+**See what your C++ does to memory.** HeapHop runs a C++ program one statement at a time
+and draws what happens: the stack frames, every node on the heap, and every pointer between
+them. Step forward and back, and watch a linked list or a tree being built, rewired and
+taken apart.
 
-It runs entirely in the browser. Nothing is sent to a server.
+![HeapHop: a linked list with head and cur pointers](src/app/opengraph-image.png)
 
-**Use HeapHop here: [heaphop.vercel.app](https://heaphop.vercel.app)**. It is free and needs no account.
+**Open HeapHop: [heaphop.vercel.app](https://heaphop.vercel.app)**
 
-HeapHop is a Data Structures semester project at Air University (BS Cybersecurity,
-3rd semester). A VS Code extension that shows the same view next to your code is planned.
+## Getting started
 
-## The site
+1. Go to [heaphop.vercel.app](https://heaphop.vercel.app) and choose **Sign up**. An account is
+   free and needs your name, email address, university and a password.
+2. Open **Learn** for guided lessons, or the **Editor** to run your own program.
+3. Press **Run & Visualize**, then step through the program with the arrows or the timeline.
 
-| Page | What it is for |
-| --- | --- |
-| `/` | What HeapHop does, with a live demo, and the way into Learn or the Editor |
-| `/learn` | Guided lessons on linked lists and trees, and ready-made programs to step through. A lesson has its own address, such as `/learn?lesson=build-a-bst`, so it can be shared |
-| `/editor` | Your own programs: write, run, and step through them. Starts with a blank starter program, then remembers your work in the browser |
-| `/faq`, `/about`, `/privacy` | Questions and answers, the team, and what is (and is not) stored |
-| `/supported` | The part of C++ HeapHop runs, built from `docs/SUBSET.md` |
+The home page, About, FAQ, Privacy and "What C++ is supported" are open to everyone. Learn
+and the Editor need an account.
 
-## What it does
+## What you can do
 
-- **Runs real lab programs.** Structs and classes, constructors and destructors, pointers
-  and pointers to pointers, `new` and `delete`, arrays, recursion, `switch`, `do while`,
-  `cout`, and `cin` with typed-in input. 27 test programs print exactly what `g++` prints.
-- **Draws linked lists the way they are taught.** Singly, doubly and circular lists are
-  laid out in one row with `head`, `tail` and `cur` shown on the node they point at.
-  Binary trees are drawn as trees. Nodes keep their place while a list is rewired, so
-  reversing a list turns the arrows around instead of shuffling the boxes.
-- **Explains every step** in plain words, built from what the program actually did:
-  "head moves along next from Node #1 to Node #2."
-- **Inspector.** Click a node, a pointer, or a line of code to see its history and jump to
-  any moment in it.
-- **Shows mistakes honestly.** A null dereference, a use after `delete`, a double
-  `delete` or a pointer that was never set stops the trace at that line with an
-  explanation. Every earlier step stays visible. Lost nodes are marked as leaked.
-- **Steps both ways.** The whole run is recorded first, so going back is as reliable as
-  going forward. A timeline, auto-play and "step over" are there too.
-- **Guided lessons** on linked lists (walk, insert at the front, delete safely, reverse) and
-  trees (build a BST, search it, in-order traversal, an AVL rotation), with prediction
-  questions: "where will `cur` point after this line?" The right answer is read from the
-  program's own run.
-- **A robot helper.** Stepping one line at a time, a small robot acts out what the line did:
-  it drags a pointer's arrow to its new node, brings new nodes in, carries deleted ones
-  away, and follows `cur` from node to node. In trees it flies on rocket boots and returns to its corner after each move.
-- **Zoom, pan and fullscreen** on the heap, and a layout that also works on a phone.
+- **Learn by topic.** 51 guided lessons in nine topics: sorting and Big-O, linked lists,
+  doubly and circular lists, stacks, queues, binary search trees, AVL trees, heaps and
+  priority queues, and graphs. Each lesson stops at key lines and asks what happens next,
+  such as "where will `cur` point after this line?". The answer is checked against the
+  program's own run. 25 ready-made programs can be opened and stepped through too.
+- **Run your own code.** Write or paste a program in the Editor and visualize it. Programs
+  that read input with `cin` take what you type in. Your programs are saved in your browser.
+- **See every step explained** in plain words, built from what the program actually did,
+  for example "head moves along next from Node #1 to Node #2."
+- **Step both ways.** The whole run is recorded first, so going back is as reliable as going
+  forward. Use the timeline, auto-play at different speeds, or step over a function call.
+- **Inspect anything.** Click a node, a pointer or a line of code to see its history: where
+  it was created, what points at it now, and which line changed it.
+- **Find mistakes.** Dereferencing a null pointer, using memory after `delete`, deleting
+  twice or following a pointer that was never set stops the run at that line with an
+  explanation. Nodes nothing points to any more are marked as leaked.
+- **Watch Byte.** When you step one line at a time, Byte, HeapHop's robot, acts the line out:
+  it drags a pointer to its new node, brings new nodes in and carries deleted ones away.
+- **Lists and trees drawn the way they are taught.** Singly, doubly and circular lists sit in
+  one row with `head`, `tail` and `cur` on the nodes they point at. Trees are drawn as trees,
+  and arrays as rows of cells. Nodes keep their place while a list is rewired.
+- **Any screen.** Zoom, pan and full screen on the heap. HeapHop works on phones (with Code
+  and Memory tabs), tablets, laptops and large monitors, in a dark or a light theme.
 
-The supported part of C++ is listed in [docs/SUBSET.md](docs/SUBSET.md) and on the site's
-"What C++ is supported" page. Anything outside it stops with a message that names the line.
+## What C++ it runs
 
-## How it is built
+HeapHop runs the part of C++ used in a first data-structures course: structs and classes,
+constructors and destructors, pointers and pointers to pointers, references, `new` and
+`delete`, arrays, `string`, recursion, loops, `switch`, `cout` and `cin`. Anything outside
+that part stops with a message that names the line, so a picture is never drawn from code
+HeapHop did not understand.
 
-```
-src/core/        the interpreter, the trace model, list and tree recognition,
-                 explanations and lessons. Plain TypeScript: no React, no browser APIs
-src/layout/      pure functions: one step in, node positions and arrow paths out
-src/runtime/     runs the interpreter in a Web Worker, with a time limit
-src/ui/          React components
-src/app/         the Next.js website: landing, Learn, Editor, FAQ, About, Privacy, Supported
-src/standalone/  the same interface as one script file, for the VS Code webview
-content/         examples, lessons (linked lists and trees), glossary
-tests/           unit tests, browser tests, and the C++ test programs with their g++ output
-docs/SUBSET.md   the supported part of C++ (also shown on the site)
-```
+The full list is in [content/supported-cpp.md](content/supported-cpp.md) and on the site at
+[heaphop.vercel.app/supported](https://heaphop.vercel.app/supported).
 
-The program is interpreted once, in a Web Worker, into a list of snapshots. After that,
-stepping only moves an index, so the page never waits.
+## Privacy and security
 
-Built with Next.js 16, React 19, TypeScript 6 and Tailwind CSS 4.
+- Your programs run inside your own browser. They are never uploaded, and nobody else can
+  see them.
+- An account stores your name, email address and university. Your password is stored only
+  as a one-way hash.
+- You stay signed in with a secure cookie that page scripts cannot read. Two-step sign-in
+  with an authenticator app is available in Account settings.
+- There is no tracking and no advertising.
 
-## Inspiration
+The [privacy policy](https://heaphop.vercel.app/privacy) has the details, including how to have
+your account deleted. To report a security problem, see [SECURITY.md](SECURITY.md).
 
-Design ideas were taken from [See++](https://seepluspl.us) and Python Tutor.
+## VS Code extension
+
+A VS Code extension that shows the same visualization next to your code is on the way.
+
+## The team
+
+HeapHop is the Data Structures semester project of five BS Cyber Security students at
+Air University, Islamabad: M. Saim, Yemna Khan, Muhammad Musa, Eeman Athar Malik and
+Syeda Nazalia Zehra.
+
+Design ideas came from [See++](https://seepluspl.us) and Python Tutor.
+
+## Questions and feedback
+
+Open an [issue](https://github.com/SAIMKAXI/HeapHop/issues) on this repository. Please do not
+include your email address or other personal details in an issue: issues are public.
 
 ## License
 
-Copyright © 2026 the HeapHop team: M. Saim, Yemna Khan, Muhammad Musa, Eeman Athar Malik
-and Syeda Nazalia Zehra. All rights reserved.
+Copyright © 2026 the HeapHop team. All rights reserved.
 
-HeapHop is **not open source**. The code is public so that it can be read, but no license
-is granted to use it. Without written permission from the team, you may not:
-
-- download, copy or reuse this code, in whole or in part, in your own projects;
-- modify it, or publish, host or distribute it, or anything made from it;
-- sell it, submit it as your own work, or claim it as your own.
-
-**To use HeapHop, use the website: [heaphop.vercel.app](https://heaphop.vercel.app).** It is
-free for everyone.
-
-Because this repository is public on GitHub, GitHub's Terms of Service let other GitHub users
-view it and fork it on GitHub. A fork gives no other rights: everything above still applies
-to it.
-
-To ask for permission, contact the team through this repository.
+HeapHop is **not open source**. The code is public so that it can be read, but no license is
+granted to use it. See [LICENSE](LICENSE). To use HeapHop, use the website:
+[heaphop.vercel.app](https://heaphop.vercel.app).

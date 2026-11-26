@@ -1,4 +1,4 @@
-// Renders the small part of Markdown that docs/SUBSET.md uses: ## headings, paragraphs,
+// Renders the small part of Markdown that content/supported-cpp.md uses: ## headings, paragraphs,
 // tables, `code` and **bold**. Runs at build time only.
 import type { ReactNode } from "react";
 

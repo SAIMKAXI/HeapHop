@@ -24,7 +24,7 @@ delete old;
 cout << head->data;
 return 0; }`;
 
-test("4.1 allocation and the pointer that receives it", () => {
+test("allocation and the pointer that receives it", () => {
   const m = model(WALK);
   const ctor = m.events.findIndex((ev) => ofType(ev, "alloc").length > 0);
   assert.deepEqual(ofType(m.events[ctor], "alloc")[0], { type: "alloc", objectId: "h1", typeName: "Node" });
@@ -36,7 +36,7 @@ test("4.1 allocation and the pointer that receives it", () => {
   assert.deepEqual(p.owner, { kind: "frame", id: "f0", name: "main" });
 });
 
-test("4.1 a pointer reassignment carries the previous and the new target", () => {
+test("a pointer reassignment carries the previous and the new target", () => {
   const m = model(WALK);
   const p = ofType(onLine(m, 7).events, "pointer_changed")[0];
   assert.equal(p.cellId, "f0_head");
@@ -45,7 +45,7 @@ test("4.1 a pointer reassignment carries the previous and the new target", () =>
   assert.equal(p.declared, false);
 });
 
-test("4.1 a field change names the object that owns the field", () => {
+test("a field change names the object that owns the field", () => {
   const m = model(WALK);
   const v = ofType(onLine(m, 5).events, "value_changed")[0];
   assert.deepEqual(v.owner, { kind: "object", id: "h2", name: "Node" });
@@ -54,14 +54,14 @@ test("4.1 a field change names the object that owns the field", () => {
   assert.equal(v.to, "9");
 });
 
-test("4.1 delete gives a free event, and the dangling pointer is not reported as reassigned", () => {
+test("delete gives a free event, and the dangling pointer is not reported as reassigned", () => {
   const m = model(WALK);
   const events = onLine(m, 8).events;
   assert.deepEqual(ofType(events, "free"), [{ type: "free", objectId: "h1", typeName: "Node" }]);
   assert.equal(ofType(events, "pointer_changed").length, 0);
 });
 
-test("4.1 frames pushed and popped, and output", () => {
+test("frames pushed and popped, and output", () => {
   const m = model(`${NODE}\nint twice(int n) { return n * 2; }\nint main() {\nint x = twice(4);\ncout << x;\nreturn 0; }`);
   const all = m.events.flat();
   assert.ok(ofType(all, "frame_push").some((e) => e.functionName === "twice"));
@@ -69,7 +69,7 @@ test("4.1 frames pushed and popped, and output", () => {
   assert.deepEqual(ofType(all, "output").map((e) => e.text), ["8"]);
 });
 
-test("4.1 losing the last pointer to a node reports became_unreachable", () => {
+test("losing the last pointer to a node reports became_unreachable", () => {
   const m = model(`${NODE}\nint main() {\nNode* head = new Node(1);\nhead = nullptr;\nreturn 0; }`);
   const events = onLine(m, 4).events;
   assert.deepEqual(ofType(events, "became_unreachable"), [{ type: "became_unreachable", objectId: "h1", typeName: "Node" }]);
@@ -77,13 +77,13 @@ test("4.1 losing the last pointer to a node reports became_unreachable", () => {
   assert.equal(m.object("h1")!.freeStep, null);
 });
 
-test("4.1 diffSteps of a step with itself is empty; the first step only pushes main", () => {
+test("diffSteps of a step with itself is empty; the first step only pushes main", () => {
   const t = trace(WALK);
   assert.deepEqual(diffSteps(t.steps[5], t.steps[5]), []);
   assert.deepEqual(diffSteps(null, t.steps[0]), [{ type: "frame_push", frameId: "f0", functionName: "main" }]);
 });
 
-test("4.2 an object's history is ordered and carries the source line of each event", () => {
+test("an object's history is ordered and carries the source line of each event", () => {
   const m = model(WALK);
   const rec = m.object("h2")!;
   assert.equal(rec.displayName, "Node #2");
@@ -98,7 +98,7 @@ test("4.2 an object's history is ordered and carries the source line of each eve
   assert.equal(m.object("h2_next")!.id, "h2", "a cell id resolves to its object");
 });
 
-test("4.3 three pointers to one node are all listed", () => {
+test("three pointers to one node are all listed", () => {
   const m = model(`${NODE}\nint main() {\nNode* a = new Node(1);\nNode* b = a;\nNode* c = new Node(2);\nc->next = a;\nreturn 0; }`);
   const refs = onLine(m, 6).incoming("h1");
   assert.deepEqual(refs.map((r) => r.cellId).sort(), ["f0_a", "f0_b", "h2_next"]);
@@ -108,14 +108,14 @@ test("4.3 three pointers to one node are all listed", () => {
   assert.deepEqual(onLine(m, 6).incoming("h2").map((r) => r.name), ["c"]);
 });
 
-test("4.3 references held inside an object on the stack are found", () => {
+test("references held inside an object on the stack are found", () => {
   const m = model(`${NODE}\nclass L { public: Node* head; L() { head = nullptr; } };\nint main() {\nL list;\nlist.head = new Node(1);\nreturn 0; }`);
   const refs = onLine(m, 5, m.stepsOnLine(5).length - 1).incoming("h1");
   assert.equal(refs[0].name, "list.head");
   assert.equal(refs[0].owner.kind, "frame");
 });
 
-test("4.4 numbers follow allocation order and do not move when an earlier node is freed", () => {
+test("numbers follow allocation order and do not move when an earlier node is freed", () => {
   const m = model(`${NODE}\nint main() {\nNode* a = new Node(1);\nNode* b = new Node(2);\ndelete a;\nNode* c = new Node(3);\nint* n = new int(5);\nreturn 0; }`);
   assert.deepEqual(m.allObjects().map((o) => o.displayName), ["Node #1", "Node #2", "Node #3", "int #1"]);
   assert.equal(m.nameOf("h2"), "Node #2");
@@ -124,7 +124,7 @@ test("4.4 numbers follow allocation order and do not move when an earlier node i
   assert.equal(m.object("h1")!.freeStep, m.stepsOnLine(5)[0]);
 });
 
-test("4.5 the line index lists every execution of a line", () => {
+test("the line index lists every execution of a line", () => {
   const m = model(`int main() {\nint s = 0;\nfor (int i = 0; i < 3; i++) {\ns += i;\n}\nreturn 0; }`);
   const runs = m.stepsOnLine(4);
   assert.equal(runs.length, 3);
@@ -133,7 +133,7 @@ test("4.5 the line index lists every execution of a line", () => {
   assert.equal(m.nextStepOnLine(99, 0), -1);
 });
 
-test("4.6 getStep is cached and clamps its index", () => {
+test("getStep is cached and clamps its index", () => {
   const m = model(WALK);
   assert.equal(m.getStep(3), m.getStep(3));
   assert.equal(m.getStep(3).incoming("h1"), m.getStep(3).incoming("h1"));
@@ -152,7 +152,7 @@ test("lastChangeOf finds the statement that last changed a pointer", () => {
   assert.equal(born.sourceLine, 1);
 });
 
-test("Gate 4: reverse a list, then ask about Node #2", () => {
+test("reverse a list, then ask about Node #2", () => {
   const m = model(readFileSync(join(__dirname, "..", "fixtures", "08_singly_struct_reverse.cpp"), "utf8"));
   const node2 = m.allObjects().find((o) => o.displayName === "Node #2")!;
   assert.ok(node2.history.length >= 3);
@@ -182,7 +182,7 @@ for (const file of readdirSync(join(__dirname, "..", "fixtures")).filter((f) => 
 // ---- one selection lights up the canvas, the code panel and the timeline ----
 import { highlightsFor } from "../../src/core/trace";
 
-test("6.1 selecting an object marks its lines and its steps", () => {
+test("selecting an object marks its lines and its steps", () => {
   const m = model(WALK);
   const h = highlightsFor(m, { kind: "object", id: "h2" });
   assert.deepEqual([...h.objects], ["h2"]);
@@ -191,7 +191,7 @@ test("6.1 selecting an object marks its lines and its steps", () => {
   assert.ok(h.steps.includes(m.stepsOnLine(5)[0]));
 });
 
-test("6.1 selecting a pointer marks every statement that changed it and the nodes it touched", () => {
+test("selecting a pointer marks every statement that changed it and the nodes it touched", () => {
   const m = model(WALK);
   const h = highlightsFor(m, { kind: "pointer", cellId: "f0_head" });
   assert.deepEqual([...h.lines].sort(), [3, 7]);
@@ -199,7 +199,7 @@ test("6.1 selecting a pointer marks every statement that changed it and the node
   assert.equal(h.steps.length, 2);
 });
 
-test("6.1 / 6.8 selecting a source line marks the nodes it touched and each time it ran", () => {
+test("selecting a source line marks the nodes it touched and each time it ran", () => {
   const m = model(WALK);
   const h = highlightsFor(m, { kind: "line", line: 7 });
   assert.deepEqual([...h.objects].sort(), ["h1", "h2"]);

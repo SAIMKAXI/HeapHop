@@ -38,7 +38,7 @@ function setup(mode: ConstructorParameters<typeof FakeWorker>[0] = "answer", tim
   return { runner, workers };
 }
 
-test("3.1 runProgram returns a trace produced in the worker", async () => {
+test("runProgram returns a trace produced in the worker", async () => {
   const { runner, workers } = setup();
   const r = await runner.run(CODE);
   assert.ok(r.ok);
@@ -47,7 +47,7 @@ test("3.1 runProgram returns a trace produced in the worker", async () => {
   assert.equal(workers[0].posted[0].v, PROTOCOL_VERSION);
 });
 
-test("3.1 the worker is reused for the next run", async () => {
+test("the worker is reused for the next run", async () => {
   const { runner, workers } = setup();
   await runner.run(CODE);
   await runner.run(CODE + "\n");
@@ -55,7 +55,7 @@ test("3.1 the worker is reused for the next run", async () => {
   assert.equal(workers[0].posted.length, 2);
 });
 
-test("3.1 steps still share unchanged cells after crossing the worker boundary", async () => {
+test("steps still share unchanged cells after crossing the worker boundary", async () => {
   const { runner } = setup();
   const r = await runner.run(CODE);
   assert.ok(r.ok);
@@ -64,7 +64,7 @@ test("3.1 steps still share unchanged cells after crossing the worker boundary",
   assert.equal(steps[steps.length - 2].heap[0], a, "structured clone keeps shared references");
 });
 
-test("3.2 a run that never answers is stopped by the time limit and the worker is killed", async () => {
+test("a run that never answers is stopped by the time limit and the worker is killed", async () => {
   const { runner, workers } = setup("hang", 50);
   const started = Date.now();
   const r = await runner.run(CODE);
@@ -75,7 +75,7 @@ test("3.2 a run that never answers is stopped by the time limit and the worker i
   assert.equal(workers[0].terminated, true);
 });
 
-test("3.2 after a timeout the next run gets a fresh worker", async () => {
+test("after a timeout the next run gets a fresh worker", async () => {
   const workers: FakeWorker[] = [];
   let mode: "hang" | "answer" = "hang";
   const runner = new Runner(() => { const w = new FakeWorker(mode); workers.push(w); return w; }, { timeoutMs: 30 });
@@ -85,7 +85,7 @@ test("3.2 after a timeout the next run gets a fresh worker", async () => {
   assert.equal(workers.length, 2);
 });
 
-test("3.2 an infinite loop comes back quickly as a truncated trace", async () => {
+test("an infinite loop comes back quickly as a truncated trace", async () => {
   const { runner } = setup("answer", 3000);
   const started = Date.now();
   const r = await runner.run(`int main() { int i = 0; while (true) { i++; } return 0; }`);
@@ -94,7 +94,7 @@ test("3.2 an infinite loop comes back quickly as a truncated trace", async () =>
   assert.ok(Date.now() - started < 3000, "well inside the 3 second budget");
 });
 
-test("3.3 running unchanged code again is answered from the cache", async () => {
+test("running unchanged code again is answered from the cache", async () => {
   const { runner, workers } = setup();
   const first = await runner.run(CODE);
   const second = await runner.run(CODE);
@@ -104,7 +104,7 @@ test("3.3 running unchanged code again is answered from the cache", async () => 
   assert.notEqual(third, first);
 });
 
-test("3.3 the cache key includes the limits; timeouts are not cached", async () => {
+test("the cache key includes the limits; timeouts are not cached", async () => {
   const cache = new TraceCache(2);
   const ok = handle({ v: PROTOCOL_VERSION, id: 1, type: "run", code: CODE, input: "", limits: DEFAULT_LIMITS }).result;
   cache.set("a", DEFAULT_LIMITS, ok);
@@ -146,7 +146,7 @@ test("parse errors pass through the worker with their line number", async () => 
   assert.equal(r.error.line, 2);
 });
 
-test("8.8 a forged message to the worker is answered with a readable error, never a crash", () => {
+test("a forged message to the worker is answered with a readable error, never a crash", () => {
   const forged = [
     null,
     "run",
@@ -163,7 +163,7 @@ test("8.8 a forged message to the worker is answered with a readable error, neve
   }
 });
 
-test("8.8 the worker never raises its own safety limits, whatever the page asks for", () => {
+test("the worker never raises its own safety limits, whatever the page asks for", () => {
   const greedy = { maxSteps: 1e9, maxLoopIterations: 1e9, maxCallDepth: 1e9, maxHeapObjects: 1e9, maxOutputChars: 1e9 };
   const reply = handle({ v: PROTOCOL_VERSION, id: 5, type: "run", code: "int main() { while (true) {} return 0; }", input: "", limits: greedy });
   assert.ok(reply.result.ok);

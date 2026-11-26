@@ -1,7 +1,7 @@
-// 8.14 Data stays data: text that looks like SQL is stored and shown exactly as typed, and text
+// Data stays data: text that looks like SQL is stored and shown exactly as typed, and text
 // that looks like markup is refused, through the real sign-up form, admin page and account form.
-// The database side (CHECKs, no dynamic SQL) is tested against the live project; see
-// docs/SECURITY.md, "Data stays data", and tests/server/injection-guards.test.ts.
+// The database side (CHECK constraints, no dynamic SQL) is covered by
+// tests/server/injection-guards.test.ts and the migrations.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ADMIN, setupBrowser } from "./harness.mjs";

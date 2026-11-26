@@ -5,7 +5,6 @@
 //   - raw HTML in the site (dangerouslySetInnerHTML, innerHTML, eval, new Function),
 //   - a Supabase query whose table, function, columns or filter column is not a fixed string,
 //     or a PostgREST filter string (.or / .filter / .textSearch) that text could be spliced into.
-// docs/SECURITY.md ("Data stays data") lists what was tested against the live database.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";

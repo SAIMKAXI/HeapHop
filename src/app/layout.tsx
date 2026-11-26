@@ -7,14 +7,21 @@ import { SAVED_THEME_SCRIPT } from "@/ui/theme-script";
 import { REVEAL_READY_SCRIPT } from "@/ui/site/reveal-script";
 import { NAV_START_SCRIPT } from "@/ui/site/nav-history";
 import { WebsiteProvider } from "@/ui/site/website";
+import { SITE_URL } from "./site";
 import "./globals.css";
 
 // Fonts are bundled with the site. Nothing is fetched from Google at
 // build time or in the visitor's browser.
 
+const DESCRIPTION = "Step through C++ linked-list and tree programs and watch the stack, the heap and every pointer change, one line at a time.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: "HeapHop: see what your C++ does to memory", template: "%s · HeapHop" },
-  description: "Step through C++ linked-list programs and watch the stack, the heap and every pointer change.",
+  description: DESCRIPTION,
+  applicationName: "HeapHop",
+  openGraph: { type: "website", siteName: "HeapHop", locale: "en", url: "/", title: "HeapHop: see what your C++ does to memory", description: DESCRIPTION },
+  twitter: { card: "summary_large_image", title: "HeapHop: see what your C++ does to memory", description: DESCRIPTION },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

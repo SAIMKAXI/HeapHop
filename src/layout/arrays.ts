@@ -1,4 +1,4 @@
-// Arrays drawn as a row of cells (task 11.4). Pure: a step goes in, strips come out.
+// Arrays drawn as a row of cells. Pure: a step goes in, strips come out.
 //
 // Which arrays: local arrays, arrays inside local objects (an array-based stack or
 // queue), and arrays made with new[]. Arrays of objects stay in the stack panel.

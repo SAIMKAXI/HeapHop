@@ -8,8 +8,8 @@ test("a pipe inside `code` stays in its cell instead of starting a new column", 
   assert.deepEqual(cells("| a | b | c |"), ["a", "b", "c"]);
 });
 
-test("every table row in SUBSET.md has as many cells as its header", () => {
-  const lines = readFileSync("docs/SUBSET.md", "utf8").split("\n");
+test("every table row in the supported-C++ list has as many cells as its header", () => {
+  const lines = readFileSync("content/supported-cpp.md", "utf8").split("\n");
   let width = 0;
   for (const line of lines) {
     if (!line.startsWith("|")) { width = 0; continue; }

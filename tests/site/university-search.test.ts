@@ -54,7 +54,7 @@ test("an exact match is recognised as the database will match it, and a shared n
 test("on the full HEC list, the picker's matches agree with what the database returned for the same text", async () => {
   const { default: raw } = await import("../e2e/universities.json", { with: { type: "json" } });
   const full: University[] = (raw as { name: string; aliases: string[] }[]).map((u, i) => ({ id: i + 1, ...u }));
-  // Results of the same lookups run against the real database (22 Nov 2026, see docs/SECURITY.md).
+  // What the same lookups return from the real database.
   const expected: Record<string, string | undefined> = {
     "Air": "Air University", "air university": "Air University", "AirUni": "Air University", "AU": "Air University",
     "air university islamabad": "Air University", "nust": "National University of Sciences & Technology",

@@ -1,4 +1,4 @@
-// 8.15 Learn: a hero with Byte pointing at the heading, nine topic cards in a 3x3 grid, a row for
+// Learn: a hero with Byte pointing at the heading, nine topic cards in a 3x3 grid, a row for
 // the Editor and the references, and a page per topic with its lessons and example programs.
 import { test } from "node:test";
 import assert from "node:assert/strict";

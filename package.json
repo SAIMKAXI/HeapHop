@@ -1,6 +1,8 @@
 {
   "name": "heaphop",
   "version": "0.1.0",
+  "description": "See what your C++ does to memory: step through linked lists and trees and watch the stack, the heap and every pointer.",
+  "homepage": "https://heaphop.vercel.app",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

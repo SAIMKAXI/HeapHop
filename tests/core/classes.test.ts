@@ -1,4 +1,4 @@
-// Tasks 2.1 to 2.4: classes, methods, `this`, objects on the stack, destructors.
+// Classes, methods, `this`, objects on the stack, destructors.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { field, lastLive, last, trace, variable } from "./helpers";
@@ -33,13 +33,13 @@ int main() {
     return 0;
 }`;
 
-test("2.1 class with public/private sections and member functions runs", () => {
+test("class with public/private sections and member functions runs", () => {
   const t = trace(LIST);
   assert.equal(t.status, "completed");
   assert.equal(t.output, "1 2 \n");
 });
 
-test("2.2 each method call gets its own stack frame named Class::method", () => {
+test("each method call gets its own stack frame named Class::method", () => {
   const t = trace(LIST);
   const names = new Set(t.steps.flatMap((s) => s.stack.map((f) => f.name)));
   for (const n of ["main", "LinkedList::LinkedList", "LinkedList::push_front", "Node::Node", "LinkedList::print"]) {
@@ -50,19 +50,19 @@ test("2.2 each method call gets its own stack frame named Class::method", () => 
   assert.equal(inPush.callerSourceLine, 25);
 });
 
-test("2.2 a method shows `this`, pointing at the object it runs on", () => {
+test("a method shows `this`, pointing at the object it runs on", () => {
   const t = trace(LIST);
   const inPush = t.steps.find((s) => s.activeFunction === "LinkedList::push_front")!;
   assert.equal(variable(inPush, "this").pointsTo, "f0_list");
 });
 
-test("2.2 bare member names and this->member both reach the object", () => {
+test("bare member names and this->member both reach the object", () => {
   const t = trace(`class Box { public: int a; int b; Box() { a = 1; this->b = 2; } int sum() { return a + this->b; } };
 int main() { Box x; cout << x.sum() << endl; return 0; }`);
   assert.equal(t.output, "3\n");
 });
 
-test("2.3 an object declared on the stack appears in main's frame with its fields", () => {
+test("an object declared on the stack appears in main's frame with its fields", () => {
   const list = variable(lastLive(trace(LIST)), "list", 0);
   assert.equal(list.kind, "object");
   assert.equal(list.typeName, "LinkedList");
@@ -71,13 +71,13 @@ test("2.3 an object declared on the stack appears in main's frame with its field
   assert.match(head.pointsTo ?? "", /^h\d+$/);
 });
 
-test("2.3 the constructor runs when the object is declared", () => {
+test("the constructor runs when the object is declared", () => {
   const t = trace(LIST);
   const afterDecl = t.steps.find((s) => s.sourceLine === 24 && s.kind === "statement")!;
   assert.equal(field(variable(afterDecl, "list"), "head").value, "nullptr");
 });
 
-test("2.2 methods defined outside the class with Class::name", () => {
+test("methods defined outside the class with Class::name", () => {
   const t = trace(`class Counter {
     int n;
 public:
@@ -115,7 +115,7 @@ int main() {
     return 0;
 }`;
 
-test("2.4 the destructor of a stack object runs when main ends, one step per delete", () => {
+test("the destructor of a stack object runs when main ends, one step per delete", () => {
   const t = trace(DTOR);
   const deletes = t.steps.filter((s) => s.sourceLine === 10 && s.activeFunction === "LinkedList::~LinkedList");
   assert.equal(deletes.length, 3);
@@ -124,7 +124,7 @@ test("2.4 the destructor of a stack object runs when main ends, one step per del
   assert.match(last(t).explanation, /Every object created with new was deleted/);
 });
 
-test("2.4 delete p runs ~Node() before the memory is released", () => {
+test("delete p runs ~Node() before the memory is released", () => {
   const t = trace(`struct Node { int data; Node(int d) : data(d) {} ~Node() { cout << "bye " << data << endl; } };
 int main() { Node* p = new Node(7); delete p; return 0; }`);
   assert.equal(t.output, "bye 7\n");

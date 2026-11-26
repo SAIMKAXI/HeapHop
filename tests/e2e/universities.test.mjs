@@ -1,4 +1,4 @@
-// 8.13 One name per university: the searchable list on sign-up and Account settings, the
+// One name per university: the searchable list on sign-up and Account settings, the
 // database matching every spelling of a listed university to its name, and the admin
 // merging or adding the spellings that match nothing (which then match future sign-ups too).
 import { test } from "node:test";

@@ -1,4 +1,4 @@
-// 8.8 The site defends itself: a Content-Security-Policy on every page that blocks
+// The site defends itself: a Content-Security-Policy on every page that blocks
 // injected scripts, lesson code that cannot be edited, and hostile input shown as text.
 import { test } from "node:test";
 import assert from "node:assert/strict";

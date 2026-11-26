@@ -53,7 +53,7 @@ int main() { Node* h = new Node(1); h->next = new Node(2); int d = depth(h); ret
 });
 
 test("a reference parameter shows the new value on the same step as the variable it stands for", () => {
-  // Found while checking Gate 7: the callee's copy of `head` used to update one step late.
+  // The callee's copy of `head` used to update one step late.
   const t = trace(`struct Node { int data; Node* next; };
 void pop(Node*& head) {
 Node* temp = head;

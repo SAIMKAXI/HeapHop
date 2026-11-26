@@ -1,4 +1,4 @@
-// 8.8 / 8.10 The security headers the host sends on every path. The per-request CSP with a nonce
+// The security headers the host sends on every path. The per-request CSP with a nonce
 // is written by src/proxy.ts and tested in tests/server and tests/e2e.
 import { test } from "node:test";
 import assert from "node:assert/strict";

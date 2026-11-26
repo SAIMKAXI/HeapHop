@@ -59,7 +59,7 @@ test("formatCpp ignores braces inside strings and comments", () => {
   assert.equal(formatCpp('int main() {\ncout << "{";\n// }\nreturn 0;\n}'), 'int main() {\n    cout << "{";\n    // }\n    return 0;\n}');
 });
 
-test("8.8 saved editor data is checked before use: tampered or oversized storage starts fresh or is trimmed", async () => {
+test("saved editor data is checked before use: tampered or oversized storage starts fresh or is trimmed", async () => {
   const { fromSaved, codeOf, MAX_SNIPPETS } = await import("../../src/ui/editor/snippet-store");
   const fresh = fromSaved(null);
   for (const raw of ["not json", "42", "null", '{"tab":1}', '{"tab":"a","codes":[],"snippets":"x"}']) {

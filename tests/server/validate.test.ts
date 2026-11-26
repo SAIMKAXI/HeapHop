@@ -1,4 +1,4 @@
-// 8.10 The account forms' input checks and the security policy, as the server applies them.
+// The account forms' input checks and the security policy, as the server applies them.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { cleanEmail, cleanName, cleanUniversity, isProtected, isTotpCode, isUuid, passwordProblem, safeNext, validateSignup } from "../../src/server/validate";

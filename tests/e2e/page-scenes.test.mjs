@@ -1,4 +1,4 @@
-// 8.16 About, FAQ and Privacy: a full-width header with a live 3D scene, content that uses the
+// About, FAQ and Privacy: a full-width header with a live 3D scene, content that uses the
 // width of a laptop screen, a short privacy policy, and GitHub links that open a new issue.
 import { test } from "node:test";
 import assert from "node:assert/strict";

@@ -1,4 +1,4 @@
-// 8.9 The landing page shows Byte's assembly loop: the video that matches the theme,
+// The landing page shows Byte's assembly loop: the video that matches the theme,
 // a still frame before it loads and for visitors who ask for less motion.
 import { test } from "node:test";
 import assert from "node:assert/strict";

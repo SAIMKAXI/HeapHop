@@ -1,4 +1,4 @@
-// 8.17 Show / hide password on the login and sign-up forms.
+// Show / hide password on the login and sign-up forms.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setupBrowser } from "./harness.mjs";

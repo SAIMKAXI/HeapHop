@@ -1,15 +1,13 @@
-# Supported C++ subset
+# What C++ HeapHop supports
 
-HeapHop does not compile C++. It interprets a defined subset, chosen from the programs
-in `tests/fixtures/`. Anything outside the subset must produce a readable error with a
-line number, never a wrong picture (rule 7).
+HeapHop does not compile C++. It runs the part of C++ used by the linked-list, stack, queue
+and tree programs of a first data-structures course. Anything outside that part stops with a
+message that names the line, so a picture is never drawn from code HeapHop did not understand.
 
-Status column: **yes** = works and is tested, **no** = not in v1 (gives an
-"is not supported yet" error with the line number).
+**yes**: works. **no**: not supported yet; the program stops with an "is not supported yet"
+message and the line number.
 
-Version: v2 (16 Nov 2026). 28 fixtures print exactly what `g++` prints: 18 starter
-programs, 9 taken from the team's real lab reports (labs 3, 6, 7 and 9) and the Lab 9
-manual's own AVL listing.
+The same list is on the site: [heaphop.vercel.app/supported](https://heaphop.vercel.app/supported).
 
 ## Program structure
 | Construct | Example | Status |

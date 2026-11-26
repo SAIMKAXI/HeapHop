@@ -1,4 +1,4 @@
-// Tasks 6.6 and 6.7: one rule per event type, checked on real steps.
+// Explanations: one rule per event type, checked on real steps.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -68,7 +68,7 @@ test("delete: the object is gone, and pointers that still hold its address are n
   assert.equal(texts[1], "`a` and `b` still hold the old address of Node #1. They are dangling pointers: using them would be an error.");
 });
 
-test("6.7 a lost head is a leak, and the wording says it was never deleted", () => {
+test("a lost head is a leak, and the wording says it was never deleted", () => {
   const m = model(`${NODE}\nint main() {\nNode* head = new Node(1);\nhead = nullptr;\nreturn 0; }`);
   const s = explainStep(m, m.stepsOnLine(4)[0]);
   assert.equal(s[0].text, "No pointer reaches Node #1 any more, and it was never deleted. Its memory is leaked: the program can no longer use it or free it.");
@@ -76,7 +76,7 @@ test("6.7 a lost head is a leak, and the wording says it was never deleted", () 
   assert.doesNotMatch(s.map((x) => x.text).join(" "), /is deleted/);
 });
 
-test("6.7 no leak or dangling wording when the trace does not show one", () => {
+test("no leak or dangling wording when the trace does not show one", () => {
   const m = model(fixture("03_singly_struct_insert_end.cpp"));
   for (let i = 0; i < m.length - 1; i++) {
     const text = explainStep(m, i).map((s) => s.text).join(" ");
@@ -139,7 +139,7 @@ test("explainObject separates deleted from leaked", () => {
   assert.equal(explainObject(leak, "h1", 0)[1].text, "At this step it does not exist yet.");
 });
 
-test("6.5 explainPointer: source, target, previous target, and the statement that changed it", () => {
+test("explainPointer: source, target, previous target, and the statement that changed it", () => {
   const m = model(BASIC);
   const end = m.length - 2;
   const cur = explainPointer(m, "f0_cur", m.stepsOnLine(6)[0])!;
@@ -178,7 +178,7 @@ test("describeEvent gives a short line for every history entry", () => {
   }
 });
 
-test("Gate 6: reverse a list, then ask about Node #2", () => {
+test("reverse a list, then ask about Node #2", () => {
   const m = model(fixture("08_singly_struct_reverse.cpp"));
   const id = m.allObjects().find((o) => o.displayName === "Node #2")!.id;
   const texts = explainObject(m, id, m.length - 2).map((s) => s.text);

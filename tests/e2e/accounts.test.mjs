@@ -1,4 +1,4 @@
-// 8.10 Accounts: sign-up, login, the login gate, MFA, the admin page, and the security rules
+// Accounts: sign-up, login, the login gate, MFA, the admin page, and the security rules
 // around them, through the real Next.js server (Supabase is replaced by a local fake).
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -270,7 +270,7 @@ test("the header: Learn, Editor, About, FAQ, then the profile icon with Account 
   const [toggle, icon] = await heights();
   assert.ok(toggle < icon, `on a laptop the theme switch (${toggle}px) is smaller than the profile icon (${icon}px)`);
   await page.setViewport({ width: 800, height: 600 });
-  assert.ok((await heights()).every((h) => h >= 40), "on touch screens both are big enough to tap (8.21)");
+  assert.ok((await heights()).every((h) => h >= 40), "on touch screens both are big enough to tap");
   assert.equal(await page.$("[role=menu]"), null, "the menu starts closed");
   await openMenu(page);
   assert.deepEqual(await page.$$eval("[role=menuitem]", (m) => m.map((i) => i.textContent)), ["Account settings", "Log out"]);

@@ -1,15 +1,15 @@
-// "What C++ is supported". Generated at build time from docs/SUBSET.md, so the
-// page and the document cannot disagree. Error messages about unsupported C++ link here.
+// "What C++ is supported". Generated at build time from content/supported-cpp.md, so the
+// page and the list cannot disagree. Error messages about unsupported C++ link here.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata } from "next";
 import { PageFrame } from "@/ui/site/page-frame";
 import { Markdown } from "./markdown";
 
-export const metadata: Metadata = { title: "What C++ is supported · HeapHop" };
+export const metadata: Metadata = { title: "What C++ is supported" };
 
 export default function SupportedPage() {
-  const subset = readFileSync(join(process.cwd(), "docs", "SUBSET.md"), "utf8");
+  const subset = readFileSync(join(process.cwd(), "content", "supported-cpp.md"), "utf8");
   const sections = subset.slice(subset.indexOf("\n## ") + 1);
   return (
     <PageFrame

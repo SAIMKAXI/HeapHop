@@ -8,7 +8,7 @@
 // The database does the same in private.uni_key / private.uni_short_key (migration
 // 20261122085049_universities.sql), and that is what decides which university a profile
 // belongs to. The copy here only drives the search box, so the two must stay in step;
-// tests/site/university-search.test.ts and the SQL checks in docs/SECURITY.md cover both.
+// tests/site/university-search.test.ts checks both.
 
 export interface University { id: number; name: string; aliases: string[] }
 

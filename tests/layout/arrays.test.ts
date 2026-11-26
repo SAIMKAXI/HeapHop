@@ -1,4 +1,4 @@
-// Task 11.4: arrays drawn as a row of cells, with index markers and a heap view.
+// Arrays drawn as a row of cells, with index markers and a heap view.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";

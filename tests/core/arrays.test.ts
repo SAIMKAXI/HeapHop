@@ -1,4 +1,4 @@
-// Arrays passed to functions, string indexing, and which cells a step read (Stage 11.4).
+// Arrays passed to functions, string indexing, and which cells a step read.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { last, rejected, trace } from "./helpers";

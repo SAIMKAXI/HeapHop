@@ -1,4 +1,4 @@
-// 8.21 Every screen size: every page fits from a 320 px phone to a 4K monitor, upright and
+// Every screen size: every page fits from a 320 px phone to a 4K monitor, upright and
 // sideways; phones get a menu button and Code / Memory tabs; a phone held sideways shows code and
 // memory side by side; big screens scale up together.
 import { test } from "node:test";

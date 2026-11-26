@@ -1,4 +1,4 @@
-// Gate 2: every fixture prints exactly what g++ printed, and every built-in example still runs.
+// every fixture prints exactly what g++ printed, and every built-in example still runs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
