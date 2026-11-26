@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2
+
+- The Supported C++ section links to the full list on the website instead of repeating it.
+- The LICENSE link on the Marketplace page works again.
+- The shipped code is obfuscated on top of minifying, so it can't be read or copied; no source is included.
+
 ## 1.1.1
 
 - The pictures on the Marketplace page show again.

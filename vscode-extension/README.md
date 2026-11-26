@@ -49,36 +49,13 @@ Every time you save the file, HeapHop runs it again and keeps your place.
 
 ## Supported C++
 
-HeapHop does not compile your code. It runs the C++ that data-structure courses use:
+HeapHop does not compile your code. It runs the C++ a data-structures course uses — structs
+and classes, pointers and `new` / `delete`, recursion, templates, inheritance, exceptions, and
+the standard containers (`vector`, `list`, `stack`, `queue`, `priority_queue`, `map`, `set`,
+`pair`) with `<algorithm>`. Code it cannot run stops with a message that names the line, and
+that line is underlined in the editor.
 
-- `struct` and `class`: constructors (with initialiser lists and default arguments),
-  destructors, member functions, `this`, `static` members, classes declared inside a class
-  (`class AVLTree { struct Node { ... }; }`), operator overloading (`<`, `==`, `+`, `()` ...)
-- inheritance: base-class constructors, `virtual` functions, `override`, pure virtual
-  functions and abstract classes, virtual destructors
-- templates: function templates and class templates (`template <typename T> class Stack`)
-- pointers, pointer arithmetic on arrays (`*(p + 2)`, `p++`, `p - arr`), references,
-  `new` / `delete`, `new[]` / `delete[]`
-- arrays (one and two dimensions), `sizeof(arr) / sizeof(arr[0])`, recursion, `if` / `switch` /
-  loops, `enum` and `enum class`, `static` variables
-- `int`, `long long`, `unsigned`, `size_t`, `short`, `double`, `char`, `bool`, casts
-  (`(double)x`, `static_cast<int>(x)`), `INT_MAX` / `INT_MIN` and `numeric_limits`, `typedef` / `using`
-- `string` (including `s[i] = 'x'`, `push_back`, `substr`, `find`...), `<cmath>` (`sqrt`, `pow`...),
-  `<cctype>` (`isdigit`, `toupper`...), `rand` / `srand`, `exit`
-- `cout` with `fixed`, `setprecision`, `setw`; `cin` / `getline` with typed-in input, and
-  `while (cin >> x)`
-- `try` / `catch` / `throw`, with the standard exceptions (`runtime_error`, `out_of_range`...)
-- `vector`, `list`, `deque`, `stack`, `queue`, `priority_queue` (with `greater<T>` or a
-  comparator struct), `pair`, `map`, `set`, their iterators, `auto`, range-based `for` and
-  structured bindings (`auto [u, w] = edge;`)
-- `<algorithm>`: `sort`, `stable_sort`, `reverse`, `find`, `count`, `min_element` /
-  `max_element`, `binary_search`, `lower_bound` / `upper_bound`, `next_permutation`,
-  `accumulate`, `fill` ... with functions, lambdas or `greater<T>()` as comparators
-
-Not supported yet: `unordered_map` / `unordered_set` (use `map` / `set`), printing an object
-with your own `operator<<`, multiple inheritance, namespaces, bitwise operators, smart pointers,
-`printf` / `scanf`. Code like this stops with a message that names the line, and that line is
-underlined in the editor.
+**[See the full list of supported C++ →](https://heaphop.vercel.app/supported)**
 
 ![An AVL tree whose Node struct is declared inside the AVLTREE class](media/readme/avl.png)
 

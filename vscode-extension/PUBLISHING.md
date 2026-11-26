@@ -73,9 +73,14 @@ Commit the `package.json` change so the publisher ID is saved in the repository.
 3. Add a line about what changed at the top of `CHANGELOG.md`.
 4. Build: `npm run package`.
 
-   The Marketplace page loads the README's pictures from GitHub, from the commit named in
-   the `--baseImagesUrl` of the `package` script in `package.json`. If you add or change a
-   picture in `media/readme/`, push it first, then put that commit's ID in the script.
+   The Marketplace page loads the README's pictures and its `LICENSE.txt` link from GitHub,
+   from the commit named in `--baseImagesUrl` and `--baseContentUrl` of the `package` script
+   in `package.json` (both point at the same commit). If you change a picture in
+   `media/readme/` or `LICENSE.txt`, push it first, then put that commit's ID in both URLs.
+
+   `npm run package` also obfuscates the shipped code so it can't be read or copied; the source
+   is never included in the `.vsix` (see `.vscodeignore`). For a readable build while developing,
+   use `HEAPHOP_NO_OBFUSCATE=1 npm run build`.
 5. On **https://marketplace.visualstudio.com/manage**, click the **`...`** next to HeapHop →
    **Update**, and drop in the new `heaphop.vsix`.
 
