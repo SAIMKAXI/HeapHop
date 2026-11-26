@@ -72,6 +72,10 @@ Commit the `package.json` change so the publisher ID is saved in the repository.
    number twice.
 3. Add a line about what changed at the top of `CHANGELOG.md`.
 4. Build: `npm run package`.
+
+   The Marketplace page loads the README's pictures from GitHub, from the commit named in
+   the `--baseImagesUrl` of the `package` script in `package.json`. If you add or change a
+   picture in `media/readme/`, push it first, then put that commit's ID in the script.
 5. On **https://marketplace.visualstudio.com/manage**, click the **`...`** next to HeapHop →
    **Update**, and drop in the new `heaphop.vsix`.
 

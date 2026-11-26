@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- The pictures on the Marketplace page show again.
+
 ## 1.1.0
 
 Much more of the C++ that data-structure courses use:

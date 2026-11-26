@@ -2,7 +2,7 @@
   "name": "heaphop",
   "displayName": "HeapHop: C++ Memory Visualizer",
   "description": "See your C++ linked lists, trees, vectors, stacks and maps come alive: step through the program and watch the stack, the heap, every node and every pointer change.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "heaphop",
   "license": "SEE LICENSE IN LICENSE.txt",
   "private": true,
@@ -152,7 +152,7 @@
     "test": "node ../node_modules/tsx/dist/cli.mjs --test \"test/*.test.ts\"",
     "webview:check": "node ../node_modules/tsx/dist/cli.mjs scripts/webview-check.mts",
     "check": "npm run typecheck && npm test && npm run build && npm run webview:check",
-    "package": "npm run build && vsce package --no-dependencies --out heaphop.vsix",
+    "package": "npm run build && vsce package --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/SAIMKAXI/HeapHop/cd6ffab0fdb754f524093a98ade0fc951f7d44f1/vscode-extension/ --out heaphop.vsix",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version"
   },
