@@ -94,7 +94,7 @@ HeapHop is the Data Structures semester project of five BS Cyber Security studen
 Air University, Islamabad: M. Saim, Yemna Khan, Muhammad Musa, Eeman Athar Malik and
 Syeda Nazalia Zehra.
 
-Design ideas came from [See++](https://seepluspl.us) and Python Tutor.
+Design ideas came from Python Tutor.
 
 ## Questions and feedback
 
