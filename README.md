@@ -85,8 +85,7 @@ are taught: a `std::list` as its doubly linked nodes, an adjacency list as a gra
 `priority_queue` as its heap tree. This extended mode is on only in the extension; the website is
 unchanged.
 
-The extension lives in [`vscode-extension/`](vscode-extension/); building and publishing it are
-described in [vscode-extension/PUBLISHING.md](vscode-extension/PUBLISHING.md).
+The extension lives in [`vscode-extension/`](vscode-extension/).
 
 ## The team
 

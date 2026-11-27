@@ -4,7 +4,6 @@ scripts/**
 test/**
 node_modules/**
 tsconfig.json
-PUBLISHING.md
 *.vsix
 media/webview/panel.html
 media/webview/vscode-vars.css
