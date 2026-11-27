@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { PageFrame } from "@/ui/site/page-frame";
 import { PageScene } from "@/ui/three/page-scene";
+import { EXTENSION_HREF } from "@/ui/site/links";
 
 export const metadata: Metadata = { title: "FAQ", description: "Questions about HeapHop: what it runs, where your code goes, and what the pictures mean." };
 
@@ -27,11 +28,15 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Can it run any C++ program?",
-    a: <>No. HeapHop does not compile C++; it runs a part of the language that covers structs, classes, pointers, new and delete, arrays, functions, loops, recursion and cin. Templates, the STL (vector, list, stack, queue) and inheritance are not supported. The full list is on <a href="/supported" className={link}>What C++ is supported</a>.</>,
+    a: <>No. HeapHop does not compile C++; it runs a part of the language that covers structs, classes, pointers, new and delete, arrays, functions, loops, recursion and cin. On the website, templates, the STL (vector, list, stack, queue) and inheritance are not supported; the full list is on <a href="/supported" className={link}>What C++ is supported</a>. The <a href={EXTENSION_HREF} className={link}>VS Code extension</a> runs those too.</>,
+  },
+  {
+    q: "Can I use HeapHop in VS Code?",
+    a: <>Yes. Install <a href={EXTENSION_HREF} className={link}>HeapHop for VS Code</a> from the Marketplace, open a .cpp file and press Ctrl+Alt+H. The picture opens in a panel beside your code and highlights each line as you step. It needs no account, and besides everything the website runs it also runs vector, map, set, stack, queue, priority_queue, templates, inheritance, exceptions and pointer arithmetic. It has the visualizer only: the lessons stay on this website.</>,
   },
   {
     q: "My program stopped with “is not supported yet”. What now?",
-    a: "The message names the line HeapHop could not run. Rewrite that line with the constructs on the supported list, for example a pointer and new instead of a vector. HeapHop stops rather than guess, so a picture is never drawn from code it did not understand.",
+    a: "The message names the line HeapHop could not run. Rewrite that line with the constructs on the supported list, for example a pointer and new instead of a vector, or run the program in the VS Code extension, which supports much more. HeapHop stops rather than guess, so a picture is never drawn from code it did not understand.",
   },
   {
     q: "Does it print the same output as a real compiler?",

@@ -287,7 +287,10 @@ test("forgot password: one plain answer for any email, then the emailed link let
   const who = { email: "forgetful@heaphop.test", password: "Old-Heap-Pass-1", fullName: "Forgetful Student", university: "UET" };
   await env.supabase().addUser(who);
   const page = await freshPage("/login");
-  await Promise.all([page.waitForNavigation({ waitUntil: "load" }), page.click("[data-forgot-link]")]);
+  await page.click("[data-forgot-link]");
+  // Wait for the route to actually change rather than racing a single navigation event,
+  // which on a slow CI runner can resolve before the forgot-password page is in place.
+  for (let i = 0; i < 150 && new URL(page.url()).pathname !== "/forgot-password"; i++) await new Promise((r) => setTimeout(r, 100));
   assert.equal(new URL(page.url()).pathname, "/forgot-password");
   const ask = async (email) => {
     await page.goto(origin() + "/forgot-password", { waitUntil: "load" });
@@ -359,8 +362,15 @@ test("the login page shows the live 3D list beside the form, and sign-up shows B
     const seen = await page.evaluate(() => new Promise((done) => {
       const c = document.querySelector("canvas[data-heap-scene]");
       const order = [];
-      const t = setInterval(() => { const n = c.dataset.curNode; if (n && n !== "-1" && order.at(-1) !== n) order.push(n); }, 40);
-      setTimeout(() => { clearInterval(t); done(order); }, 7500);
+      // Stop as soon as the walk from head through 0,1,2,3,4 has been seen, and otherwise give
+      // it up to 25s — a slow CI runner animates the list far slower than a desktop.
+      const t = setInterval(() => {
+        const n = c.dataset.curNode;
+        if (n && n !== "-1" && order.at(-1) !== n) order.push(n);
+        const s = order.indexOf("0");
+        if (s >= 0 && order.slice(s, s + 5).join() === "0,1,2,3,4") { clearInterval(t); done(order); }
+      }, 40);
+      setTimeout(() => { clearInterval(t); done(order); }, 25000);
     }));
     const start = seen.indexOf("0");
     assert.ok(start >= 0, `cur rests on head: ${seen}`);
