@@ -65,5 +65,12 @@ test("session cookies are httpOnly, Secure and SameSite; the CSP allows only thi
   assert.doesNotMatch(csp, /unsafe-eval|supabase/);
   assert.match(csp, /connect-src 'self';/);
   assert.match(csp, /frame-ancestors 'none'/);
+  assert.doesNotMatch(csp, /hcaptcha|frame-src/);
   assert.match(contentSecurityPolicy("n", { dev: true }), /'unsafe-eval'/);
+  // With CAPTCHA on, hCaptcha is allowed to frame, connect and style — nothing else loosens.
+  const withCaptcha = contentSecurityPolicy("n", { captcha: true });
+  assert.match(withCaptcha, /frame-src https:\/\/hcaptcha\.com https:\/\/\*\.hcaptcha\.com/);
+  assert.match(withCaptcha, /connect-src 'self' https:\/\/hcaptcha\.com https:\/\/\*\.hcaptcha\.com/);
+  assert.match(withCaptcha, /style-src 'self' 'unsafe-inline' https:\/\/hcaptcha\.com https:\/\/\*\.hcaptcha\.com/);
+  assert.doesNotMatch(withCaptcha.split(";").find((d) => d.includes("script-src"))!, /unsafe|hcaptcha/);
 });

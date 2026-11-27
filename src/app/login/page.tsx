@@ -15,5 +15,5 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const note = (await headers()).get(DISABLED_HEADER);
   const reference = isReference(note) ? note : null;
   const disabled = note ? { reference, reviewUrl: reviewIssueUrl(reference) } : undefined;
-  return <LoginForm next={safeNext(q.next)} notice={notice} noticeKind="ok" disabled={disabled} />;
+  return <LoginForm next={safeNext(q.next)} notice={notice} noticeKind="ok" disabled={disabled} captchaSiteKey={process.env.HCAPTCHA_SITE_KEY} />;
 }

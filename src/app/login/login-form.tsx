@@ -3,13 +3,15 @@ import { useActionState } from "react";
 import { logIn, type FormState } from "@/server/actions/auth";
 import { PasswordField } from "@/ui/auth/password-field";
 import { AuthCard, Banner, Field, Submit } from "@/ui/auth/form-bits";
+import { Captcha } from "@/ui/auth/captcha";
 import { LoginAside } from "@/ui/auth/login-aside";
 import { DisabledNotice } from "@/ui/auth/disabled-notice";
 
-export function LoginForm({ next, notice, noticeKind, disabled }: {
+export function LoginForm({ next, notice, noticeKind, disabled, captchaSiteKey }: {
   next: string; notice?: string; noticeKind: "ok" | "error";
   /** The account was disabled while signed in (the proxy sent the visitor here). */
   disabled?: FormState["disabled"];
+  captchaSiteKey?: string;
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(logIn, {});
   return (
@@ -23,6 +25,7 @@ export function LoginForm({ next, notice, noticeKind, disabled }: {
         <Field label="Email" name="email" type="email" inputMode="email" autoComplete="email" maxLength={254} defaultValue={state.values?.email} />
         <PasswordField label="Password" name="password" autoComplete="current-password" maxLength={200} />
         <p className="-mt-2 mb-3 text-right text-xs"><a href="/forgot-password" className="inline-flex min-h-10 items-center text-muted-foreground hover:text-accent hover:underline lg:min-h-0" data-forgot-link>Forgot your password?</a></p>
+        <Captcha siteKey={captchaSiteKey} resetSignal={state} />
         <Submit pending={pending}>Log in</Submit>
       </form>
     </AuthCard>

@@ -3,12 +3,13 @@ import { useActionState } from "react";
 import { signUp, type FormState } from "@/server/actions/auth";
 import { PasswordField } from "@/ui/auth/password-field";
 import { AuthCard, Banner, Field, Submit } from "@/ui/auth/form-bits";
+import { Captcha } from "@/ui/auth/captcha";
 import { SignupAside } from "@/ui/auth/signup-aside";
 import { UniversityPicker } from "@/ui/auth/university-picker";
 import type { University } from "@/ui/auth/university-search";
 import { LIMITS } from "@/server/validate";
 
-export function SignupForm({ universities }: { universities: University[] }) {
+export function SignupForm({ universities, captchaSiteKey }: { universities: University[]; captchaSiteKey?: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(signUp, {});
   if (state.ok) {
     return (
@@ -29,6 +30,7 @@ export function SignupForm({ universities }: { universities: University[] }) {
         <PasswordField label="Password" name="password" autoComplete="new-password" maxLength={72} error={state.fields?.password}
           hint="At least 10 characters, mixing three of: lowercase, uppercase, numbers, symbols." />
         <PasswordField label="Confirm password" name="confirm" autoComplete="new-password" maxLength={72} error={state.fields?.confirm} />
+        <Captcha siteKey={captchaSiteKey} resetSignal={state} />
         <Submit pending={pending}>Create account</Submit>
       </form>
     </AuthCard>

@@ -25,6 +25,17 @@ export interface FormState {
 
 const TOO_MANY = "Too many attempts. Wait a few minutes and try again.";
 const BROKEN = "Something went wrong on our side. Please try again.";
+const CAPTCHA = "Please complete the “I am human” check and try again.";
+
+/** The CAPTCHA token the browser widget put in the form (empty when CAPTCHA is off). */
+function captchaToken(form: FormData): string | undefined {
+  const t = form.get("captchaToken");
+  return typeof t === "string" && t ? t : undefined;
+}
+
+function isCaptchaError(error: { code?: string; message?: string } | null | undefined): boolean {
+  return Boolean(error && (error.code === "captcha_failed" || /captcha/i.test(error.message ?? "")));
+}
 
 async function siteOrigin(): Promise<string> {
   if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, "");
@@ -49,10 +60,12 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
       options: {
         data: { full_name: input.fullName, university: input.university },
         emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+        captchaToken: captchaToken(form),
       },
     });
     if (error) {
       logCode("signup", error);
+      if (isCaptchaError(error)) return { error: CAPTCHA, values };
       if (error.code === "weak_password") return { fields: { password: "Choose a stronger password." }, values };
       if (error.code === "over_email_send_rate_limit" || error.status === 429) return { error: "We can't send more emails right now. Try again in an hour.", values };
       return { error: BROKEN, values };
@@ -79,9 +92,10 @@ export async function logIn(_prev: FormState, form: FormData): Promise<FormState
   try {
     if (!(await allow("loginIp", await clientIp())) || !(await allow("loginEmail", email.value))) return { error: TOO_MANY, values };
     const supabase = await serverSupabase();
-    const { data, error } = await supabase.auth.signInWithPassword({ email: email.value, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.value, password, options: { captchaToken: captchaToken(form) } });
     if (error || !data.user) {
       logCode("login", error);
+      if (isCaptchaError(error)) return { error: CAPTCHA, values };
       if (error?.code === "email_not_confirmed") return { error: "Confirm your email first: open the link we sent you.", values };
       // Accounts are not banned inside Supabase (see admin_set_disabled), so a "banned" answer
       // can't prove the password was right: say nothing more than for a wrong password.
@@ -151,9 +165,12 @@ export async function requestReset(_prev: FormState, form: FormData): Promise<Fo
     if (!(await allow("resetIp", await clientIp())) || !(await allow("resetEmail", email.value))) return { error: TOO_MANY, values: { email: email.value } };
     (await cookies()).set(AFTER_AUTH_COOKIE, "/reset-password", { ...SESSION_COOKIE, maxAge: 60 * 30 });
     const supabase = await serverSupabase();
-    const { error } = await supabase.auth.resetPasswordForEmail(email.value, { redirectTo: `${await siteOrigin()}/auth/callback` });
+    const { error } = await supabase.auth.resetPasswordForEmail(email.value, { redirectTo: `${await siteOrigin()}/auth/callback`, captchaToken: captchaToken(form) });
     if (error) {
       logCode("reset", error);
+      // A failed CAPTCHA is the sender's own problem to fix, so unlike a missing account it is
+      // surfaced rather than hidden behind the uniform success message.
+      if (isCaptchaError(error)) return { error: CAPTCHA, values: { email: email.value } };
       if (error.status === 429) return { error: "We can't send more emails right now. Try again in an hour.", values: { email: email.value } };
     }
   } catch (e) {

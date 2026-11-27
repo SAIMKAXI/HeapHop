@@ -12,18 +12,22 @@ export const AFTER_AUTH_COOKIE = "hh_after_auth";
  * this response's nonce ('strict-dynamic' lets those scripts load their own chunks). The browser
  * never talks to Supabase: all auth requests go through our server, so connect-src stays 'self'.
  */
-export function contentSecurityPolicy(nonce: string, { dev = false, https = true } = {}): string {
+export function contentSecurityPolicy(nonce: string, { dev = false, https = true, captcha = false } = {}): string {
+  // hCaptcha (only when CAPTCHA protection is on): the widget runs in an iframe and talks to
+  // hCaptcha; its script is loaded by our own bundle, so 'strict-dynamic' already covers it.
+  const hc = "https://hcaptcha.com https://*.hcaptcha.com";
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
     // React writes style="" attributes; styles cannot run code.
-    "style-src 'self' 'unsafe-inline'",
+    `style-src 'self' 'unsafe-inline'${captcha ? ` ${hc}` : ""}`,
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    `connect-src 'self'${dev ? " ws:" : ""}`,
+    `connect-src 'self'${dev ? " ws:" : ""}${captcha ? ` ${hc}` : ""}`,
     "media-src 'self'",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
+    ...(captcha ? [`frame-src ${hc}`] : []),
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'self'",

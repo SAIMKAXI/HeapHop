@@ -5,5 +5,5 @@ import { SignupForm } from "./signup-form";
 export const metadata: Metadata = { title: "Sign up", description: "Create a HeapHop account." };
 
 export default async function SignupPage() {
-  return <SignupForm universities={await listUniversities()} />;
+  return <SignupForm universities={await listUniversities()} captchaSiteKey={process.env.HCAPTCHA_SITE_KEY} />;
 }

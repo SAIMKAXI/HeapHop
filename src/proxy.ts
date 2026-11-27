@@ -13,7 +13,11 @@ import { isProtected } from "@/server/validate";
 export async function proxy(request: NextRequest) {
   const nonce = newNonce();
   const https = request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
-  const csp = contentSecurityPolicy(nonce, { dev: process.env.NODE_ENV === "development", https });
+  const csp = contentSecurityPolicy(nonce, {
+    dev: process.env.NODE_ENV === "development",
+    https,
+    captcha: Boolean(process.env.HCAPTCHA_SITE_KEY),
+  });
   const forwarded = new Headers(request.headers);
   forwarded.set("x-nonce", nonce);
   forwarded.set("content-security-policy", csp);
