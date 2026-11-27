@@ -1,0 +1,20 @@
+Shape(rectangle)
+Shape(circle)
+Shape(rectangle)
+rectangle with area 6
+circle with area 3.14159
+a square! square with area 16
+total 25.1416
+~Rectangle
+~Shape(rectangle)
+~Shape(circle)
+~Rectangle
+~Shape(square)
+...
+runs
+...
+runs
+Woof
+~Base
+~Derived
+~Base

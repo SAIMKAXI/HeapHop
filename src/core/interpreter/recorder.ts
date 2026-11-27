@@ -100,8 +100,24 @@ export class Recorder {
   constructor(
     private mem: Memory,
     private classes: Map<string, ClassDef>,
-    private limits: RunLimits
+    private limits: RunLimits,
+    /** Enum types, to show `RED` rather than 0 (extended mode). */
+    private enums: Map<string, Map<number, string>> = new Map()
   ) {}
+
+  /** A type as labels show it: a nested class by its own name (`Node`, not `AVLTree::Node`). */
+  private typeLabel(t: TypeRef): string {
+    const short = t.ptr >= 0 ? this.classes.get(t.base)?.shortName : undefined;
+    return typeText(short ? { ...t, base: short } : t);
+  }
+
+  /** The type of one element of an array value of type `type`. */
+  private elemType(type: TypeRef, isArray: boolean): TypeRef {
+    if (isArray || type.ptr > 0) return type;
+    const b = this.classes.get(type.base)?.builtin;
+    const elem = b && b.kind !== "list" ? (b as { elem?: TypeRef }).elem : undefined;
+    return elem ?? type;
+  }
 
   /** Record one step. `force` is used for the final step, which must not be dropped by the cap. */
   capture(meta: StepMeta, force = false) {
@@ -261,13 +277,13 @@ export class Recorder {
     const variables: MemoryItem[] = [];
     if (frame.thisAddr && frame.className) {
       const type: TypeRef = { base: frame.className, ptr: 1, ref: false };
-      variables.push(this.build({ k: "ptr", a: frame.thisAddr }, type, false, `f${index}_this`, "this", `${frame.className}* this`, refs));
+      variables.push(this.build({ k: "ptr", a: frame.thisAddr }, type, false, `f${index}_this`, "this", `${this.typeLabel(type)} this`, refs));
     }
     for (const scope of frame.scopes) {
       for (const slot of scope) {
         const id = `f${index}_${slot.key}`;
         const suffix = slot.isArray ? dims(slot.value) : "";
-        const label = `${typeText(slot.type)} ${slot.name}${suffix}`;
+        const label = `${this.typeLabel(slot.type)} ${slot.name}${suffix}`;
         let value = slot.value;
         if (slot.ref) {
           // A reference parameter shows the value of the variable it refers to.
@@ -282,14 +298,14 @@ export class Recorder {
 
   private buildHeap(cell: HeapCell, refs: Set<string>): MemoryItem {
     const size = cell.isArray && typeof cell.value === "object" && cell.value.k === "arr" ? cell.value.e.length : 0;
-    const label = cell.isArray ? `${typeText(cell.type)}[${size}]` : typeText(cell.type);
+    const label = cell.isArray ? `${this.typeLabel(cell.type)}[${size}]` : this.typeLabel(cell.type);
     const item = this.build(cell.value, cell.type, cell.isArray, cell.id, "", label, refs);
     item.address = `0x${(cell.n * 0x100).toString(16)}`;
     return item;
   }
 
   private pointer(base: Omit<MemoryItem, "kind">, p: Ptr, refs: Set<string>): MemoryItem {
-    if (p.a === null) return { ...base, kind: "pointer", value: "nullptr" };
+    if (p.a === null) return { ...base, kind: "pointer", value: p.iter ? "end()" : "nullptr" };
     const rootKey = p.a.split(".")[0];
     if (!this.mem.alive(p.a)) {
       const item: MemoryItem = { ...base, kind: "pointer", value: "dangling", dangling: true };
@@ -303,22 +319,29 @@ export class Recorder {
   private build(v: Value, type: TypeRef, isArray: boolean, id: string, name: string, label: string, refs: Set<string>): MemoryItem {
     const typeName = typeText({ ...type, ref: false });
     const base = { id, label, name, typeName };
-    if (typeof v === "number") return { ...base, kind: "scalar", value: String(v) };
+    if (typeof v === "number") {
+      const named = type.ptr === 0 ? this.enums.get(type.base)?.get(v) : undefined;
+      return { ...base, kind: "scalar", value: named ?? String(v) };
+    }
     if (typeof v === "boolean") return { ...base, kind: "scalar", value: v ? "true" : "false" };
     switch (v.k) {
-      case "uninit": return { ...base, kind: type.ptr > 0 ? "pointer" : "scalar", value: "?" };
+      case "uninit": return { ...base, kind: type.ptr > 0 || type.base.endsWith("::iterator") ? "pointer" : "scalar", value: "?" };
       case "dbl": return { ...base, kind: "scalar", value: formatDouble(v.v) };
       case "chr": return { ...base, kind: "scalar", value: showChar(v.c) };
       case "str": return { ...base, kind: "scalar", value: JSON.stringify(v.s) };
+      case "wide": return { ...base, kind: "scalar", value: v.v.toString() };
       case "ptr": return this.pointer(base, v, refs);
       case "arr": {
-        const children = v.e.map((el, i) => this.build(el, type, false, `${id}_${i}`, `[${i}]`, `[${i}]`, refs));
+        const elem = this.elemType(type, isArray);
+        const children = v.e.map((el, i) => this.build(el, elem, false, `${id}_${i}`, `[${i}]`, `[${i}]`, refs));
         return { ...base, typeName: `${typeName}[${v.e.length}]`, kind: "array", children };
       }
       case "obj": {
         const cls = this.classes.get(v.type);
         const children = (cls?.fields ?? []).map((f) => {
-          const fl = `${typeText(f.type)} ${f.name}${f.arraySize !== null ? `[${f.arraySize}]` : ""}${f.arraySize2 !== null ? `[${f.arraySize2}]` : ""}`;
+          // Inside a std::list and its nodes, "node* next" is shown for "list<int>::node* next".
+          const shownType = cls?.builtin ? typeText(f.type).replace(/^list<.*>::node/, "node") : this.typeLabel(f.type);
+          const fl = `${shownType} ${f.name}${f.arraySize !== null ? `[${f.arraySize}]` : ""}${f.arraySize2 !== null ? `[${f.arraySize2}]` : ""}`;
           return this.build(v.f[f.name] ?? { k: "uninit" }, f.type, f.arraySize !== null, `${id}_${f.name}`, f.name, fl, refs);
         });
         return { ...base, typeName: isArray ? typeName : v.type, kind: "object", children };

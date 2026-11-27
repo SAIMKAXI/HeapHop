@@ -17,3 +17,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+
+  # The VS Code extension: types, tests, build, and its panel in headless Chrome.
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm ci
+        working-directory: vscode-extension
+      - run: npm run check
+        working-directory: vscode-extension
+      - run: npm run package
+        working-directory: vscode-extension
+      - uses: actions/upload-artifact@v4
+        with:
+          name: heaphop-vsix
+          path: vscode-extension/heaphop.vsix

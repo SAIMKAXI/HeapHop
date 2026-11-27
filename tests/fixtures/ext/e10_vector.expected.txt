@@ -1,0 +1,20 @@
+size 1 capacity 1
+size 2 capacity 2
+size 3 capacity 4
+size 4 capacity 4
+size 5 capacity 8
+10 20 30 40 50 (size 5)
+15 20 30 40 (size 4)
+15 40 20 30
+99 20 30 41 (size 4)
+7 7 7 7 (size 4)
+4 5 0
+0 2 4 6 8 (size 5)
+0 0 0 0 
+0 1 2 3 
+0 2 4 6 
+5 2 8 0 0 (size 5)
+total 15
+5,2,8,0,0,
+1 18446744073709551615
+0 6

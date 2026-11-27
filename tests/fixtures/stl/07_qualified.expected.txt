@@ -1,0 +1,4 @@
+third: 9
+next: 16, prev: 4
+distance to end: 3
+last via --end(): 25

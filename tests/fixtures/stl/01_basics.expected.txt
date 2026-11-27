@@ -1,0 +1,6 @@
+empty at start: 1
+size: 4
+front: 5, back: 30
+5 10 20 30 
+99 21 
+size now: 2

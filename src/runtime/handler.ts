@@ -1,8 +1,8 @@
 // What the Worker does with one request. A plain function so it can be unit tested
 // without a Worker. Together with worker.ts this is the only code outside src/core that
 // may import the interpreter (enforced by the boundary check).
-import { run } from "@/core/interpreter";
-import { clampLimits } from "@/core/types";
+import { run, type RunFeatures } from "@/core/interpreter";
+import { clampLimits, DEFAULT_LIMITS, EXTENSION_LIMITS } from "@/core/types";
 import { PROTOCOL_VERSION, type RunRequest, type RunResponse } from "./protocol";
 
 /** Messages are checked, not trusted: anything that is not exactly a run request is refused. */
@@ -13,7 +13,8 @@ function isRunRequest(m: unknown): m is RunRequest {
     && typeof r.limits === "object" && r.limits !== null && Number.isSafeInteger(r.id);
 }
 
-export function handle(request: RunRequest): RunResponse {
+/** `features` is fixed by the Worker entry: the website's passes none, the VS Code extension's turns on std::list. */
+export function handle(request: RunRequest, features: RunFeatures = {}): RunResponse {
   const id = typeof request === "object" && request !== null && Number.isSafeInteger(request.id) ? request.id : -1;
   const reply = (result: RunResponse["result"]): RunResponse => ({ v: PROTOCOL_VERSION, id, type: "result", result });
   if (typeof request === "object" && request !== null && request.v !== PROTOCOL_VERSION) {
@@ -26,5 +27,6 @@ export function handle(request: RunRequest): RunResponse {
     return reply({ ok: false, error: { kind: "internal", message: "This is not a valid run request, so nothing was run." } });
   }
   // run() clamps the limits too; a page can lower them but never raise them.
-  return reply(run(request.code, clampLimits(request.limits), request.input));
+  const ceiling = features.extended ? EXTENSION_LIMITS : DEFAULT_LIMITS;
+  return reply(run(request.code, clampLimits(request.limits, ceiling), request.input, features));
 }

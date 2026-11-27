@@ -93,6 +93,29 @@ export class TraceModel {
         for (const id of touched) this.objects.get(id)?.history.push(entry);
       }
     });
+
+    // std::list nodes: "node #3" reads better than "list<int>::node #3". The element type is
+    // added only when the program uses two kinds of list ("int node #3", "string node #1").
+    const LIST_NODE = /^list<(.+)>::node$/;
+    const listKinds = new Set([...this.objects.values()].map((o) => o.typeName).filter((t) => LIST_NODE.test(t)));
+    for (const rec of this.objects.values()) {
+      const m = LIST_NODE.exec(rec.typeName);
+      if (m) rec.displayName = listKinds.size > 1 ? `${m[1]} node #${rec.number}` : `node #${rec.number}`;
+    }
+    // A class declared inside a class (AVLTree::Node) is called by its own name, "Node #3",
+    // unless two classes share that name.
+    const shortOf = (t: string) => {
+      if (!t.includes("::") || LIST_NODE.test(t)) return null;
+      const tail = t.slice(t.lastIndexOf("::") + 2);
+      return tail.includes("<") ? null : tail;
+    };
+    const types = new Set([...this.objects.values()].map((o) => o.typeName));
+    for (const rec of this.objects.values()) {
+      const short = shortOf(rec.typeName);
+      if (!short) continue;
+      const clash = [...types].some((t) => t !== rec.typeName && (t === short || shortOf(t) === short));
+      if (!clash) rec.displayName = `${short} #${rec.number}`;
+    }
   }
 
   get length(): number {

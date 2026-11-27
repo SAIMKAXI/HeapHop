@@ -1,0 +1,39 @@
+/* The HeapHop panel's stylesheet: the website's design, plus a few rules so it sits well
+   inside VS Code. scripts/build.mjs puts the website's src/app/globals.css in front of this
+   file and tells Tailwind to look at this folder too, then builds it like the website. */
+
+/* VS Code gives every webview 20 px of side padding and its own font; the panel uses the
+   whole area and VS Code's fonts. */
+html[data-vscode-theme] body {
+  padding: 0;
+  margin: 0;
+}
+
+html[data-vscode-theme] {
+  --font-geist-sans: var(--vscode-font-family, system-ui);
+  --font-geist-mono: var(--vscode-editor-font-family, ui-monospace, "Cascadia Code", Consolas, monospace);
+  /* VS Code's text is smaller than a website's; rem sizes follow it. Media queries still use px. */
+  font-size: 87.5%;
+  /* Sit on the same background as the editor, so the panel looks like part of VS Code. */
+  --background: var(--vscode-editor-background, #0b1622);
+  --code-bg: var(--vscode-editor-background, #09121c);
+}
+
+/* High-contrast themes: draw panel borders in VS Code's contrast colour. */
+html[data-vscode-theme="high-contrast"] {
+  --card-border: var(--vscode-contrastBorder, #6fc3df);
+}
+
+/* There is no code column in the panel (the code is in the editor), so the short, wide
+   layout that has one is given two columns instead of three. */
+@media (max-width: 1023.98px) and (max-height: 520px) and (orientation: landscape) {
+  [data-embedded] [data-vis-row] {
+    grid-template-columns: 10.5rem minmax(0, 1fr) !important;
+  }
+  [data-embedded] [data-panel="stack"] {
+    grid-column-start: 1 !important;
+  }
+  [data-embedded] [data-panel="heap"] > div:first-child {
+    grid-column-start: 2 !important;
+  }
+}

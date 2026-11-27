@@ -1,0 +1,9 @@
+Name       Marks
+Ali         78.5
+Sara        91.2
+Musa        66.0
+Average: 78.58
+3.142 1.235e+06 0.0001234
+00042
+true 1
+0.3333

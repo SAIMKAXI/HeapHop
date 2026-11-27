@@ -30,6 +30,8 @@ interface MemoryCanvasProps {
   still?: boolean;
   /** The student is stepping by hand, so the robot acts out single steps. Off while playing or jumping. */
   robotMotion?: boolean;
+  /** Offer Byte at all. False in the VS Code extension: no robot and no robot button. */
+  robot?: boolean;
 }
 
 const NONE = new Set<string>();
@@ -70,7 +72,7 @@ const CULL_GRID = 240;
 const EMPTY_BOUNDS: Rect = { x: 0, y: 0, width: 0, height: 0 };
 const ARROW_CLASS = { next: "stroke-accent", prev: "stroke-prev", branch: "stroke-accent/60", other: "stroke-muted-foreground" } as const;
 
-export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect, still = false, robotMotion = false }: MemoryCanvasProps) {
+export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlighted = NONE, onSelect, still = false, robotMotion = false, robot = true }: MemoryCanvasProps) {
   const selectedId = selection?.kind === "object" ? selection.id : null;
   const selectedCell = selection?.kind === "pointer" ? selection.cellId : null;
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -84,7 +86,8 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
   const frame = traceBounds(model, plan);
 
   // The robot: placed at home when it appears, then acting out each single step by hand.
-  const robotShown = useRobotShown() && !still;
+  const robotSaved = useRobotShown();
+  const robotShown = robot && robotSaved && !still;
   const svgRef = useRef<SVGSVGElement>(null);
   const robotRef = useRef<SVGGElement>(null);
   const liveRef = useRef<SVGPathElement>(null);
@@ -204,7 +207,7 @@ export function MemoryCanvas({ model, plan, stepIndex, selection = null, highlig
           fullscreen={fullscreen !== "off"}
           onToggleFullscreen={toggleFullscreen}
           robot={robotShown}
-          onToggleRobot={toggleRobot}
+          onToggleRobot={robot ? toggleRobot : undefined}
         />
       )}
       <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1">

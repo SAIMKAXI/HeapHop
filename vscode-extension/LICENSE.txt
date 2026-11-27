@@ -1,0 +1,19 @@
+HeapHop: C++ Memory Visualizer (VS Code extension)
+
+Copyright (c) 2026 the HeapHop team: M. Saim, Yemna Khan, Muhammad Musa, Eeman Athar Malik
+and Syeda Nazalia Zehra. All rights reserved.
+
+You may install this extension from the Visual Studio Marketplace and use it, free of
+charge, to visualize your own programs.
+
+HeapHop is not open source. No other right is granted. Without written permission from the
+team, you may not:
+
+- copy, extract or reuse the extension's code, in whole or in part;
+- modify it, or publish, host or distribute it, or anything made from it;
+- sell it, submit it as your own work, or claim it as your own.
+
+The extension is provided "as is", without warranty of any kind. In no event shall the
+authors be liable for any claim, damages or other liability arising from its use.
+
+To ask for permission, contact the team through https://github.com/SAIMKAXI/HeapHop.

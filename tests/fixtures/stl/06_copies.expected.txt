@@ -1,0 +1,7 @@
+a has 4, b has 5
+inside by value: 5
+after by value: 4
+after by reference: 5 last 777
+after a = b: 5 last 5
+sum of b: 15
+cleared: 0 1

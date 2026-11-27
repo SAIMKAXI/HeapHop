@@ -1,0 +1,4 @@
+0 0 0 7 7 
+queue not found
+tree list stack graph heap 
+5 words

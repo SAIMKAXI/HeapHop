@@ -46,9 +46,50 @@ interface Found { item: MemoryItem; title: string; owner: string; candidates: Ca
 
 const scalars = (items: MemoryItem[] | undefined) => (items ?? []).filter((c) => c.kind === "scalar");
 const isRow = (a: MemoryItem) => a.kind === "array" && (a.children ?? []).every((c) => c.kind === "scalar" || c.kind === "pointer");
-const isMatrix = (a: MemoryItem) => a.kind === "array" && (a.children ?? []).length > 0 && a.children!.every((r) => isRow(r) && r.children!.length > 0);
+/** Rows that are std::vectors (the VS Code extension): they may differ in length, or be empty. */
+const VECTOR_ROW = /^(vector|deque)</;
+const isRagged = (a: MemoryItem) => a.kind === "array" && (a.children ?? []).length > 0 && a.children!.every((r) => isRow(r) && VECTOR_ROW.test(r.typeName));
+const isMatrix = (a: MemoryItem) => a.kind === "array" && (a.children ?? []).length > 0 && (a.children!.every((r) => isRow(r) && r.children!.length > 0) || isRagged(a));
+const rowLength = (a: MemoryItem) => Math.max(0, ...(a.children ?? []).map((r) => r.children?.length ?? 0));
 const drawable = (a: MemoryItem) => isRow(a) || isMatrix(a);
 const named = (cells: MemoryItem[], active: boolean, via: string): Candidate[] => cells.map((cell) => ({ cell, active, via }));
+
+/** A std::list object (head, tail, size), as the VS Code extension's engine records one. */
+const isStdList = (c: MemoryItem) => c.kind === "object" && /^list<.*>$/.test(c.typeName) && !!c.children?.some((x) => x.name === "head" && x.kind === "pointer");
+/**
+ * An array of std::list objects (`list<int> adj[5]`, `new list<int>[V]`) is drawn the way an
+ * adjacency list is drawn on a board: a row of cells, each list hanging from its cell. The
+ * row is the lists' head pointers; tail and size stay visible in the stack panel.
+ */
+function asHeads(a: MemoryItem): MemoryItem {
+  if (a.kind !== "array" || !a.children?.length || !a.children.every(isStdList)) return a;
+  return { ...a, children: a.children.map((c, i) => ({ ...c.children!.find((x) => x.name === "head")!, name: `[${i}]`, label: `[${i}]` })) };
+}
+
+const isPair = (c: MemoryItem) => c.kind === "object" && /^pair</.test(c.typeName) && c.children?.length === 2;
+/** A container of pairs (vector<pair<int, int>>, map<string, int>): one cell per pair, "a, b" (a map shows "key: value"). */
+function asPairs(a: MemoryItem): MemoryItem {
+  if (a.kind !== "array" || !a.children?.length) return a;
+  if (a.children.every(isPair)) {
+    const map = /^map</.test(a.typeName);
+    return {
+      ...a,
+      children: a.children.map((c) => {
+        const [x, y] = c.children!.map((k) => (k.kind === "pointer" ? (k.pointsTo ? "→" : cellText(k)) : k.value ?? ""));
+        return { ...c, kind: "scalar" as const, value: map ? `${x}: ${y}` : `${x}, ${y}`, children: undefined, changed: c.changed || c.children!.some((k) => k.changed) };
+      }),
+    };
+  }
+  if (a.children.every((c) => c.kind === "array")) {
+    const rows = a.children.map(asPairs);
+    return rows.some((r, i) => r !== a.children![i]) ? { ...a, children: rows } : a;
+  }
+  return a;
+}
+
+/** Standard containers that lectures draw a certain way (the VS Code extension). */
+const STD_STACK = /^stack</;
+const STD_HEAP = /^priority_queue</;
 
 function collect(step: Step): Found[] {
   const found: Found[] = [];
@@ -66,21 +107,26 @@ function collect(step: Step): Found[] {
   });
 
   step.stack.forEach((frame, fi) => {
-    for (const v of frame.variables) {
+    for (const raw of frame.variables) {
+      const v = asPairs(asHeads(raw));
       if (v.kind === "array" && drawable(v)) {
-        found.push({ item: v, title: v.name, owner: frame.name, candidates: named(scalars(frame.variables), fi === top, v.name), heapHint: HEAP_NAME.test(v.name), graphHint: GRAPH_NAME.test(v.name), stackHint: STACK_NAME.test(v.name) });
+        found.push({
+          item: v, title: v.name, owner: frame.name, candidates: named(scalars(frame.variables), fi === top, v.name),
+          heapHint: HEAP_NAME.test(v.name) || STD_HEAP.test(v.typeName), graphHint: GRAPH_NAME.test(v.name), stackHint: STACK_NAME.test(v.name) || STD_STACK.test(v.typeName),
+        });
       } else if (v.kind === "object") {
         const method = thisOf.get(v.id);
         const fields = scalars(v.children);
         const locals = method === top ? scalars(step.stack[method].variables) : [];
         const near = (via: string) => [...named(fields, fi === top || method === top, via), ...named(locals, method === top, via)];
-        for (const field of v.children ?? []) {
+        for (const rawField of v.children ?? []) {
+          const field = asPairs(asHeads(rawField));
           if (field.kind === "array" && drawable(field)) {
             found.push({
               item: field, title: `${v.name}.${field.name}`, owner: frame.name, candidates: near(field.name),
-              heapHint: HEAP_NAME.test(field.name) || HEAP_NAME.test(v.typeName) || HEAP_NAME.test(v.name),
+              heapHint: HEAP_NAME.test(field.name) || HEAP_NAME.test(v.typeName) || HEAP_NAME.test(v.name) || STD_HEAP.test(field.typeName),
               graphHint: GRAPH_NAME.test(field.name) || GRAPH_NAME.test(v.typeName),
-              stackHint: STACK_NAME.test(field.name) || STACK_NAME.test(v.typeName),
+              stackHint: STACK_NAME.test(field.name) || STACK_NAME.test(v.typeName) || STD_STACK.test(field.typeName),
             });
           } else if (field.kind === "pointer" && field.pointsTo) {
             point(field.pointsTo, near(field.name)); // a member pointer to an array made with new[]
@@ -90,7 +136,8 @@ function collect(step: Step): Found[] {
     }
   });
 
-  for (const h of step.heap) {
+  for (const raw of step.heap) {
+    const h = asPairs(asHeads(raw));
     if (!drawable(h)) continue;
     const owners = step.stack.flatMap((f) => f.variables).filter((v) => v.pointsTo === h.id || v.children?.some((c) => c.pointsTo === h.id));
     found.push({
@@ -251,7 +298,7 @@ function rowStrip(f: Found, y: number, indexes: Map<string, Set<string>>, read: 
 function matrixStrip(f: Found, y: number, indexes: Map<string, Set<string>>, read: Set<string>): ArrayStrip {
   const grid = f.item.children!;
   const rows = Math.min(grid.length, MAX_GRID);
-  const cols = Math.min(grid[0].children!.length, MAX_GRID);
+  const cols = Math.min(rowLength(f.item), MAX_GRID);
   const cellW = Math.max(MATRIX_W, Math.round(10 + 7.5 * Math.max(0, ...grid.flatMap((r) => r.children!.map((c) => cellText(c).length)))));
   const rowMarks = markersFor(f, (via) => via, rows - 1, indexes, "row").filter((m) => m.index >= 0 && m.index < rows);
   const colMarks = markersFor(f, (via) => `${via}[]`, cols - 1, indexes, "col").filter((m) => m.index >= 0 && m.index < cols);
@@ -298,6 +345,15 @@ function matrixStrip(f: Found, y: number, indexes: Map<string, Set<string>>, rea
 /** Edges of a graph: from a square matrix (non-zero cell = edge) or an array of adjacency lists. */
 function graphEdges(f: Found, step: Step): { n: number; edges: { u: number; v: number; w: string }[] } | null {
   const elems = f.item.children ?? [];
+  if (isRagged(f.item) && elems.some((r) => r.children!.length !== elems.length)) {
+    // vector<int> adj[V], vector<vector<pair<int, int>>> g: each row lists a vertex's neighbours ("v" or "v, weight")
+    const edges: { u: number; v: number; w: string }[] = [];
+    elems.forEach((r, u) => r.children!.forEach((c) => {
+      const [v, w] = (c.value ?? "").split(", ");
+      if (/^-?\d+$/.test(v)) edges.push({ u, v: Number(v), w: w ?? "1" });
+    }));
+    return { n: elems.length, edges };
+  }
   if (isMatrix(f.item)) {
     const n = elems.length;
     if (elems.some((r) => r.children!.length !== n)) return null;
@@ -317,7 +373,8 @@ function graphEdges(f: Found, step: Step): { n: number; edges: { u: number; v: n
       const v = Number(ints[0]?.value);
       if (!node || !Number.isInteger(v)) break;
       edges.push({ u, v, w: ints.find((x) => /^(w|wt|weight|cost)$/i.test(x.name))?.value ?? "1" });
-      id = node.children!.find((x) => x.kind === "pointer")?.pointsTo?.split("_")[0];
+      const link = node.children!.find((x) => x.kind === "pointer" && x.name === "next") ?? node.children!.find((x) => x.kind === "pointer");
+      id = link?.pointsTo?.split("_")[0];
     }
   });
   return { n: elems.length, edges };

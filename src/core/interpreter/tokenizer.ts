@@ -8,7 +8,16 @@ const isIdentStart = (c: string) => /[A-Za-z_]/.test(c);
 const isIdentPart = (c: string) => /[A-Za-z0-9_]/.test(c);
 const isDigit = (c: string) => c >= "0" && c <= "9";
 
-export function tokenize(code: string): Token[] {
+/** Preprocessor and `using` lines, kept because they decide which standard names exist. */
+export interface Directives {
+  /** `<list>`, `<bits/stdc++.h>`, `"list.h"`: what each #include names, spaces removed. */
+  includes: string[];
+  /** `using namespace std`, `using std::list`: each using line without its ";", spaces normalised. */
+  usings: string[];
+}
+
+/** `extended`: the VS Code extension's mode, which also reads 1e9-style numbers. */
+export function tokenize(code: string, directives: Directives = { includes: [], usings: [] }, extended = false): Token[] {
   const tokens: Token[] = [];
   const defines = new Map<string, string>();
   let i = 0;
@@ -25,8 +34,11 @@ export function tokenize(code: string): Token[] {
     if (c === "#") {
       const start = i;
       while (i < code.length && code[i] !== "\n") i++;
-      const def = /^#\s*define\s+([A-Za-z_]\w*)\s+(-?\d+(?:\.\d+)?)\s*(?:\/\/.*)?$/.exec(code.slice(start, i).trim());
+      const text = code.slice(start, i).trim();
+      const def = /^#\s*define\s+([A-Za-z_]\w*)\s+(-?\d+(?:\.\d+)?)\s*(?:\/\/.*)?$/.exec(text);
       if (def) defines.set(def[1], def[2]);
+      const inc = /^#\s*include\s*(<[^>]*>|"[^"]*")/.exec(text);
+      if (inc) directives.includes.push(inc[1].replace(/\s+/g, ""));
       continue;
     }
     if (c === "/" && code[i + 1] === "/") {
@@ -50,6 +62,7 @@ export function tokenize(code: string): Token[] {
       // `using namespace std;` and `using std::cout;` change nothing we show.
       if (word === "using") {
         while (i < code.length && code[i] !== ";") { if (code[i] === "\n") line++; i++; }
+        directives.usings.push(code.slice(s, i).replace(/\s*::\s*/g, "::").replace(/\s+/g, " ").trim());
         i++;
         continue;
       }
@@ -71,8 +84,25 @@ export function tokenize(code: string): Token[] {
         isFloat = true; // "5."
         i++;
       }
-      const text = code.slice(s, i);
-      if (/[fFlLuU]/.test(code[i] ?? "")) i++; // 2.5f, 10L
+      let text = code.slice(s, i);
+      if (extended && !isFloat && /[eE]/.test(code[i] ?? "") && /[\d+-]/.test(code[i + 1] ?? "")) {
+        // 1e9, 2e-3: a double written with an exponent
+        isFloat = true;
+        i++;
+        if (code[i] === "+" || code[i] === "-") i++;
+        while (i < code.length && isDigit(code[i])) i++;
+        text = code.slice(s, i);
+      } else if (extended && isFloat && /[eE]/.test(code[i] ?? "") && /[\d+-]/.test(code[i + 1] ?? "")) {
+        i++;
+        if (code[i] === "+" || code[i] === "-") i++;
+        while (i < code.length && isDigit(code[i])) i++;
+        text = code.slice(s, i);
+      }
+      // Suffixes: 2.5f, 10L, 5u, 1000000007LL. An int keeps its suffix in the token text
+      // ("10LL"), so the extended mode can give it the right type; parseInt ignores it.
+      const suffixStart = i;
+      while (/[fFlLuU]/.test(code[i] ?? "")) i++;
+      if (!isFloat) text += code.slice(suffixStart, i);
       push(isFloat ? "float" : "int", text);
       continue;
     }

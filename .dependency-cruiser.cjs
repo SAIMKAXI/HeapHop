@@ -11,12 +11,22 @@
  *   src/ui       React components
  *   src/app      Next.js shell (website only)
  *   src/server   accounts: Supabase clients, sessions, server actions (website only)
- *   src/standalone  the same interface as one script, for the VS Code webview
+ *   src/standalone  the same interface as one script, checked in a locked-down page (webview:check)
+ *   vscode-extension/  the VS Code extension (outside src/; src/ may not import it)
  */
 const FRAMEWORK = "^(react|react-dom|next)(/|$)|node_modules/(react|react-dom|next|lucide-react)/";
 
 module.exports = {
   forbidden: [
+    {
+      name: "src-never-imports-the-extension",
+      comment:
+        "vscode-extension/ is a shell around src/: it may import the engine and the interface, " +
+        "but nothing in src/ may depend on it, so the website never ships extension code.",
+      severity: "error",
+      from: { path: "^src/" },
+      to: { path: "^vscode-extension/" },
+    },
     {
       name: "server-code-stays-in-the-app",
       comment:

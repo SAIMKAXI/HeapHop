@@ -32,7 +32,11 @@ const eslintConfig = defineConfig([
     files: ["src/ui/**/*.tsx"],
     rules: { "@next/next/no-html-link-for-pages": "off" },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "dist/**", "next-env.d.ts", "extension/dist/**"]),
+  globalIgnores([
+    ".next/**", "out/**", "build/**", "dist/**", "next-env.d.ts",
+    // The VS Code extension builds into these; its own sources are linted with the rest.
+    "vscode-extension/dist/**", "vscode-extension/media/webview/**", "vscode-extension/node_modules/**",
+  ]),
 ]);
 
 export default eslintConfig;

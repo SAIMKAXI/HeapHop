@@ -46,6 +46,8 @@ export interface Frame {
   scopes: Slot[][];
   callerLine: number;
   version: number;
+  /** A lambda's call: the frame it was written in, whose variables it can use. */
+  outer?: Frame;
 }
 
 interface Root {
@@ -108,7 +110,11 @@ export class Memory {
   top(): Frame { return this.frames[this.frames.length - 1]; }
 
   declare(name: string, type: TypeRef, isArray: boolean, value: Value, ref: string | null = null): Slot {
-    const frame = this.top();
+    return this.declareIn(this.top(), name, type, isArray, value, ref);
+  }
+
+  /** Declare in a given frame: static variables live in the globals frame, whoever creates them. */
+  declareIn(frame: Frame, name: string, type: TypeRef, isArray: boolean, value: Value, ref: string | null = null): Slot {
     let key = name;
     let n = 1;
     while (frame.scopes.some((sc) => sc.some((s) => s.key === key))) key = `${name}~${++n}`;
@@ -193,6 +199,12 @@ export class Memory {
     return cur;
   }
 
+  /** Read without counting it as the program reading an element (for HeapHop's own checks). */
+  peek(addr: string): Value {
+    const n = this.reads.length;
+    try { return this.read(addr); } finally { this.reads.length = n; }
+  }
+
   /** Array elements read since the last call, oldest first. */
   takeReads(): string[] {
     return this.reads.splice(0);
@@ -207,7 +219,14 @@ export class Memory {
       for (let i = r.start; i < r.parts.length - 1; i++) cur = this.child(cur, r.parts[i]);
       const last = r.parts[r.parts.length - 1];
       this.child(cur, last); // validates the member / index
-      if (typeof cur === "object" && cur.k === "str") throw fault("other", "Changing one character of a string is not supported yet. Build a new string instead, for example with +.");
+      if (typeof cur === "object" && cur.k === "str") {
+        // s[i] = 'x': a string is a value, so the whole string is replaced by the changed one
+        const i = Number(last);
+        if (i >= cur.s.length) throw fault("out_of_bounds", `Index ${i} is outside the string, which has ${cur.s.length} character${cur.s.length === 1 ? "" : "s"}.`);
+        const c = typeof v === "object" && v.k === "chr" ? v.c : String.fromCharCode(typeof v === "number" ? v & 0xff : 0);
+        this.write(r.parts.slice(0, -1).join("."), { k: "str", s: cur.s.slice(0, i) + c + cur.s.slice(i + 1) });
+        return;
+      }
       if (typeof cur === "object" && cur.k === "obj") cur.f[last] = v;
       else if (typeof cur === "object" && cur.k === "arr") cur.e[Number(last)] = v;
     }
@@ -243,7 +262,17 @@ export class Memory {
     }
     for (let i = start; i < parts.length; i++) {
       // An index selects one element of the same type (twice for a 2-D array).
-      if (isArray || /^\d+$/.test(parts[i])) { isArray = false; continue; }
+      if (isArray) { isArray = false; continue; }
+      if (/^\d+$/.test(parts[i])) {
+        // s[i] is a char; v[i] of a vector is one element of it
+        if (type.ptr === 0 && type.base === "string") type = { base: "char", ptr: 0, ref: false };
+        else {
+          const b = type.ptr === 0 ? this.classes.get(type.base)?.builtin : undefined;
+          const elem = b && b.kind !== "list" ? (b as { elem?: TypeRef }).elem : undefined;
+          if (elem) type = elem;
+        }
+        continue;
+      }
       const field = this.classes.get(type.base)?.fields.find((f) => f.name === parts[i]);
       if (!field) return null;
       type = field.type;

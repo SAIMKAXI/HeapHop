@@ -71,7 +71,22 @@ your account deleted. To report a security problem, see [SECURITY.md](SECURITY.m
 
 ## VS Code extension
 
-A VS Code extension that shows the same visualization next to your code is on the way.
+A VS Code extension shows the same visualization in a panel next to any C++ file. Open a `.cpp`
+file and run **HeapHop: Visualize Current File** (Ctrl+Alt+H, or the button at the top right of
+the editor); saving the file runs it again. The current step and the line that called it are
+highlighted in the editor, code HeapHop cannot run is underlined and listed in the Problems
+panel, and there is a box for `cin` input.
+
+Beside everything the website runs, the extension turns on the rest of the C++ a data-structures
+course uses — the standard containers (`vector`, `list`, `deque`, `stack`, `queue`,
+`priority_queue`, `pair`, `map`, `set`), `<algorithm>`, templates, inheritance and `virtual`
+functions, operator overloading, `try`/`catch`, and `<iomanip>` — and draws them the way they
+are taught: a `std::list` as its doubly linked nodes, an adjacency list as a graph, a
+`priority_queue` as its heap tree. This extended mode is on only in the extension; the website is
+unchanged.
+
+The extension lives in [`vscode-extension/`](vscode-extension/); building and publishing it are
+described in [vscode-extension/PUBLISHING.md](vscode-extension/PUBLISHING.md).
 
 ## The team
 

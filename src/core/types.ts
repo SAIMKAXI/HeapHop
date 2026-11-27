@@ -193,11 +193,15 @@ export const MAX_INPUT_CHARS = 20_000;
 export const MAX_STRING_CHARS = 10_000;
 
 /** The limits a run actually gets: what was asked for, but never above the defaults or below 1. */
-export function clampLimits(asked: Partial<RunLimits> | undefined): RunLimits {
-  const out = { ...DEFAULT_LIMITS };
-  for (const key of Object.keys(DEFAULT_LIMITS) as (keyof RunLimits)[]) {
+/** The VS Code extension's limits: the same, except that programs may print more. */
+export const EXTENSION_LIMITS: RunLimits = { ...DEFAULT_LIMITS, maxOutputChars: 50000 };
+
+/** Limits a caller asked for, never above `ceiling` (missing ones are the ceiling's). */
+export function clampLimits(asked: Partial<RunLimits> | undefined, ceiling: RunLimits = DEFAULT_LIMITS): RunLimits {
+  const out = { ...ceiling };
+  for (const key of Object.keys(ceiling) as (keyof RunLimits)[]) {
     const v = asked?.[key];
-    if (typeof v === "number" && Number.isFinite(v)) out[key] = Math.max(1, Math.min(Math.floor(v), DEFAULT_LIMITS[key]));
+    if (typeof v === "number" && Number.isFinite(v)) out[key] = Math.max(1, Math.min(Math.floor(v), ceiling[key]));
   }
   return out;
 }

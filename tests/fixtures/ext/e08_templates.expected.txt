@@ -1,0 +1,8 @@
+7 2.5 z abd
+1 2 3 
+1.5 2.5 
+2 1
+20 10 1
+world hello
+1 -> 2 -> 3 -> null
+Sara -> Ali -> null

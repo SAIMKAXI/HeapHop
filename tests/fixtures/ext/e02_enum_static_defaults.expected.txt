@@ -1,0 +1,10 @@
+0 5 6
+green
+up sideways 2
+101 102 103
+created 3, total() 3, ids 123
+Hello, Musa!
+Salam, Saim!
+Hi, Team!
+Hi, Team!
+30 12
